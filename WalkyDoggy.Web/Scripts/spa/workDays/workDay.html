@@ -1,0 +1,117 @@
+﻿<br />
+<div class="row step1">
+    <div class="col-md-10 col-md-offset-1">
+        <div class="panel panel-primary">
+            <div class="panel-heading text-center">
+                <h3 class="panel-title">JORNADA LABORAL</h3>
+            </div>
+            <div class="panel-body">
+                <div class="col-xs-12 col-sm-6 col-md-12 movie">
+                    <form role="form" novalidate angular-validator name="workDayRequest" angular-validator-submit="submit()">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">Jornada laboral</h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="row input-data-row">
+                                            <div class="col-md-4">
+                                                <label>Dia de la semana</label>
+                                                <div class="input-group">
+                                                    <select type="text"
+                                                            name="inputDayOfWeek"
+                                                            class="form-control"
+                                                            ng-model="workDay.dayOfWeek"
+                                                            validate-on="blur"
+                                                            required
+                                                            required-message="'Día de la semana es requerido.'">
+                                                        <option value="" disabled selected>Seleccione un día de la semana</option>
+                                                        <option value="Lunes">Lunes</option>
+                                                        <option value="Martes">Martes</option>
+                                                        <option value="Miércoles">Miércoles</option>
+                                                        <option value="Jueves">Jueves</option>
+                                                        <option value="Viernes">Viernes</option>
+                                                        <option value="Sábado">Sábado</option>
+                                                        <option value="Domingo">Domingo</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row input-data-row">
+                                            <div class="col-md-4">
+                                                <label>Hora desde</label>
+                                                <div class="input-group">
+                                                    <select type="text"
+                                                            name="inputTimeFrom"
+                                                            class="form-control"
+                                                            ng-model="workDay.timeFrom"
+                                                            validate-on="blur"
+                                                            required
+                                                            required-message="'Hora desde es requerido.'">
+                                                        <option value="" disabled selected>Seleccione una hora desde</option>
+                                                        <option value="08:00">08:00</option>
+                                                        <option value="09:00">09:00</option>
+                                                        <option value="10:00">10:00</option>
+                                                        <option value="11:00">11:00</option>
+                                                        <option value="12:00">12:00</option>
+                                                        <option value="13:00">13:00</option>
+                                                        <option value="14:00">14:00</option>
+                                                        <option value="15:00">15:00</option>
+                                                        <option value="16:00">16:00</option>
+                                                        <option value="17:00">17:00</option>
+                                                        <option value="18:00">18:00</option>
+                                                        <option value="19:00">19:00</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>Hora hasta</label>
+                                                <div class="input-group">
+                                                    <select type="text"
+                                                            name="inputTimeUntil"
+                                                            class="form-control"
+                                                            ng-model="workDay.timeUntil"
+                                                            validate-on="blur"
+                                                            required
+                                                            required-message="'Hora hasta es requerido.'">
+                                                        <option value="" disabled selected>Seleccione una hora hasta</option>
+                                                        <option value="08:00">08:00</option>
+                                                        <option value="09:00">09:00</option>
+                                                        <option value="10:00">10:00</option>
+                                                        <option value="11:00">11:00</option>
+                                                        <option value="12:00">12:00</option>
+                                                        <option value="13:00">13:00</option>
+                                                        <option value="14:00">14:00</option>
+                                                        <option value="15:00">15:00</option>
+                                                        <option value="16:00">16:00</option>
+                                                        <option value="17:00">17:00</option>
+                                                        <option value="18:00">18:00</option>
+                                                        <option value="19:00">19:00</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-footer text-center">
+                                <div class="row" style="display:inline-flex">
+                                    <div class="text-center btns-footer-container">
+                                        <a class="btn btn-danger" href="#/work-conditions">Cancelar</a>
+                                    </div>
+                                    <div class="text-center btns-footer-container">
+                                        <button type="submit" class="btn btn-success">Guardar</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

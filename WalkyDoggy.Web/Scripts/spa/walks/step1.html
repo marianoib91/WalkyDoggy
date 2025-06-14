@@ -1,0 +1,130 @@
+﻿<br />
+<div class="row step1">
+    <div class="col-md-10 col-md-offset-1">
+        <div class="panel panel-primary">
+            <div class="panel-heading text-center">
+                <h3 class="panel-title">RESERVAR PASEO - PASO 1 DE 2</h3>
+            </div>
+            <div class="panel-body">
+                <div class="col-xs-12 col-sm-6 col-md-12 movie">
+                    <form role="form" novalidate angular-validator name="walkRequest" angular-validator-submit="submit()">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">FECHA DE PASEO</h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="row input-data-row">
+                                            <div class="col-md-4">
+                                                <label>Fecha de paseo</label>
+                                                <div class="input-group">
+                                                    <input date-range-picker 
+                                                           name="txtStartDay"
+                                                           type="text"
+                                                           options="opts"
+                                                           ng-model="walk.date"
+                                                           class="date-picker form-control col-md-7 col-xs-12"
+                                                           validate-on="blur"
+                                                           required
+                                                           required-message="'Fecha de paseo es requerido.'" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">HORARIO DE PASEO</h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="row input-data-row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Horario de inicio de paseo</label>
+                                                    <div class="input-group">
+                                                        <select type="text"
+                                                                name="inputInitTime"
+                                                                class="form-control"
+                                                                ng-model="walk.timeFrom"
+                                                                ng-change="validateTimeFrom()"
+                                                                validate-on="blur"
+                                                                required
+                                                                required-message="'Hora de inicio es requerido.'">
+                                                            <option value="" disabled selected>Seleccione hora de inicio</option>
+                                                            <option value="08:00">08:00</option>
+                                                            <option value="09:00">09:00</option>
+                                                            <option value="10:00">10:00</option>
+                                                            <option value="11:00">11:00</option>
+                                                            <option value="12:00">12:00</option>
+                                                            <option value="13:00">13:00</option>
+                                                            <option value="14:00">14:00</option>
+                                                            <option value="15:00">15:00</option>
+                                                            <option value="16:00">16:00</option>
+                                                            <option value="17:00">17:00</option>
+                                                            <option value="18:00">18:00</option>
+                                                            <option value="19:00">19:00</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">MASCOTAS A PASEAR</h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="inner-title-container" ng-if="pets.length>0">
+                                            <h4 class="black">Seleccione una o más mascotas para su paseo</h4>
+                                        </div>
+                                        <div class="row input-data-row" ng-repeat="pet in pets">
+                                            <div class="col-md-6 col-md-offset-1 pet-container">
+                                                <div class="col-md-2 input-container">
+                                                    <div class="checkbox">
+                                                        <label>
+                                                            <input type="checkbox" ng-model="pet.selectedPet">
+                                                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="dog-profile-image-container">
+                                                        <img class="dog-profile-image" src="../../../Content/images/dog-profile2.jpg" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 input-container">
+                                                    <div class="">
+                                                        <label>{{pet.name}}</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row input-data-row" ng-if="pets.length==0">
+                                            <div class="col-md-12">
+                                                <label>No tienes mascotas en tu lista de mascotas. Ve a la sección "Mis Mascotas" ubicada en el menú superior para agregarlas.</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="panel-footer text-center">
+                                <div class="row" style="display:inline-flex">
+                                    <div class="text-center btns-footer-container">
+                                        <a class="btn btn-danger" href="#/">Cancelar</a>
+                                    </div>
+                                    <div class="text-center btns-footer-container">
+                                        <button type="submit" class="btn btn-success" href="#/walks/step-2">Continuar</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,92 @@
+﻿<br />
+<div class="row step2">
+    <div class="col-md-10 col-md-offset-1">
+        <div class="panel panel-primary">
+           
+            <div class="panel-heading text-center">
+                <h3 class="panel-title">RESERVAR PASEO - PASO 2 DE 2</h3>
+            </div>
+            <div class="panel-body">
+                <div ng-if="walkers.length==0">
+                    <div class="panel-heading text-center">
+                        <h3 class="panel-title">No se encontraron paseadores disponibles</h3>
+                    </div>
+                    <div class="text-center">
+                        <div class="row" style="display:inline-flex">
+                            <div class="text-center btns-footer-container">
+                                <a class="btn btn-danger" href="#/walks/step-1">Volver al paso 1</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-12 movie"  ng-if="walkers.length>0">
+                    <form role="form" novalidate angular-validator name="walkRequest" angular-validator-submit="submit()">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">Seleccionar paseador</h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="inner-title-container">
+                                            <h4 class="black">Seleccione un paseador de la lista</h4>
+                                        </div>
+                                        <div class="row input-data-row" ng-repeat="walker in walkers">
+                                            <div class="col-md-6 col-md-offset-1 walker-container">
+                                                <div class="col-md-2 input-container">
+                                                    <div class="checkbox">
+                                                        <label>
+                                                            <input type="checkbox" value="">
+                                                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 image-container">
+                                                    <div class="walker-profile-image-container ">
+                                                        <img class="walker-profile-image" src="../../../Content/images/profile-image.png" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 text-center">
+                                                    <div class="row">
+                                                        <div class="">
+                                                            <h4 class="black">{{walker.firstName}} {{walker.lastName}}</h4>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="">
+                                                            <p>{{walker.streetName}} {{walker.streetNumber}}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="">
+                                                            <p>{{walker.cityName}}, {{walker.provinceName}}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="">
+                                                            <p>${{walker.amount}} por paseo</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-footer text-center">
+                                <div class="row" style="display:inline-flex">
+                                    <div class="text-center btns-footer-container">
+                                        <a class="btn btn-danger" href="#/walks/step-1">Volver al paso 1</a>
+                                    </div>
+                                    <div class="text-center btns-footer-container">
+                                        <button type="submit" class="btn btn-success" href="">Confirmar paseo</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

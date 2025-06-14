@@ -1,0 +1,227 @@
+﻿<br />
+<!--Begin customer-->
+<div class="row customer-index" ng-show="roleId!=3">
+    <div class="col-md-10 col-md-offset-1">
+        <div class="panel panel-primary">
+            <div ng-if="walkers.length==0">
+                <div class="panel-heading text-center">
+                    <h3 class="panel-title">No se encontraron paseadores</h3>
+                </div>
+            </div>
+
+            <div ng-if="walkers.length>0" class="panel-heading text-center">
+                <h3 class="panel-title">PASEADORES RECOMENDADOS</h3>
+            </div>
+            <div ng-if="walkers.length>0" class="panel-body">
+                <div class="row">
+                    <!--<div class="panel-heading pull-left">
+                        <h3 class="panel-title">Filtrar por:</h3>
+                    </div>-->
+                    <!--<div class="col-md-2">
+                        <div class="form-group">
+                            <select type="text"
+                                    name="inputRanking"
+                                    class="form-control"
+                                    ng-model="rankingId"
+                                    validate-on="blur">
+                                <option value="" disabled selected>Puntuacion</option>
+                                <option value="1">5</option>
+                            </select>
+                        </div>
+                    </div>-->
+                    <!--<div class="col-md-3">
+                        <div class="form-group">
+                            <select type="text"
+                                    name="inputProvince"
+                                    class="form-control"
+                                    ng-model="provinceId"
+                                    ng-change="loadCities(provinceId)"
+                                    ng-options="province.id as province.name for province in provinces">
+                                <option value="" disabled selected>Seleccione una provincia</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <select type="text"
+                                    name="inputCity"
+                                    class="form-control"
+                                    ng-disabled="disableCities"
+                                    ng-model="customer.cityId"
+                                    ng-options="city.id as city.name for city in cities">
+                                <option value="" disabled selected>Seleccione una ciudad</option>
+                            </select>
+                        </div>
+                    </div>-->
+                    <!--<div class="col-md-2">
+                        <div class="form-group">
+                            <select type="text"
+                                    name="inputSize"
+                                    class="form-control"
+                                    ng-model="sizeId"
+                                    validate-on="blur">
+                                <option value="" disabled selected>Tamaño perro</option>
+                                <option value="1">Grande</option>
+                            </select>
+                        </div>
+                    </div>-->
+                    <!--<div class="col-md-3">
+                        <div class="form-group">
+                            <select type="text"
+                                    name="inputPrice"
+                                    class="form-control"
+                                    ng-model="price"
+                                    ng-options="price.id as '$ '+ price.amount for price in prices">
+                                <option value="" disabled selected>Seleccione un precio por paseo</option>
+                            </select>
+                        </div>
+                    </div>-->
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-12 movie" ng-repeat="walker in walkers">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <div style="padding-left:45px" class="col-md-3">
+                                <label>{{walker.firstName}} {{walker.lastName}}</label>
+                            </div>
+                            <span style="padding-left:95px" component-rating="4"></span>
+
+
+                        </div>
+                        <div class="panel-body">
+                            <div class="col-md-3">
+                                <div class="walker-profile-image-container">
+                                    <img class="walker-profile-image" src="../../../Content/images/profile-image.png" />
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label>{{walker.cityName}} - {{walker.provinceName}}</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <p>{{walker.description}}</p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <strong>Precio por hora: </strong>
+                                        <label class="label-card-info">${{walker.amount}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--<div class="panel-footer">
+                            <div class="col-md-offset-3 btn-hire-container">
+                                <button class="btn btn-success">Contratar</button>
+                            </div>
+                        </div>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--End customer-->
+<!--Begin Walker-->
+<div class="row walker-index" ng-show="roleId==3">
+    <div class="col-md-10 col-md-offset-1">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title text-center">PASEOS PENDIENTES PARA EL DIA DE HOY</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row" ng-if="walks.length>0">
+                    <div class="panel-heading pull-left">
+                        <h3 class="panel-title">Filtrar por:</h3>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <select type="text"
+                                    name="inputSize"
+                                    class="form-control"
+                                    ng-model="sizeId"
+                                    validate-on="blur">
+                                <option value="" disabled selected>Hora de paseo</option>
+                                <option value="08:00">08:00</option>
+                                <option value="09:00">09:00</option>
+                                <option value="10:00">10:00</option>
+                                <option value="11:00">11:00</option>
+                                <option value="12:00">12:00</option>
+                                <option value="13:00">13:00</option>
+                                <option value="14:00">14:00</option>
+                                <option value="15:00">15:00</option>
+                                <option value="16:00">16:00</option>
+                                <option value="17:00">17:00</option>
+                                <option value="18:00">18:00</option>
+                                <option value="19:00">19:00</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-12 movie">
+                    <div class="panel-heading" ng-if="walks.length==0">
+                        <h3 class="panel-title text-center">No se encontró ningun paseo pendiente para el día de hoy</h3>
+                    </div>
+                    <div class="panel panel-default" ng-repeat="walk in walks">
+                        <div class="panel-body">
+                            <div class="col-md-3">
+                                <div class="panel-heading">
+                                    <div class="text-center">
+                                        <label>{{walk.petName}}</label>
+                                    </div>
+                                </div>
+                                <div class="dog-profile-image-container">
+                                    <img class="dog-profile-image" src="../../../Content/images/dog-profile2.jpg" />
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong><u>Dueño</u>:</strong>
+                                        <label class="label-card-info">{{walk.customerFullName}}</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong><u>Ubicación</u>:</strong>
+                                        <label class="label-card-info">{{walk.location}}</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong><u>Hora de paseo</u>:</strong>
+                                        <label class="label-card-info">{{walk.timeFrom}}</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <strong><u>Aclaraciones</u>:</strong>
+                                        <label class="label-card-info">{{walk.details}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ng-if="!walk.isExpired" class="panel-footer">
+                            <div class="row col-md-offset-3" style="display:inline-flex">
+                                <div class="btns-container">
+                                    <button class="btn btn-danger">Cancelar</button>
+                                </div>
+                                <div class="btns-container">
+                                    <button class="btn btn-success">Confirmar</button>
+                                </div>                                
+                            </div>
+                        </div>
+                        <div ng-if="walk.isExpired" class="panel-footer  walk-expired-container">
+                            <div class="btn-hire-container text-center">
+                                <p data-tooltip="El paseo se encuentra vencido o cancelado por falta de confirmación" class="walk-expired-label">PASEO VENCIDO/CANCELADO</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--End Walker-->

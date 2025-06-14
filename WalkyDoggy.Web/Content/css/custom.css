@@ -1,0 +1,124 @@
+﻿/*begin topbar*/
+.topbar-button {
+    display: inline-flex !important;
+}
+
+.topbar-icon {
+    padding-top: 3px;
+    padding-left: 3px;
+}
+
+.navbar-container {
+    width: 60% !important;
+}
+
+.userinfo {
+    background-color: transparent !important;
+}
+
+.navbar {
+    box-shadow: 3px -3px 20px 1px !important;
+}
+
+.navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:hover {
+    color: #777 !important;
+}
+
+.navbar-default .navbar-nav > li > a {
+    color: #1d1c1c !important;
+}
+/*end topbar*/
+
+
+/*begin form controls*/
+.form-control {
+    font-size: 14px !important;
+    padding: 7px !important;
+}
+
+.has-error .form-control {
+    border-color: #ec3434 !important;
+}
+
+.has-error .control-label {
+    font-weight: 500;
+}
+/*end form controls*/
+/*begin forgot-password*/
+.forgot-password-title {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+/*end forgot-password*/
+/*Begin public*/
+.public-section1 {
+    background: url('../images/index-public2.jpg') center;
+    background-size: cover;
+    height: 590px;
+}
+
+.public-img-container {
+    width: 33%;
+    height: 33%;
+    margin: 0 auto;
+}
+
+.img-public {
+    height: 100%;
+    width: 100%;
+}
+
+.money-image-container {
+    padding-top: 13px;
+}
+
+.time-image-container {
+    width: 26%;
+    margin-bottom: 16px;
+}
+
+.pet-image-container {
+    width: 28%;
+    margin-top: -6px;
+    margin-bottom: 14px;
+}
+
+.public-text {
+    color: floralwhite;
+    text-shadow: black 0.75px 0px 2px;
+}
+
+.main-title {
+    font-size: 41px;
+}
+
+.main-title-container {
+    padding-top: 75px;
+}
+
+.sub-title-container {
+    padding-top: 40px;
+}
+
+.register-container {
+    padding-top: 95px;
+}
+
+
+
+.btn-register-public {
+    padding: 16px 32px !important;
+}
+
+.navbar-default {
+    background-image: linear-gradient(to bottom, #f7f4f4 0%, #e8e3e3 100%) !important;
+}
+
+.login-modal-panel {
+    margin-bottom: 0px !important;
+}
+
+.login-modal-title {
+    margin-top: 0px;
+}
+/*End public*/

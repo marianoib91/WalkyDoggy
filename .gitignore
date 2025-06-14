@@ -1,0 +1,22 @@
+# Carpetas de Visual Studio
+.vs/
+*.user
+*.suo
+
+# Archivos de compilación
+bin/
+obj/
+
+# Archivos de paquetes NuGet
+packages/
+*.nupkg
+
+# Configuraciones de entorno
+*.dbmdl
+*.log
+*.pidb
+*.svd
+
+# Archivos de SQL Server temporales
+*.mdf
+*.ldf

@@ -1,0 +1,86 @@
+﻿<div class="pets-edit">
+    <h3 class="form-signin-heading" ng-if="petId!=0">Editar mascota</h3>
+    <h3 class="form-signin-heading" ng-if="petId==0">Agregar nueva mascota</h3>
+
+    <div class="information-container col-md-10 col-md-offset-1">
+        <div class="row">
+            <div class="form-container col-md-8 col-md-offset-2">
+                <div class="row form-container-header text-center">                    
+                        <h4>TARJETA DE PRESENTACIÓN</h4>
+                </div>
+                <form class="pet-information" role="form" novalidate angular-validator name="userRegistrationForm" angular-validator-submit="updatePet()">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <div class="text-center profile-image-container">
+                                <img ng-src="../../../Content/images/dog-profile2.jpg" class="profile-image" alt="avatar">
+                                <div class="file-upload-container">
+                                    <label class="btn btn-default btn-block" for="upload-photo">Seleccionar foto</label>
+                                    <input type="file" name="photo" id="upload-photo" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-group">
+                            <input type="text"
+                                   name="inputName"
+                                   class="form-control"
+                                   ng-model="pet.name"
+                                   placeholder="Nombre"
+                                   validate-on="blur"
+                                   required
+                                   required-message="'Nombre es requerido.'">
+                        </div>
+                        <div class="form-group">
+                            <input type="number"
+                                   name="inputAge"
+                                   class="form-control"
+                                   ng-model="pet.age"
+                                   placeholder="Edad"
+                                   validate-on="blur"
+                                   required
+                                   required-message="'Edad es requerido.'">
+                        </div>
+                        <div class="form-group">
+                            <select type="text"
+                                    name="inputBreed"
+                                    class="form-control"
+                                    ng-model="pet.breedId"
+                                    ng-options="breed.id as breed.name for breed in breeds"
+                                    validate-on="blur"
+                                    required
+                                    required-message="'Raza es requerido.'">
+                                <option value="" disabled selected>Seleccione una raza</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <select type="text"
+                                    name="inputCity"
+                                    class="form-control"
+                                    ng-model="pet.sizeId"
+                                    ng-options="size.id as size.name for size in sizes"
+                                    validate-on="blur"
+                                    required
+                                    required-message="'Tamaño es requerido.'">
+                                <option value="" disabled selected>Seleccione un tamaño</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <textarea type="text"
+                                      cols="2"
+                                      name="inputDescription"
+                                      class="form-control"
+                                      placeholder="Ingrese una breve descripción de su mascota"
+                                      ng-model="pet.description"
+                                      validate-on="blur"
+                                      required
+                                      required-message="'Descripción es requerido.'"></textarea>
+                        </div>
+                    </div>
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Guardar cambios</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>

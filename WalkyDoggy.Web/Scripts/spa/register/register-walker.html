@@ -1,0 +1,145 @@
+﻿<div class="row">
+    <form class="form-signin" role="form" novalidate angular-validator name="userRegistrationForm" angular-validator-submit="register()">
+        <h3 class="form-signin-heading">Paseador - Registrar nueva cuenta</h3>
+        <div class="form-group">
+            <input type="text"
+                   name="inputFirstName"
+                   class="form-control"
+                   ng-model="walker.firstName"
+                   placeholder="Nombre"
+                   validate-on="blur"
+                   required
+                   required-message="'Nombre es requerido.'">
+        </div>
+        <div class="form-group">
+            <input type="text"
+                   name="inputLastName"
+                   class="form-control"
+                   ng-model="walker.lastName"
+                   placeholder="Apellido"
+                   validate-on="blur"
+                   required
+                   required-message="'Apellido es requerido.'">
+        </div>
+        <div class="form-group">
+            <input type="text"
+                   name="inputEmail"
+                   class="form-control"
+                   ng-model="walker.email"
+                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"
+                   invalid-message="'El email ingresado no es válido'"
+                   placeholder="Email"
+                   validate-on="blur"
+                   required
+                   required-message="'Email es requerido.'">
+        </div>
+        <div class="form-group">
+            <input type="number"
+                   name="inputPhoneNumber"
+                   class="form-control"
+                   ng-model="walker.phone"
+                   pattern=".{10,}"
+                   invalid-message="'El teléfono ingresado no es válido'"
+                   placeholder="Teléfono Celular"
+                   validate-on="blur"
+                   required
+                   required-message="'Teléfono Celular es requerido.'">
+        </div>
+        <div class="form-group">
+            <textarea type="text"
+                      cols="2"
+                      name="inputDescription"
+                      class="form-control"
+                      placeholder="Ingrese una breve descripción de usted como paseador"
+                      ng-model="walker.description"
+                      validate-on="blur"
+                      required
+                      required-message="'Descripción es requerido.'"></textarea>
+        </div>
+        <div class="form-group">
+            <select type="text"
+                    name="inputProvince"
+                    class="form-control"
+                    ng-model="provinceId"
+                    ng-change="loadCities(provinceId)"
+                    ng-options="province.id as province.name for province in provinces"
+                    validate-on="blur"
+                    required
+                    required-message="'Provincia es requerido.'">
+                <option value="" disabled selected>Seleccione una provincia</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <select type="text"
+                    name="inputCity"
+                    class="form-control"
+                    ng-disabled="disableCities"
+                    ng-model="walker.cityId"
+                    ng-options="city.id as city.name for city in cities"
+                    validate-on="blur"
+                    required
+                    required-message="'Ciudad es requerido.'">
+                <option value="" disabled selected>Seleccione una ciudad</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <input type="text"
+                   name="inputStreet"
+                   class="form-control"
+                   ng-model="walker.streetName"
+                   pattern="[a-zA-Z\s]+"
+                   invalid-message="'El nombre de la calle no puede contener números'"
+                   placeholder="Calle"
+                   validate-on="blur"
+                   required
+                   required-message="'Calle es requerido.'">
+        </div>
+        <div class="form-group">
+            <input type="number"
+                   name="inputStreetNumber"
+                   class="form-control"
+                   ng-model="walker.streetNumber"
+                   placeholder="Numero de calle"
+                   validate-on="blur"
+                   required
+                   required-message="'Número de calle es requerido.'">
+        </div>
+        <div class="form-group">
+            <select type="text"
+                    name="inputPrice"
+                    class="form-control"
+                    ng-model="walker.priceId"
+                    ng-options="price.id as '$ ' + price.amount for price in prices"
+                    validate-on="blur"
+                    required
+                    required-message="'Precio por paseo es requerido.'">
+                <option value="" disabled selected>Seleccione un precio por paseo</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <input type="password"
+                   name="inputPassword"
+                   class="form-control"
+                   ng-model="walker.password"
+                   pattern=".{6,}"
+                   invalid-message="'Debe contener al menos 6 caracteres'"
+                   placeholder="Contraseña"
+                   validate-on="blur"
+                   required
+                   required-message="'Contraseña es requerido.'">
+        </div>
+        <div class="form-group">
+            <input type="password"
+                   name="inputConfirmPassword"
+                   class="form-control"
+                   placeholder="Confirmar contraseña"
+                   ng-model="walker.confirmPassword"
+                   pattern=".{6,}"
+                   invalid-message="'Debe contener al menos 6 caracteres'"
+                   validate-on="blur"
+                   required
+                   required-message="'Confirma contraseña es requerido.'">
+        </div>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Registrarme</button>
+    </form>
+</div>

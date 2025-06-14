@@ -1,0 +1,49 @@
+﻿<div class="panel panel-primary login-modal-panel">
+    <div class="panel-heading text-center">
+        Walky Doggy - Iniciar Sesión
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <form class="form-signin" role="form" novalidate angular-validator name="userLoginForm" angular-validator-submit="login()">
+                <h3 class="form-signin-heading text-center login-modal-title">Iniciar Sesión</h3>
+                <div class="form-group">
+                    <label for="inputEmail" class="sr-only">Email</label>
+                    <input type="text"
+                           id="inputEmail"
+                           name="inputEmail"
+                           class="form-control"
+                           ng-model="user.email"
+                           pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"
+                           invalid-message="'El email ingresado no es válido'"
+                           placeholder="Email"
+                           validate-on="blur"
+                           required
+                           required-message="'Debe ingresar un Email'">
+                </div>
+                <div class="form-group">
+                    <label for="inputPassword" class="sr-only">Contraseña</label>
+                    <input type="password"
+                           id="inputPassword"
+                           name="inputPassword"
+                           class="form-control"
+                           pattern=".{6,}"
+                           invalid-message="'Debe contener al menos 6 caracteres'"
+                           ng-model="user.password"
+                           placeholder="Contraseña"
+                           validate-on="blur"
+                           required
+                           required-message="'Debe ingresar una contraseña'">
+                </div>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Iniciar Sesión</button>
+                <div class="pull-right">
+                    <a ng-href="#/forgot-password" ng-click="closeModal()" class="control-label">Olvidé mi contraseña</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="panel-footer clearfix">
+        <div class="pull-right">
+            <button type="button" class="btn btn-danger" ng-click="closeModal()">Cerrar</button>
+        </div>
+    </div>
+</div>

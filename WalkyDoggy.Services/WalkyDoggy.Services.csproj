@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2B0131AB-CD43-47FE-8D0E-2C80EE069762}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>WalkyDoggy.Services</RootNamespace>
+    <AssemblyName>WalkyDoggy.Services</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AutoMapper, Version=6.1.0.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\WalkyDoggy\WalkyDoggy.Application\bin\Debug\AutoMapper.dll</HintPath>
+    </Reference>
+    <Reference Include="AutoMapper.Net4">
+      <HintPath>..\..\WalkyDoggy\WalkyDoggy.Application\bin\Debug\AutoMapper.Net4.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WalkyDoggy.Data">
+      <HintPath>..\..\Walky Doggy\WalkyDoggy.Data\bin\Debug\WalkyDoggy.Data.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Contracts\IBreedAppService.cs" />
+    <Compile Include="Contracts\ICityAppService.cs" />
+    <Compile Include="Contracts\ICustomerAppService.cs" />
+    <Compile Include="Contracts\IDistanceMatrixAppService.cs" />
+    <Compile Include="Contracts\IEncryptionService.cs" />
+    <Compile Include="Contracts\IEntityBaseAppService.cs" />
+    <Compile Include="Contracts\IGeocodeAppService.cs" />
+    <Compile Include="Contracts\IMembershipService.cs" />
+    <Compile Include="Contracts\IPetAppService.cs" />
+    <Compile Include="Contracts\IPriceAppService.cs" />
+    <Compile Include="Contracts\IProvinceAppService.cs" />
+    <Compile Include="Contracts\ISizeAppService.cs" />
+    <Compile Include="Contracts\ITimeAppService.cs" />
+    <Compile Include="Contracts\IUserAppService.cs" />
+    <Compile Include="Contracts\IWalkAppService.cs" />
+    <Compile Include="Contracts\IWalkerAppService.cs" />
+    <Compile Include="Contracts\IWorkDayAppService.cs" />
+    <Compile Include="Services\BreedAppService.cs" />
+    <Compile Include="Services\CityAppService.cs" />
+    <Compile Include="Services\CustomerAppService.cs" />
+    <Compile Include="Services\DistanceMatrixAppService.cs" />
+    <Compile Include="Services\EntityBaseAppService.cs" />
+    <Compile Include="Services\GeocodeAppService.cs" />
+    <Compile Include="Services\PetAppService.cs" />
+    <Compile Include="Services\PriceAppService.cs" />
+    <Compile Include="Services\ProvinceAppService.cs" />
+    <Compile Include="Services\SizeAppService.cs" />
+    <Compile Include="Services\TimeAppService.cs" />
+    <Compile Include="Services\UserAppService.cs" />
+    <Compile Include="Services\WalkAppService.cs" />
+    <Compile Include="Services\WalkerAppService.cs" />
+    <Compile Include="Services\WorkDayAppService.cs" />
+    <Compile Include="Utilities\DayOfWeekService.cs" />
+    <Compile Include="Utilities\MembershipService.cs" />
+    <Compile Include="EncryptionService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\MembeshipContext.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WalkyDoggy.Application\WalkyDoggy.Application.csproj">
+      <Project>{d6962842-e71a-4835-b442-48de985a70a0}</Project>
+      <Name>WalkyDoggy.Application</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WalkyDoggy.Entities\WalkyDoggy.Entities.csproj">
+      <Project>{3e8bb046-05bd-4d27-94a7-c13ad4f3e192}</Project>
+      <Name>WalkyDoggy.Entities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

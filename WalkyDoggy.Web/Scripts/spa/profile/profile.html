@@ -1,0 +1,122 @@
+﻿<div class="profile">
+    <h3 class="page-title">Mi perfil</h3>
+    <div class="col-md-10 col-md-offset-1">
+        <div class="row">
+            <div class="form-container col-md-8 col-md-offset-2">
+                <div class="row form-container-header text-center">
+                    <h4>DATOS PERSONALES</h4>
+                </div>
+                <form class="profile-information" role="form" novalidate angular-validator name="userRegistrationForm" angular-validator-submit="updateProfile()">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <div class="text-center profile-image-container">
+                                <img ng-src="../../../Content/images/profile-image.png" class="profile-image" alt="avatar">
+                                <div class="file-upload-container">
+                                    <label class="btn btn-default btn-block" for="upload-photo">Seleccionar foto</label>
+                                    <input type="file" name="photo" id="upload-photo" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-group">
+                            <input type="text"
+                                   name="inputFirstName"
+                                   class="form-control"
+                                   ng-model="user.firstName"
+                                   placeholder="Nombre"
+                                   validate-on="blur"
+                                   required
+                                   required-message="'Nombre es requerido.'">
+                        </div>
+                        <div class="form-group">
+                            <input type="text"
+                                   name="inputLastName"
+                                   class="form-control"
+                                   ng-model="user.lastName"
+                                   placeholder="Apellido"
+                                   validate-on="blur"
+                                   required
+                                   required-message="'Apellido es requerido.'">
+                        </div>
+                        <div class="form-group">
+                            <input type="text"
+                                   name="inputEmail"
+                                   class="form-control"
+                                   ng-model="user.email"
+                                   readonly
+                                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"
+                                   invalid-message="'El email ingresado no es válido'"
+                                   placeholder="Email"
+                                   validate-on="blur"
+                                   required
+                                   required-message="'Email es requerido.'">
+                        </div>
+                        <div class="form-group">
+                            <input type="number"
+                                   name="inputPhoneNumber"
+                                   class="form-control"
+                                   ng-model="user.phone"
+                                   pattern=".{10,}"
+                                   invalid-message="'El teléfono ingresado no es válido'"
+                                   placeholder="Teléfono Celular"
+                                   validate-on="blur"
+                                   required
+                                   required-message="'Teléfono Celular es requerido.'">
+                        </div>                       
+                        <div class="form-group">
+                            <select type="text"
+                                    name="inputProvince"
+                                    class="form-control"
+                                    ng-model="user.provinceId"
+                                    ng-change="loadCities(user.provinceId)"
+                                    ng-options="province.id as province.name for province in provinces"
+                                    validate-on="blur"
+                                    required
+                                    required-message="'Provincia es requerido.'">
+                                <option value="" disabled selected>Seleccione una provincia</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <select type="text"
+                                    name="inputCity"
+                                    class="form-control"
+                                    ng-model="user.cityId"
+                                    ng-options="city.id as city.name for city in cities"
+                                    validate-on="blur"
+                                    required
+                                    required-message="'Ciudad es requerido.'">
+                                <option value="" disabled selected>Seleccione una ciudad</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="text"
+                                   name="inputStreet"
+                                   class="form-control"
+                                   ng-model="user.streetName"
+                                   placeholder="Calle"
+                                   validate-on="blur"
+                                   required
+                                   required-message="'Calle es requerido.'">
+                        </div>
+                        <div class="form-group">
+                            <input type="number"
+                                   name="inputStreetNumber"
+                                   class="form-control"
+                                   ng-model="user.streetNumber"
+                                   placeholder="Numero de calle"
+                                   validate-on="blur"
+                                   required
+                                   required-message="'Numero de calle es requerido.'">
+                        </div>
+                    </div>
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Guardar cambios</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
