@@ -3,16 +3,24 @@
 
     app.controller('profileCtrl', profileCtrl);
 
-    profileCtrl.$inject = ['$scope', 'membershipService', 'notificationService', 'apiService', '$rootScope', '$location'];
+    profileCtrl.$inject = ['$scope', 'membershipService', 'notificationService', 'apiService', 'fileUploadService', '$rootScope', '$location'];
 
-    function profileCtrl($scope, membershipService, notificationService, apiService, $rootScope, $location) {
+    function profileCtrl($scope, membershipService, notificationService, apiService, fileUploadService, $rootScope, $location) {
         var userRoleId = $rootScope.repository.loggedUser.roleId;
         $scope.user = null;
         $scope.cities = {};
         $scope.provinces = {};
-       
+
+        //2=Customer, 3=Walker
+        var entityType = userRoleId == 2 ? 'customer' : 'walker';
 
         init();
+
+        $scope.onPhotoSelected = function ($files) {
+            fileUploadService.uploadProfileImage($files, entityType, $scope.user.id, function (profileImage) {
+                $scope.user.profileImage = profileImage;
+            });
+        }
 
         $scope.loadCities = function (provinceId) {
             var config = {

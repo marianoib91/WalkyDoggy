@@ -46,6 +46,7 @@ namespace WalkyDoggy.Web.Mappings
 
             Mapper.CreateMap<Walk, WalkDto>().
                  ForMember(p => p.PetName, m => m.MapFrom(s => s.Pet.Name)).
+                 ForMember(p => p.PetProfileImage, m => m.MapFrom(s => s.Pet.ProfileImage)).
                  ForMember(p => p.CustomerFullName, m => m.MapFrom(s => s.Pet.Customer.FirstName + " " + s.Pet.Customer.LastName)).
                  ForMember(p => p.Location, m => m.MapFrom(s => s.Pet.Customer.StreetName + " " + s.Pet.Customer.StreetNumber + " - " + s.Pet.Customer.City.Name + " - " + s.Pet.Customer.City.Province.Name));
 

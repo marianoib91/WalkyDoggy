@@ -10,10 +10,10 @@
                     <div class="col-md-3">
                         <div class="form-group">
                             <div class="text-center profile-image-container">
-                                <img ng-src="../../../Content/images/profile-image.png" class="profile-image" alt="avatar">
+                                <img ng-src="{{user.profileImage || '../../../Content/images/profile-image.png'}}" class="profile-image" alt="avatar">
                                 <div class="file-upload-container">
                                     <label class="btn btn-default btn-block" for="upload-photo">Seleccionar foto</label>
-                                    <input type="file" name="photo" id="upload-photo" />
+                                    <input type="file" name="photo" id="upload-photo" ng-file-select="onPhotoSelected($files)" />
                                 </div>
                             </div>
                         </div>

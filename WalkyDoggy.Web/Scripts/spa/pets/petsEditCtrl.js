@@ -3,9 +3,9 @@
 
     app.controller('petsEditCtrl', petsEditCtrl);
 
-    petsEditCtrl.$inject = ['$scope', 'membershipService', 'notificationService', 'apiService', '$rootScope', '$location', '$routeParams'];
+    petsEditCtrl.$inject = ['$scope', 'membershipService', 'notificationService', 'apiService', 'fileUploadService', '$rootScope', '$location', '$routeParams'];
 
-    function petsEditCtrl($scope, membershipService, notificationService, apiService, $rootScope, $location, $routeParams) {
+    function petsEditCtrl($scope, membershipService, notificationService, apiService, fileUploadService, $rootScope, $location, $routeParams) {
 
         $scope.petId = $routeParams.id;
         $scope.userId = $rootScope.repository.loggedUser.id;
@@ -14,7 +14,18 @@
         $scope.pet = {};
         $scope.breeds = {};
         $scope.sizes = {};
+        var pendingPhoto = null;
         init();
+
+        $scope.onPhotoSelected = function ($files) {
+            if ($scope.pet.id) {
+                fileUploadService.uploadProfileImage($files, 'pet', $scope.pet.id, function (profileImage) {
+                    $scope.pet.profileImage = profileImage;
+                });
+            } else {
+                pendingPhoto = $files;
+            }
+        }
 
         function init() {
         var config = {
@@ -58,7 +69,13 @@
         function onRegisterPetCompleted(response) {
             if (response.status = 200) {
                 notificationService.displaySuccess(response.data.name + ' se ha registrado exitosamente.');
-                $location.path('/pets/list');
+                if (pendingPhoto) {
+                    fileUploadService.uploadProfileImage(pendingPhoto, 'pet', response.data.id, function () {
+                        $location.path('/pets/list');
+                    });
+                } else {
+                    $location.path('/pets/list');
+                }
             }
             else {
                 notificationService.displayError('No se pudo registrar a tu mascota. Intente nuevamente');

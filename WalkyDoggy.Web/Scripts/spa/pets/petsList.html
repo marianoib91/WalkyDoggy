@@ -18,8 +18,7 @@
                                         </div>
                                     </div>
                                     <div class="dog-profile-image-container">
-                                        <img ng-if="!pet.profileImage" class="dog-profile-image" src="../../../Content/images/dog-profile2.jpg" />
-                                        <!--<img ng-if="pet.profileImage" class="dog-profile-image" src="../../../Content/images/dog-profile2.jpg" />-->
+                                        <img class="dog-profile-image" ng-src="{{pet.profileImage || '../../../Content/images/dog-profile2.jpg'}}" />
                                     </div>
                                 </div>
                                 <div class="col-md-9">

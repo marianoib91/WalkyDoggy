@@ -76,7 +76,7 @@
                    name="inputStreet"
                    class="form-control"
                    ng-model="customer.streetName"
-                   pattern="[a-zA-Z]*"
+                   pattern="[a-zA-ZÀ-ÿ\s.'-]*"
                    invalid-message="'El nombre de la calle no puede contener números'"
                    placeholder="Calle"
                    validate-on="blur"

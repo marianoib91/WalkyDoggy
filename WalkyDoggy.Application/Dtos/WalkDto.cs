@@ -17,6 +17,8 @@ namespace WalkyDoggy.Application.Dtos
         
         public String PetName { get; set; }
 
+        public String PetProfileImage { get; set; }
+
         public String CustomerFullName { get; set; }
 
         public String Location { get; set; }

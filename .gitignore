@@ -20,3 +20,6 @@ packages/
 # Archivos de SQL Server temporales
 *.mdf
 *.ldf
+
+# Imágenes de perfil subidas por los usuarios
+WalkyDoggy.Web/Content/images/uploads/

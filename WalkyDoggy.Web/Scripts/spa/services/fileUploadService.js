@@ -10,7 +10,25 @@
         $rootScope.upload = [];
 
         var service = {
-            uploadImage: uploadImage
+            uploadImage: uploadImage,
+            uploadProfileImage: uploadProfileImage
+        }
+
+        function uploadProfileImage($files, entityType, entityId, callback) {
+            var $file = $files[0];
+            if (!$file) return;
+
+            $upload.upload({
+                url: 'api/images/' + entityType + '/' + entityId,
+                method: 'POST',
+                file: $file
+            }).progress(function (evt) {
+            }).success(function (data, status, headers, config) {
+                notificationService.displaySuccess('Imagen actualizada con éxito');
+                callback(data.profileImage);
+            }).error(function (data, status, headers, config) {
+                notificationService.displayError(data || 'No se pudo subir la imagen. Intente nuevamente');
+            });
         }
 
         function uploadImage($files, movieId, callback) {
