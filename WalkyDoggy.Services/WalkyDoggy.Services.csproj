@@ -35,13 +35,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AutoMapper, Version=6.1.0.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\WalkyDoggy\WalkyDoggy.Application\bin\Debug\AutoMapper.dll</HintPath>
-    </Reference>
-    <Reference Include="AutoMapper.Net4">
-      <HintPath>..\..\WalkyDoggy\WalkyDoggy.Application\bin\Debug\AutoMapper.Net4.dll</HintPath>
-    </Reference>
+    <Reference Include="AutoMapper, Version=3.3.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+  <SpecificVersion>False</SpecificVersion>
+  <HintPath>..\packages\AutoMapper.3.3.1\lib\net40\AutoMapper.dll</HintPath>
+</Reference>
+<Reference Include="AutoMapper.Net4">
+  <HintPath>..\packages\AutoMapper.3.3.1\lib\net40\AutoMapper.Net4.dll</HintPath>
+</Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http" />
@@ -50,9 +50,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="WalkyDoggy.Data">
-      <HintPath>..\..\Walky Doggy\WalkyDoggy.Data\bin\Debug\WalkyDoggy.Data.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Contracts\IBreedAppService.cs" />
@@ -102,6 +99,10 @@
       <Project>{3e8bb046-05bd-4d27-94a7-c13ad4f3e192}</Project>
       <Name>WalkyDoggy.Entities</Name>
     </ProjectReference>
+<ProjectReference Include="..\WalkyDoggy.Data\WalkyDoggy.Data.csproj">
+  <Project>{fdb8609c-3fa4-425c-ba71-4a71a7c43ec6}</Project>
+  <Name>WalkyDoggy.Data</Name>
+</ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
