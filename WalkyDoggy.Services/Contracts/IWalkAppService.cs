@@ -19,6 +19,18 @@ namespace WalkyDoggy.Services.Contracts
 
         WalkDto ValidatePetsInWalks(AvailableWalkersCriteria availableWalkersCriteria);
 
+        //Reservas del paseador desde hoy que esperan su respuesta o ya estan confirmadas
+        List<BookingDto> GetBookingsForWalker(Int64 walkerId);
+
+        //Todas las reservas del cliente, de la mas reciente a la mas antigua
+        List<BookingDto> GetBookingsForCustomer(Int64 customerId);
+
+        //El paseador confirma una reserva que esta esperando su respuesta
+        Boolean Confirm(BookingActionCriteria bookingActionCriteria, out String error);
+
+        //El paseador o el cliente cancelan una reserva que todavia no empezo
+        Boolean Cancel(BookingActionCriteria bookingActionCriteria, out String error);
+
         //Crea un paseo por cada mascota. Si no se puede reservar devuelve null y el motivo en error.
         List<WalkDto> Register(WalkRequestCriteria walkRequestCriteria, out String error);
     }

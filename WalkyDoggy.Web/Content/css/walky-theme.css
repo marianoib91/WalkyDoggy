@@ -1202,3 +1202,97 @@ button.wd-pet-add {
     margin-left: 8px;
     font-weight: 500;
 }
+
+/* ===== Estados de los paseos ===== */
+.wd-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 40px 0 16px;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.wd-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background-color: #166A4F;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.wd-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.wd-status-pending {
+    background-color: #FEF6E0;
+    color: #8A5A00;
+}
+
+.wd-status-confirmed {
+    background-color: #E7F4EE;
+    color: #0F5640;
+}
+
+.wd-status-cancelled {
+    background-color: #FEF3F2;
+    color: #B42318;
+}
+
+.wd-walk-past {
+    opacity: 0.85;
+}
+
+.wd-choice.is-disabled {
+    background-color: #F5F6F7;
+    cursor: not-allowed;
+}
+
+.wd-choice.is-disabled .wd-choice-title {
+    color: #5B6470;
+}
+
+/* ===== Dialogo de confirmacion ===== */
+.wd-dialog {
+    padding: 28px;
+}
+
+.wd-dialog-title {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.wd-dialog-text {
+    margin: 0 0 24px;
+    color: #5B6470;
+}
+
+.wd-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.walks-requested {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 40px 0 96px;
+}
+
+.walks-requested .wd-section-title:first-of-type {
+    margin-top: 0;
+}

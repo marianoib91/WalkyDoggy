@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalkyDoggy.Application.Constants;
 using WalkyDoggy.Application.Criterias;
 using WalkyDoggy.Application.Dtos;
 using WalkyDoggy.Data.Infrastructure;
@@ -93,9 +94,21 @@ namespace WalkyDoggy.Services.Services
                 return null;
             }
 
+            var paymentMethod = String.IsNullOrWhiteSpace(walkRequestCriteria.PaymentMethod) ? PaymentMethods.Cash : walkRequestCriteria.PaymentMethod;
+            if (paymentMethod == PaymentMethods.MercadoPago)
+            {
+                error = "El pago con Mercado Pago todavía no está disponible para este paseador.";
+                return null;
+            }
+            if (paymentMethod != PaymentMethods.Cash)
+            {
+                error = "El método de pago no es válido.";
+                return null;
+            }
+
             var timeFrom = walkRequestCriteria.TimeFrom;
             var walksAtSameTime = this.walksRepository.GetAll().
-                                                       Where(x => x.Date == date && x.TimeFrom == timeFrom).
+                                                       Where(x => x.Date == date && x.TimeFrom == timeFrom && x.Status != WalkStatus.Cancelled).
                                                        ToList();
 
             var busyPet = pets.FirstOrDefault(pet => walksAtSameTime.Any(walk => walk.PetId == pet.Id));
@@ -113,11 +126,17 @@ namespace WalkyDoggy.Services.Services
                 return null;
             }
 
+            //Los paseos de una misma reserva (uno por mascota) comparten el BookingCode y arrancan esperando la respuesta del paseador
+            var bookingCode = Guid.NewGuid();
             var walks = new List<Walk>();
             foreach (var pet in pets)
             {
                 var walk = new Walk
                 {
+                    Status = WalkStatus.Pending,
+                    BookingCode = bookingCode,
+                    PaymentMethod = paymentMethod,
+                    PaymentStatus = PaymentStatuses.Pending,
                     WalkerId = walker.Id,
                     PetId = pet.Id,
                     PriceId = walker.PriceId,
@@ -200,6 +219,217 @@ namespace WalkyDoggy.Services.Services
             };
         }
 
+        /* ---------- Reservas: confirmar, cancelar y vencer ---------- */
+
+        public List<BookingDto> GetBookingsForWalker(Int64 walkerId)
+        {
+            ExpirePendingWalks();
+
+            var today = DateTime.Now.Date;
+            var walks = IncludeBookingData().
+                        Where(x => x.WalkerId == walkerId && x.Date >= today && x.Status != WalkStatus.Cancelled).
+                        ToList();
+
+            return BuildBookings(walks).
+                   OrderBy(x => x.Date).
+                   ThenBy(x => x.TimeFrom).
+                   ToList();
+        }
+
+        public List<BookingDto> GetBookingsForCustomer(Int64 customerId)
+        {
+            ExpirePendingWalks();
+
+            var walks = IncludeBookingData().
+                        Where(x => x.Pet.CustomerId == customerId).
+                        ToList();
+
+            return BuildBookings(walks).
+                   OrderByDescending(x => x.Date).
+                   ThenByDescending(x => x.TimeFrom).
+                   ToList();
+        }
+
+        public Boolean Confirm(BookingActionCriteria bookingActionCriteria, out String error)
+        {
+            error = null;
+            ExpirePendingWalks();
+
+            var walks = FindBooking(bookingActionCriteria.BookingKey);
+            if (walks.Count == 0 || walks[0].WalkerId != bookingActionCriteria.ActorId)
+            {
+                error = "La reserva no existe.";
+                return false;
+            }
+
+            if (walks.Any(x => x.Status != WalkStatus.Pending))
+            {
+                error = walks[0].Status == WalkStatus.Cancelled
+                    ? "Esta reserva ya fue cancelada."
+                    : "Esta reserva ya estaba confirmada.";
+                return false;
+            }
+
+            walks.ForEach(x => SetStatus(x, WalkStatus.Confirmed, null));
+            this.unitOfWork.Commit();
+            return true;
+        }
+
+        public Boolean Cancel(BookingActionCriteria bookingActionCriteria, out String error)
+        {
+            error = null;
+            ExpirePendingWalks();
+
+            var actor = bookingActionCriteria.Actor;
+            if (actor != WalkCancelledBy.Walker && actor != WalkCancelledBy.Customer)
+            {
+                error = "No se puede cancelar la reserva.";
+                return false;
+            }
+
+            var walks = FindBooking(bookingActionCriteria.BookingKey);
+            var isOwner = walks.Count > 0 &&
+                          (actor == WalkCancelledBy.Walker
+                              ? walks[0].WalkerId == bookingActionCriteria.ActorId
+                              : walks[0].Pet.CustomerId == bookingActionCriteria.ActorId);
+            if (!isOwner)
+            {
+                error = "La reserva no existe.";
+                return false;
+            }
+
+            if (walks.All(x => x.Status == WalkStatus.Cancelled))
+            {
+                error = "Esta reserva ya estaba cancelada.";
+                return false;
+            }
+
+            if (StartOf(walks[0]) <= DateTime.Now)
+            {
+                error = "El paseo ya comenzó y no se puede cancelar.";
+                return false;
+            }
+
+            walks.Where(x => x.Status != WalkStatus.Cancelled).ToList().ForEach(x => SetStatus(x, WalkStatus.Cancelled, actor));
+            this.unitOfWork.Commit();
+            return true;
+        }
+
+        //Un pedido que el paseador no respondio antes de la hora del paseo se cancela solo
+        private void ExpirePendingWalks()
+        {
+            var now = DateTime.Now;
+            var pendingWalks = this.walksRepository.GetAll().
+                                                    Where(x => x.Status == WalkStatus.Pending && x.Date <= now.Date).
+                                                    ToList();
+
+            var expired = pendingWalks.Where(x => StartOf(x) <= now).ToList();
+            if (expired.Count == 0)
+            {
+                return;
+            }
+
+            expired.ForEach(x => SetStatus(x, WalkStatus.Cancelled, WalkCancelledBy.System));
+            this.unitOfWork.Commit();
+        }
+
+        private static DateTime StartOf(Walk walk)
+        {
+            return walk.Date.Date.AddHours(Convert.ToInt32(walk.TimeFrom.Split(':')[0]));
+        }
+
+        private static void SetStatus(Walk walk, String status, String cancelledBy)
+        {
+            walk.Status = status;
+            walk.Confirmed = status == WalkStatus.Confirmed;
+            walk.CancelledBy = cancelledBy;
+            walk.StatusChangedAt = DateTime.Now;
+        }
+
+        private static String BookingKeyOf(Walk walk)
+        {
+            return walk.BookingCode.HasValue ? walk.BookingCode.Value.ToString("N") : "w" + walk.Id;
+        }
+
+        private List<Walk> FindBooking(String bookingKey)
+        {
+            var walks = IncludeBookingData();
+
+            if (!String.IsNullOrEmpty(bookingKey) && bookingKey.StartsWith("w"))
+            {
+                Int64 walkId;
+                if (Int64.TryParse(bookingKey.Substring(1), out walkId))
+                {
+                    return walks.Where(x => x.Id == walkId).ToList();
+                }
+            }
+            else
+            {
+                Guid bookingCode;
+                if (Guid.TryParseExact(bookingKey ?? String.Empty, "N", out bookingCode))
+                {
+                    Guid? code = bookingCode;
+                    return walks.Where(x => x.BookingCode == code).ToList();
+                }
+            }
+
+            return new List<Walk>();
+        }
+
+        private IQueryable<Walk> IncludeBookingData()
+        {
+            return this.walksRepository.AllIncluding(x => x.Pet, x => x.Pet.Customer,
+                                                     x => x.Pet.Customer.City, x => x.Pet.Customer.City.Province,
+                                                     x => x.PickupCity, x => x.PickupCity.Province,
+                                                     x => x.Walker, x => x.Price);
+        }
+
+        private List<BookingDto> BuildBookings(List<Walk> walks)
+        {
+            return walks.GroupBy(BookingKeyOf).Select(group =>
+            {
+                var first = group.First();
+                var customer = first.Pet.Customer;
+                var usesPickup = first.PickupStreetName != null;
+                var pricePerPet = first.Price != null ? first.Price.Amount : 0;
+
+                string location;
+                if (usesPickup)
+                {
+                    location = first.PickupStreetName + " " + first.PickupStreetNumber + " - " +
+                               (first.PickupCity != null ? first.PickupCity.Name + " - " + (first.PickupCity.Province != null ? first.PickupCity.Province.Name : "") : "");
+                }
+                else
+                {
+                    location = customer.StreetName + " " + customer.StreetNumber + " - " +
+                               (customer.City != null ? customer.City.Name + " - " + (customer.City.Province != null ? customer.City.Province.Name : "") : "");
+                }
+
+                return new BookingDto
+                {
+                    BookingKey = group.Key,
+                    WalkerId = first.WalkerId,
+                    WalkerName = first.Walker != null ? first.Walker.FirstName + " " + first.Walker.LastName : null,
+                    WalkerProfileImage = first.Walker != null ? first.Walker.ProfileImage : null,
+                    CustomerId = customer.Id,
+                    CustomerFullName = customer.FirstName + " " + customer.LastName,
+                    Date = first.Date,
+                    TimeFrom = first.TimeFrom,
+                    Status = first.Status,
+                    CancelledBy = first.CancelledBy,
+                    PaymentMethod = first.PaymentMethod,
+                    PaymentStatus = first.PaymentStatus,
+                    Details = first.Details,
+                    Location = location,
+                    Latitude = usesPickup ? first.PickupLatitude : customer.Latitude,
+                    Longitude = usesPickup ? first.PickupLongitude : customer.Longitude,
+                    PricePerPet = pricePerPet,
+                    Total = pricePerPet * group.Count(),
+                    Pets = group.Select(x => new BookingPetDto { Id = x.Pet.Id, Name = x.Pet.Name, ProfileImage = x.Pet.ProfileImage }).ToList()
+                };
+            }).ToList();
+        }
+
         public List<WalkDto> GetAll()
         {
             var walks = this.walksRepository.GetAll().ToList();
@@ -257,7 +487,7 @@ namespace WalkyDoggy.Services.Services
             var dayOfWeek = dayOfWeekService.GetDayOfWeek(date.DayOfWeek.ToString());
             var timeFrom = Convert.ToInt64(availableWalkersCriteria.TimeFrom.Split(':')[0]);
 
-            var walks = this.walksRepository.AllIncluding(x=>x.Pet).Where(x => x.Date == date &&
+            var walks = this.walksRepository.AllIncluding(x=>x.Pet).Where(x => x.Date == date && x.Status != WalkStatus.Cancelled &&
                                                                x.TimeFrom == availableWalkersCriteria.TimeFrom);
             var existingWalkWithSelectedPetDto = new WalkDto();
             if (walks.Count() > 0)

@@ -49,6 +49,7 @@ namespace WalkyDoggy.Web.App_Start
                 "~/Scripts/spa/services/membershipService.js",
                 "~/Scripts/spa/services/fileUploadService.js",
                 "~/Scripts/spa/services/geocodingService.js",
+                "~/Scripts/spa/services/confirmService.js",
                 "~/Scripts/spa/layout/topBar.directive.js",
                 "~/Scripts/spa/layout/sideBar.directive.js",
                 "~/Scripts/spa/layout/customPager.directive.js",
@@ -82,6 +83,7 @@ namespace WalkyDoggy.Web.App_Start
                 "~/Scripts/spa/pets/petsEditCtrl.js",
                  "~/Scripts/spa/walks/step1Ctrl.js",
                  "~/Scripts/spa/walks/step2Ctrl.js",
+                 "~/Scripts/spa/walks/requestedCtrl.js",
                   "~/Scripts/spa/workConditions/workConditionsCtrl.js",
                   "~/Scripts/spa/workDays/workDayCtrl.js"
                 ));

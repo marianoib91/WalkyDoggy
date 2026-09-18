@@ -79,6 +79,62 @@ namespace WalkyDoggy.Web.Controllers
             });
         }
 
+        [HttpGet]
+        [Route("getBookingsForWalker")]
+        public HttpResponseMessage GetBookingsForWalker(HttpRequestMessage request, Int64 walkerId)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                var bookingsDto = this.walkAppService.GetBookingsForWalker(walkerId);
+
+                return request.CreateResponse(HttpStatusCode.OK, bookingsDto);
+            });
+        }
+
+        [HttpGet]
+        [Route("getBookingsForCustomer")]
+        public HttpResponseMessage GetBookingsForCustomer(HttpRequestMessage request, Int64 customerId)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                var bookingsDto = this.walkAppService.GetBookingsForCustomer(customerId);
+
+                return request.CreateResponse(HttpStatusCode.OK, bookingsDto);
+            });
+        }
+
+        [HttpPost]
+        [Route("confirm")]
+        public HttpResponseMessage Confirm(HttpRequestMessage request, BookingActionCriteria bookingActionCriteria)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                String error;
+                if (!this.walkAppService.Confirm(bookingActionCriteria, out error))
+                {
+                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                }
+
+                return request.CreateResponse(HttpStatusCode.OK, true);
+            });
+        }
+
+        [HttpPost]
+        [Route("cancel")]
+        public HttpResponseMessage Cancel(HttpRequestMessage request, BookingActionCriteria bookingActionCriteria)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                String error;
+                if (!this.walkAppService.Cancel(bookingActionCriteria, out error))
+                {
+                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                }
+
+                return request.CreateResponse(HttpStatusCode.OK, true);
+            });
+        }
+
         [HttpPost]
         [Route("register")]
         public HttpResponseMessage Register(HttpRequestMessage request, WalkRequestCriteria walkRequestCriteria)

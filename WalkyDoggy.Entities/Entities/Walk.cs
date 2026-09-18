@@ -26,6 +26,23 @@ namespace WalkyDoggy.Entities
 
         public Boolean Confirmed { get; set; }
 
+        //Pending | Confirmed | Cancelled (ver WalkStatus). Confirmed se mantiene sincronizado con este estado.
+        public String Status { get; set; }
+
+        //Walker | Customer | System (ver WalkCancelledBy)
+        public String CancelledBy { get; set; }
+
+        public DateTime? StatusChangedAt { get; set; }
+
+        //Une los paseos (uno por mascota) de una misma reserva
+        public Guid? BookingCode { get; set; }
+
+        //Cash | MercadoPago (ver PaymentMethods)
+        public String PaymentMethod { get; set; }
+
+        //Pending | Paid (ver PaymentStatuses)
+        public String PaymentStatus { get; set; }
+
         //Direccion donde se retira a las mascotas. Es una copia de la del cliente o la que eligio para este paseo.
         //Los paseos anteriores a este cambio no la tienen (se usa la del cliente).
         public String PickupStreetName { get; set; }

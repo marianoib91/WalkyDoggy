@@ -1,30 +1,28 @@
-﻿(function (app) {
+(function (app) {
     'use strict';
 
     app.controller('indexCtrl', indexCtrl);
 
-    indexCtrl.$inject = ['$scope', 'apiService', 'notificationService', '$rootScope'];
+    indexCtrl.$inject = ['$scope', 'apiService', 'notificationService', 'confirmService', '$rootScope'];
 
-    function indexCtrl($scope, apiService, notificationService, $rootScope) {
+    function indexCtrl($scope, apiService, notificationService, confirmService, $rootScope) {
+        var dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
         $scope.userData.displayUserInfo();
         $scope.roleId = $rootScope.repository.loggedUser.roleId;
         $scope.walkerId = $rootScope.repository.loggedUser.walkerId;
         $scope.customerId = $rootScope.repository.loggedUser.customerId;
-        var userId = $rootScope.repository.loggedUser.id;
+
         $scope.walkers = {};
         $scope.hasDistances = false;
-        $scope.prices = {};
-        $scope.provinces = {};
-        $scope.cities = {};
-        $scope.walks = {};
-        $scope.disableCities = true;
+
+        $scope.pending = [];
+        $scope.confirmed = [];
+        $scope.loadedBookings = false;
 
         init();
 
         function init() {
-            apiService.get('/api/prices/getAll', null, onLoadPricesCompleted);
-            apiService.get('/api/provinces/getAll', null, onLoadProvincesCompleted);
             //Cliente
             if ($scope.roleId == '2') {
                 //Los paseadores llegan ordenados por cercania al domicilio del cliente
@@ -33,46 +31,82 @@
 
             //Paseador
             if ($scope.roleId == '3') {
-                var config = {
-                    params: {
-                        walkerId: $scope.walkerId
-                    }
-                }
-                apiService.get('/api/walks/getAllForCurrentDay', config, onLoadWalksCompleted);
+                loadBookings();
             }
-        }
-
-        function onLoadPricesCompleted(result) {
-            $scope.prices = result.data;
-        }
-
-        function onLoadProvincesCompleted(result) {
-            $scope.provinces = result.data;
-        }
-
-        $scope.loadCities = function (provinceId) {
-            var config = {
-                params: {
-                    provinceId: provinceId
-                }
-            }
-
-            apiService.get('/api/cities/getAllByProvinceId/', config, onLoadCitiesCompleted);
-        }
-
-        function onLoadCitiesCompleted(result) {
-            $scope.cities = result.data;
-            $scope.disableCities = false;
-        }
-
-        function onLoadWalksCompleted(response) {
-            $scope.walks = response.data;
         }
 
         function onLoadWalkersCompleted(result) {
             $scope.walkers = result.data;
             $scope.hasDistances = result.data.some(function (walker) {
                 return walker.distanceKm !== null && walker.distanceKm !== undefined;
+            });
+        }
+
+        /* ---------- Paseador: solicitudes y paseos confirmados ---------- */
+
+        function loadBookings() {
+            apiService.get('/api/walks/getBookingsForWalker', { params: { walkerId: $scope.walkerId } }, function (result) {
+                $scope.pending = result.data.filter(function (booking) { return booking.status === 'Pending'; });
+                $scope.confirmed = result.data.filter(function (booking) { return booking.status === 'Confirmed'; });
+                $scope.loadedBookings = true;
+            });
+        }
+
+        $scope.dateText = function (booking) {
+            var date = moment(booking.date);
+            return dayNames[date.day()] + ' ' + date.format('DD/MM/YYYY');
+        };
+
+        $scope.timeText = function (booking) {
+            return booking.timeFrom + ' a ' + (Number(booking.timeFrom.split(':')[0]) + 1) + ':00';
+        };
+
+        $scope.petNames = function (booking) {
+            return booking.pets.map(function (pet) { return pet.name; }).join(', ');
+        };
+
+        $scope.paymentText = function (booking) {
+            var method = booking.paymentMethod === 'MercadoPago' ? 'Mercado Pago' : 'Efectivo';
+            return method + (booking.paymentStatus === 'Paid' ? ' (pagado)' : '');
+        };
+
+        $scope.confirm = function (booking) {
+            send('/api/walks/confirm', booking, 'Confirmaste el paseo. El cliente ya lo ve como confirmado.');
+        };
+
+        $scope.reject = function (booking) {
+            confirmService.ask({
+                title: '¿Rechazar la solicitud?',
+                text: 'La solicitud de ' + booking.customerFullName + ' para ' + $scope.petNames(booking) + ' se va a cancelar.',
+                confirmLabel: 'Rechazar',
+                cancelLabel: 'Volver',
+                danger: true
+            }).then(function () {
+                send('/api/walks/cancel', booking, 'Rechazaste la solicitud.');
+            });
+        };
+
+        $scope.cancelConfirmed = function (booking) {
+            confirmService.ask({
+                title: '¿Cancelar el paseo confirmado?',
+                text: 'El paseo de ' + $scope.petNames(booking) + ' del ' + $scope.dateText(booking) + ' a las ' + booking.timeFrom + ' se va a cancelar y el cliente lo va a ver como cancelado.',
+                confirmLabel: 'Cancelar paseo',
+                cancelLabel: 'Volver',
+                danger: true
+            }).then(function () {
+                send('/api/walks/cancel', booking, 'El paseo se canceló.');
+            });
+        };
+
+        function send(url, booking, successMessage) {
+            var action = { bookingKey: booking.bookingKey, actor: 'Walker', actorId: $scope.walkerId };
+
+            apiService.post(url, action, function () {
+                notificationService.displaySuccess(successMessage);
+                loadBookings();
+            }, function (error) {
+                notificationService.displayError(error.data && error.data[0] ? error.data[0] : 'No se pudo completar la acción.');
+                loadBookings();
             });
         }
     }

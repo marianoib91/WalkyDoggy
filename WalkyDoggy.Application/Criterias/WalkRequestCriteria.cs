@@ -17,6 +17,9 @@ namespace WalkyDoggy.Application.Criterias
 
         public List<Int64> PetIds { get; set; }
 
+        //Cash o MercadoPago. Si no se informa se paga en efectivo.
+        public String PaymentMethod { get; set; }
+
         //Direccion de retiro. Si no se informa se usa la del domicilio del cliente.
         public String PickupStreetName { get; set; }
 

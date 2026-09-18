@@ -184,6 +184,7 @@
     <Content Include="Scripts\spa\directives\addressField.html" />
     <Content Include="Scripts\spa\directives\angular-daterangepicker.js" />
     <Content Include="Scripts\spa\services\geocodingService.js" />
+    <Content Include="Scripts\spa\services\confirmService.js" />
     <Content Include="Scripts\Vendors\leaflet.js" />
     <Content Include="Content\css\vendors\leaflet\leaflet.css" />
     <Content Include="Scripts\spa\directives\sweetalert.js" />
@@ -233,6 +234,8 @@
     <Content Include="Scripts\spa\walks\step1Ctrl.js" />
     <Content Include="Scripts\spa\walks\step2.html" />
     <Content Include="Scripts\spa\walks\step2Ctrl.js" />
+    <Content Include="Scripts\spa\walks\requestedCtrl.js" />
+    <Content Include="Scripts\spa\walks\requested.html" />
     <Content Include="Scripts\spa\workConditions\workConditions.html" />
     <Content Include="Scripts\spa\workConditions\workConditionsCtrl.js" />
     <Content Include="Scripts\spa\workDays\workDay.html" />

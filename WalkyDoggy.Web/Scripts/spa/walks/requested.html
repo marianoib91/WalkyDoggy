@@ -1,0 +1,65 @@
+<div class="walks-requested">
+    <div class="wd-page-header">
+        <div>
+            <h1 class="wd-page-title">Paseos solicitados</h1>
+            <p class="wd-page-subtitle">Seguí el estado de tus reservas. Cada paseo tiene que ser confirmado por el paseador.</p>
+        </div>
+        <a class="btn btn-primary btn-lg" href="#/">
+            <i class="fa fa-plus" aria-hidden="true"></i>
+            Solicitar paseo
+        </a>
+    </div>
+
+    <p class="wd-field-hint" ng-if="loaded && upcoming.length == 0 && history.length == 0">Todavía no solicitaste ningún paseo. Elegí un paseador para reservar el primero.</p>
+
+    <section ng-if="upcoming.length > 0">
+        <h2 class="wd-section-title">Próximos</h2>
+        <div class="wd-walker-list">
+            <article class="wd-walker-card" ng-repeat="booking in upcoming">
+                <img class="wd-avatar" ng-src="{{booking.walkerProfileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{booking.walkerName}}" />
+                <div class="wd-walker-info">
+                    <div class="wd-walker-name-row">
+                        <h3 class="wd-walker-name">{{booking.walkerName}}</h3>
+                        <span class="wd-status" ng-class="statusClass(booking)">{{statusText(booking)}}</span>
+                    </div>
+                    <dl class="wd-walk-details">
+                        <dt>Fecha</dt>
+                        <dd>{{dateText(booking)}}</dd>
+                        <dt>Horario</dt>
+                        <dd>{{timeText(booking)}}</dd>
+                        <dt>Mascotas</dt>
+                        <dd>{{petNames(booking)}}</dd>
+                        <dt>Retiro en</dt>
+                        <dd>{{booking.location}}</dd>
+                        <dt>Pago</dt>
+                        <dd>{{paymentText(booking)}} · <strong>${{booking.total}}</strong></dd>
+                    </dl>
+                </div>
+                <div class="wd-walk-actions" ng-if="canCancel(booking)">
+                    <button type="button" class="btn btn-danger" ng-click="cancel(booking)">Cancelar</button>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section ng-if="history.length > 0">
+        <h2 class="wd-section-title">Historial</h2>
+        <div class="wd-walker-list">
+            <article class="wd-walker-card wd-walk-past" ng-repeat="booking in history">
+                <img class="wd-avatar wd-avatar-sm" ng-src="{{booking.walkerProfileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{booking.walkerName}}" />
+                <div class="wd-walker-info">
+                    <div class="wd-walker-name-row">
+                        <h3 class="wd-walker-name">{{booking.walkerName}}</h3>
+                        <span class="wd-status" ng-class="statusClass(booking)">{{statusText(booking)}}</span>
+                    </div>
+                    <dl class="wd-walk-details">
+                        <dt>Fecha</dt>
+                        <dd>{{dateText(booking)}}, {{timeText(booking)}}</dd>
+                        <dt>Mascotas</dt>
+                        <dd>{{petNames(booking)}}</dd>
+                    </dl>
+                </div>
+            </article>
+        </div>
+    </section>
+</div>

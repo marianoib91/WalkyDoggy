@@ -19,6 +19,7 @@
         $scope.walker = null;
         $scope.details = '';
         $scope.saving = false;
+        $scope.payment = { method: 'Cash' };
 
         var walkDate = moment(draft.date, 'YYYY-MM-DD');
         $scope.dateText = dayNames[walkDate.day()] + ' ' + walkDate.format('DD/MM/YYYY');
@@ -49,6 +50,7 @@
                 date: draft.date,
                 timeFrom: draft.timeFrom,
                 details: $scope.details,
+                paymentMethod: $scope.payment.method,
                 petIds: draft.pets.map(function (pet) { return pet.id; })
             };
 
@@ -62,9 +64,9 @@
             }
 
             apiService.post('/api/walks/register', request, function () {
-                notificationService.displaySuccess('Paseo solicitado con éxito.');
+                notificationService.displaySuccess('Solicitud enviada. Cuando el paseador confirme el paseo lo vas a ver en "Paseos solicitados".');
                 $rootScope.walkDraft = null;
-                $location.search({}).path('/');
+                $location.search({}).path('/walks/requested');
             }, function (error) {
                 $scope.saving = false;
                 var message = error.data && error.data[0] ? error.data[0] : 'No se pudo solicitar el paseo. Intente nuevamente.';

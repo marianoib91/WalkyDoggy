@@ -189,7 +189,7 @@ namespace WalkyDoggy.Services.Services
             }
 
             var walks = this.walksRepository.GetAll().
-                                             Where(x => x.WalkerId == walkerId && x.Date == day).
+                                             Where(x => x.WalkerId == walkerId && x.Date == day && x.Status != WalkStatus.Cancelled).
                                              ToList();
 
             foreach (var workDay in workDays)

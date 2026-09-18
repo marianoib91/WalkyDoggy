@@ -53,6 +53,11 @@
           controller: "step1Ctrl",
           resolve: { isAuthenticated: isAuthenticated }
       })
+      .when("/walks/requested", {
+          templateUrl: "scripts/spa/walks/requested.html",
+          controller: "requestedCtrl",
+          resolve: { isAuthenticated: isAuthenticated }
+      })
       .when("/walks/step-2", {
           templateUrl: "scripts/spa/walks/step2.html",
           controller: "step2Ctrl",
