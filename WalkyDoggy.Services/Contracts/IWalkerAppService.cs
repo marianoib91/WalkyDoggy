@@ -20,5 +20,9 @@ namespace WalkyDoggy.Services.Contracts
         List<WalkerDto> GetAvailableWalkers(AvailableWalkersCriteria availableWalkersCritera);
 
         List<WalkerDto> GetAll();
+
+        WalkerDto GetDetail(Int64 id);
+
+        List<String> GetAvailableTimes(Int64 walkerId, DateTime date);
     }
 }

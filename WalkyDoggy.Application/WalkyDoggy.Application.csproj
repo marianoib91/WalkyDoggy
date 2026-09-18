@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="Constants\Roles.cs" />
     <Compile Include="Criterias\AvailableWalkersCriteria.cs" />
+    <Compile Include="Criterias\WalkRequestCriteria.cs" />
     <Compile Include="Dtos\BreedDto.cs" />
     <Compile Include="Dtos\CityDto.cs" />
     <Compile Include="Dtos\CustomerDto.cs" />

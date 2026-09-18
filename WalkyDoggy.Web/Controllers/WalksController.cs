@@ -80,6 +80,23 @@ namespace WalkyDoggy.Web.Controllers
         }
 
         [HttpPost]
+        [Route("register")]
+        public HttpResponseMessage Register(HttpRequestMessage request, WalkRequestCriteria walkRequestCriteria)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                String error;
+                var walksDto = this.walkAppService.Register(walkRequestCriteria, out error);
+                if (walksDto == null)
+                {
+                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                }
+
+                return request.CreateResponse(HttpStatusCode.OK, walksDto);
+            });
+        }
+
+        [HttpPost]
         [Route("validatePetsInWalks")]
         public HttpResponseMessage ValidatePetsInWalks(HttpRequestMessage request, AvailableWalkersCriteria availableWalkersCriteria)
         {

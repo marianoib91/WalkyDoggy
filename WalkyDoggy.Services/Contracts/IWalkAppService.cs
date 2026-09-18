@@ -18,5 +18,8 @@ namespace WalkyDoggy.Services.Contracts
         List<WalkDto> GetAllForCurrentDay(Int64 walkerId);
 
         WalkDto ValidatePetsInWalks(AvailableWalkersCriteria availableWalkersCriteria);
+
+        //Crea un paseo por cada mascota. Si no se puede reservar devuelve null y el motivo en error.
+        List<WalkDto> Register(WalkRequestCriteria walkRequestCriteria, out String error);
     }
 }

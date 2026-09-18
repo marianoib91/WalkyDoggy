@@ -116,6 +116,41 @@ namespace WalkyDoggy.Web.Controllers
         }
 
         [HttpGet]
+        [Route("getDetail")]
+        public HttpResponseMessage GetDetail(HttpRequestMessage request, Int64 id)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                var walkerDto = this.walkerAppService.GetDetail(id);
+                if (walkerDto == null)
+                {
+                    return request.CreateResponse(HttpStatusCode.NotFound, "El paseador no existe.");
+                }
+
+                return request.CreateResponse(HttpStatusCode.OK, walkerDto);
+            });
+        }
+
+        [HttpGet]
+        [Route("getAvailableTimes")]
+        public HttpResponseMessage GetAvailableTimes(HttpRequestMessage request, Int64 walkerId, String date)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                DateTime parsedDate;
+                if (!DateTime.TryParseExact(date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture,
+                                            System.Globalization.DateTimeStyles.None, out parsedDate))
+                {
+                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { "La fecha no es válida." });
+                }
+
+                var times = this.walkerAppService.GetAvailableTimes(walkerId, parsedDate);
+
+                return request.CreateResponse(HttpStatusCode.OK, times);
+            });
+        }
+
+        [HttpGet]
         [Route("getAll")]
         public HttpResponseMessage GetAll(HttpRequestMessage request)
         {

@@ -19,6 +19,9 @@ namespace WalkyDoggy.Services.Services
 {
     public class WalkerAppService : EntityBaseAppService<Walker, WalkerDto>, IWalkerAppService
     {
+        //Cantidad maxima de mascotas que un paseador puede llevar a la vez
+        public const Int32 MaxPetsPerWalk = 5;
+
         #region Variables
         private readonly IEntityBaseRepository<Walker> walkersRepository;
         private readonly IEntityBaseRepository<WorkDay> workDaysRepository;
@@ -96,6 +99,76 @@ namespace WalkyDoggy.Services.Services
             var walkers = this.walkersRepository.AllIncluding(x => x.City, x => x.Price, x => x.City.Province).ToList();
             var walkersDto = Mapper.Map<List<Walker>, List<WalkerDto>>(walkers);
             return walkersDto;
+        }
+
+        public WalkerDto GetDetail(Int64 id)
+        {
+            var walker = this.walkersRepository.AllIncluding(x => x.City, x => x.Price, x => x.City.Province).
+                                                Where(x => x.Id == id).
+                                                FirstOrDefault();
+            if (walker == null)
+            {
+                return null;
+            }
+
+            return Mapper.Map<Walker, WalkerDto>(walker);
+        }
+
+        //Horarios en los que el paseador puede recibir un paseo en la fecha indicada.
+        //Un paseo dura una hora, por eso el horario de fin de la jornada no se ofrece como inicio.
+        public List<String> GetAvailableTimes(Int64 walkerId, DateTime date)
+        {
+            var times = new List<String>();
+            var day = date.Date;
+            var now = DateTime.Now;
+
+            if (day < now.Date)
+            {
+                return times;
+            }
+
+            var dayOfWeek = new DayOfWeekService().GetDayOfWeek(day.DayOfWeek.ToString());
+            var workDays = this.workDaysRepository.GetAll().
+                                                   Where(x => x.WalkerId == walkerId && x.DayOfWeek == dayOfWeek).
+                                                   ToList();
+            if (workDays.Count == 0)
+            {
+                return times;
+            }
+
+            var walks = this.walksRepository.GetAll().
+                                             Where(x => x.WalkerId == walkerId && x.Date == day).
+                                             ToList();
+
+            foreach (var workDay in workDays)
+            {
+                var from = Convert.ToInt32(workDay.TimeFrom.Split(':')[0]);
+                var until = Convert.ToInt32(workDay.TimeUntil.Split(':')[0]);
+
+                for (var hour = from; hour < until; hour++)
+                {
+                    //Si es hoy, solo se ofrecen horarios posteriores a la hora actual
+                    if (day == now.Date && hour <= now.Hour)
+                    {
+                        continue;
+                    }
+
+                    var time = hour.ToString("00") + ":00";
+                    var petsInWalk = walks.Count(x => x.TimeFrom == time);
+                    if (petsInWalk >= MaxPetsPerWalk)
+                    {
+                        continue;
+                    }
+
+                    if (!times.Contains(time))
+                    {
+                        times.Add(time);
+                    }
+                }
+            }
+
+            times.Sort();
+            return times;
         }
 
         public List<WalkerDto> GetAvailableWalkers(AvailableWalkersCriteria availableWalkersCriteria)
