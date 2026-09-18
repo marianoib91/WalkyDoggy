@@ -73,7 +73,7 @@ namespace WalkyDoggy.Services.Services
 
         public CustomerDto GetByUserId(Int64 userId)
         {
-            var customer = this.customersRepository.AllIncluding(x => x.City).Where(x => x.UserId == userId).FirstOrDefault();
+            var customer = this.customersRepository.AllIncluding(x => x.City, x => x.City.Province).Where(x => x.UserId == userId).FirstOrDefault();
 
             var customerDto = Mapper.Map<Customer, CustomerDto>(customer);
 

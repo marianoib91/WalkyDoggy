@@ -19,6 +19,10 @@ namespace WalkyDoggy.Application.Dtos
 
         public Int64 ProvinceId { get; set; }
 
+        public String CityName { get; set; }
+
+        public String ProvinceName { get; set; }
+
         public String FirstName { get; set; }
 
         public String LastName { get; set; }
@@ -34,5 +38,9 @@ namespace WalkyDoggy.Application.Dtos
         public String Password { get; set; }
 
         public String ProfileImage { get; set; }
+
+        public String Latitude { get; set; }
+
+        public String Longitude { get; set; }
     }
 }

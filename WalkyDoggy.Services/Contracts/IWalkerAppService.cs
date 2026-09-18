@@ -21,6 +21,9 @@ namespace WalkyDoggy.Services.Contracts
 
         List<WalkerDto> GetAll();
 
+        //Todos los paseadores ordenados por cercania al domicilio del cliente (los que no tienen coordenadas van al final)
+        List<WalkerDto> GetAllOrderedByDistance(Int64 customerId);
+
         WalkerDto GetDetail(Int64 id);
 
         List<String> GetAvailableTimes(Int64 walkerId, DateTime date);

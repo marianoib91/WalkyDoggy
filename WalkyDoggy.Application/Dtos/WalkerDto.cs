@@ -37,6 +37,10 @@ namespace WalkyDoggy.Application.Dtos
 
         public String ProfileImage { get; set; }
 
+        public String Latitude { get; set; }
+
+        public String Longitude { get; set; }
+
         public String Password { get; set; }
 
         public String ProvinceName { get; set; }
@@ -44,5 +48,8 @@ namespace WalkyDoggy.Application.Dtos
         public String CityName { get; set; }
 
         public Double Amount { get; set; }
+
+        //Distancia en km al domicilio del cliente (solo cuando se consulta con un cliente que tiene coordenadas)
+        public Double? DistanceKm { get; set; }
     }
 }

@@ -8,39 +8,20 @@
     function registerWalkerCtrl($scope, apiService, membershipService, notificationService, $rootScope, $location) {
 
         $scope.walker = {};
-        $scope.cities = {};
-        $scope.provinces = {};
         $scope.prices = {};
-        $scope.disableCities = true;
 
         init();
 
         function init() {
-            apiService.get('/api/provinces/getAll', null, onLoadProvincesCompleted);
             apiService.get('/api/prices/getAll', null, onLoadPricesCompleted);
         }
 
-        $scope.loadCities = function (provinceId) {
-            var config = {
-                params: {
-                    provinceId: provinceId
-                }
-            }
-            apiService.get('/api/cities/getAllByProvinceId/', config, onLoadCitiesCompleted);
-        }
 
         function onLoadPricesCompleted(result) {
             $scope.prices = result.data;
         }
 
-        function onLoadCitiesCompleted(result) {
-            $scope.cities = result.data;
-            $scope.disableCities = false;
-        }
 
-        function onLoadProvincesCompleted(result) {
-            $scope.provinces = result.data;
-        }
 
         $scope.register = function register() {
             if ($scope.walker.password == $scope.walker.confirmPassword) {

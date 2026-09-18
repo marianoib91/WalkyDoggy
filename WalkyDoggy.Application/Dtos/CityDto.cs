@@ -11,6 +11,8 @@ namespace WalkyDoggy.Application.Dtos
     {
         public Int64 Id { get; set; }
 
+        public Int64 ProvinceId { get; set; }
+
         public String Name { get; set; }
 
         public String PostalCode { get; set; }

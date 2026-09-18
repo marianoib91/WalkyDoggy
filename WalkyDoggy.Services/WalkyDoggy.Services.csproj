@@ -58,7 +58,6 @@
     <Compile Include="Contracts\IDistanceMatrixAppService.cs" />
     <Compile Include="Contracts\IEncryptionService.cs" />
     <Compile Include="Contracts\IEntityBaseAppService.cs" />
-    <Compile Include="Contracts\IGeocodeAppService.cs" />
     <Compile Include="Contracts\IMembershipService.cs" />
     <Compile Include="Contracts\IPetAppService.cs" />
     <Compile Include="Contracts\IPriceAppService.cs" />
@@ -74,7 +73,6 @@
     <Compile Include="Services\CustomerAppService.cs" />
     <Compile Include="Services\DistanceMatrixAppService.cs" />
     <Compile Include="Services\EntityBaseAppService.cs" />
-    <Compile Include="Services\GeocodeAppService.cs" />
     <Compile Include="Services\PetAppService.cs" />
     <Compile Include="Services\PriceAppService.cs" />
     <Compile Include="Services\ProvinceAppService.cs" />

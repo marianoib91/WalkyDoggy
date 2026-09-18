@@ -21,6 +21,8 @@ namespace WalkyDoggy.Web.Mappings
         {
             Mapper.CreateMap<Customer, CustomerDto>().
                 ForMember(p => p.ProvinceId, m => m.MapFrom(s => s.City.ProvinceId)).
+                ForMember(p => p.CityName, m => m.MapFrom(s => s.City.Name)).
+                ForMember(p => p.ProvinceName, m => m.MapFrom(s => s.City.Province.Name)).
                 ForMember(p => p.RoleId, m => m.MapFrom(s => s.User.UserRoles.Select(x => x.RoleId).FirstOrDefault()));
 
             Mapper.CreateMap<User, UserDto>();

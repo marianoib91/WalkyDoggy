@@ -8,34 +8,11 @@
     function registerCustomerCtrl($scope, apiService, membershipService, notificationService, $rootScope, $location) {
 
         $scope.customer = {};
-        $scope.cities = {};
-        $scope.provinces = {};
-        $scope.disableCities = true;
 
-        init();
 
-        function init() {
-            apiService.get('/api/provinces/getAll', null, onLoadProvincesCompleted);
-        }
 
-        $scope.loadCities = function (provinceId) {
-            var config = {
-                params: {
-                    provinceId: provinceId
-                }
-            }
 
-            apiService.get('/api/cities/getAllByProvinceId/', config, onLoadCitiesCompleted);
-        }
 
-        function onLoadCitiesCompleted(result) {
-            $scope.cities = result.data;
-            $scope.disableCities = false;
-        }
-
-        function onLoadProvincesCompleted(result) {
-            $scope.provinces = result.data;
-        }
 
         $scope.register = function () {
             if ($scope.customer.password == $scope.customer.confirmPassword) {

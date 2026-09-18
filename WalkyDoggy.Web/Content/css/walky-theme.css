@@ -1011,3 +1011,136 @@ button.wd-pet-add {
     border: 1px solid #E7E9EC;
     border-radius: 12px;
 }
+
+/* ===== Domicilio con buscador y mapa ===== */
+.wd-address {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.wd-address .form-group {
+    margin-bottom: 0;
+}
+
+.wd-address-combobox {
+    position: relative;
+}
+
+.wd-suggest {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    max-height: 320px;
+    margin: 4px 0 0;
+    padding: 6px;
+    overflow-y: auto;
+    list-style: none;
+    background-color: #ffffff;
+    border: 1px solid #E7E9EC;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(20, 24, 31, 0.12);
+}
+
+.wd-suggest li {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.wd-suggest li.is-active {
+    background-color: #F1F8F5;
+}
+
+.wd-suggest-title {
+    font-weight: 500;
+    color: #14181F;
+}
+
+.wd-suggest-subtitle {
+    font-size: 13px;
+    color: #5B6470;
+}
+
+.wd-address-map {
+    position: relative;
+    z-index: 0;
+    height: 280px;
+    border: 1px solid #E7E9EC;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.wd-pin {
+    background: transparent;
+    border: 0;
+}
+
+.wd-address-city {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    border: 1px solid #E7E9EC;
+    border-radius: 10px;
+    background-color: #F5F6F7;
+    color: #14181F;
+}
+
+.wd-address-city-empty {
+    color: #5B6470;
+}
+
+.form-signin .wd-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.form-signin .wd-form-grid .wd-span-2 {
+    grid-column: span 1;
+}
+
+.wd-distance {
+    font-weight: 500;
+    color: #166A4F;
+}
+
+/* ===== Formularios de registro ===== */
+.form-signin {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 40px 24px 96px;
+}
+
+.form-signin .form-signin-heading {
+    margin: 0 0 24px;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.form-signin .form-group {
+    margin-bottom: 16px;
+}
+
+.form-signin .btn-block {
+    margin-top: 24px;
+}
+
+.form-signin .form-control {
+    height: 44px;
+    font-size: 15px;
+}
+
+.form-signin textarea.form-control {
+    height: auto;
+}
+
+.form-signin input[type="email"],
+.form-signin input[type="password"] {
+    margin-bottom: 0;
+    border-radius: 10px;
+}

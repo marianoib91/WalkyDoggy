@@ -8,8 +8,6 @@
     function profileCtrl($scope, membershipService, notificationService, apiService, fileUploadService, $rootScope, $location) {
         var userRoleId = $rootScope.repository.loggedUser.roleId;
         $scope.user = null;
-        $scope.cities = {};
-        $scope.provinces = {};
 
         //2=Customer, 3=Walker
         var entityType = userRoleId == 2 ? 'customer' : 'walker';
@@ -20,24 +18,6 @@
             fileUploadService.uploadProfileImage($files, entityType, $scope.user.id, function (profileImage) {
                 $scope.user.profileImage = profileImage;
             });
-        }
-
-        $scope.loadCities = function (provinceId) {
-            var config = {
-                params: {
-                    provinceId: provinceId
-                }
-            }
-
-            apiService.get('/api/cities/getAllByProvinceId/', config, onLoadCitiesCompleted);
-        }
-
-        function onLoadCitiesCompleted(result) {
-            $scope.cities = result.data;
-        }
-
-        function onLoadProvincesCompleted(result) {
-            $scope.provinces = result.data;
         }
 
         function init() {
@@ -60,7 +40,6 @@
                
             }
 
-            apiService.get('/api/provinces/getAll', null, onLoadProvincesCompleted);
 
 
         }
@@ -71,12 +50,6 @@
             $scope.user = results.data;
             $scope.user.phone = parseFloat($scope.user.phone, 10);
             $scope.user.streetNumber = parseFloat($scope.user.streetNumber, 10);
-            var config = {
-                params: {
-                    provinceId: $scope.user.provinceId
-                }
-            }
-            apiService.get('/api/cities/getAllByProvinceId/', config, onLoadCitiesCompleted);
         }
 
 

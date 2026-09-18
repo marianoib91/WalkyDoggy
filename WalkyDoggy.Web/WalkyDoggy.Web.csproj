@@ -180,7 +180,12 @@
     <Content Include="Scripts\spa\account\login-modal.html" />
     <Content Include="Scripts\spa\account\loginModalCtrl.js" />
     <Content Include="Scripts\spa\directives\angular-block-ui.min.js" />
+    <Content Include="Scripts\spa\directives\addressField.directive.js" />
+    <Content Include="Scripts\spa\directives\addressField.html" />
     <Content Include="Scripts\spa\directives\angular-daterangepicker.js" />
+    <Content Include="Scripts\spa\services\geocodingService.js" />
+    <Content Include="Scripts\Vendors\leaflet.js" />
+    <Content Include="Content\css\vendors\leaflet\leaflet.css" />
     <Content Include="Scripts\spa\directives\sweetalert.js" />
     <Content Include="Scripts\spa\errors\page404.html" />
     <Content Include="Scripts\spa\pets\petsEdit.html" />
@@ -282,7 +287,6 @@
     <Compile Include="Controllers\CitiesController.cs" />
     <Compile Include="Controllers\CustomersController.cs" />
     <Compile Include="Controllers\DistanceMatrixController.cs" />
-    <Compile Include="Controllers\GeocodeController.cs" />
     <Compile Include="Controllers\ImagesController.cs" />
     <Compile Include="Controllers\PetsController.cs" />
     <Compile Include="Controllers\PricesController.cs" />

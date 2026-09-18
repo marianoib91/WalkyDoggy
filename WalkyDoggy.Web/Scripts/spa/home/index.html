@@ -4,7 +4,8 @@
         <div>
             <h1 class="wd-page-title" ng-if="walkers.length>0">Paseadores recomendados</h1>
             <h1 class="wd-page-title" ng-if="walkers.length==0">No se encontraron paseadores</h1>
-            <p class="wd-page-subtitle" ng-if="walkers.length>0">Elegí a la persona que va a pasear a tu mascota.</p>
+            <p class="wd-page-subtitle" ng-if="walkers.length>0 && hasDistances">Ordenados por cercanía a tu domicilio. Elegí a la persona que va a pasear a tu mascota.</p>
+            <p class="wd-page-subtitle" ng-if="walkers.length>0 && !hasDistances">Elegí a la persona que va a pasear a tu mascota. Ubicá tu domicilio en el mapa desde <a href="#/profile">tu perfil</a> para verlos ordenados por cercanía.</p>
         </div>
     </div>
     <div class="wd-walker-list">
@@ -18,6 +19,7 @@
                 <div class="wd-walker-meta">
                     <i class="fa fa-map-marker" aria-hidden="true"></i>
                     {{walker.cityName}}, {{walker.provinceName}}
+                    <span class="wd-distance" ng-if="walker.distanceKm != null">· {{walker.distanceKm < 0.1 ? 'a menos de 100 m' : 'a ' + (walker.distanceKm | number:1).replace('.', ',') + ' km'}} de tu domicilio</span>
                 </div>
                 <p class="wd-walker-desc">{{walker.description}}</p>
             </div>

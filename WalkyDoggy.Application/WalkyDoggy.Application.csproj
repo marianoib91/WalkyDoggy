@@ -53,11 +53,11 @@
   <ItemGroup>
     <Compile Include="Constants\Roles.cs" />
     <Compile Include="Criterias\AvailableWalkersCriteria.cs" />
+    <Compile Include="Criterias\CityResolveCriteria.cs" />
     <Compile Include="Criterias\WalkRequestCriteria.cs" />
     <Compile Include="Dtos\BreedDto.cs" />
     <Compile Include="Dtos\CityDto.cs" />
     <Compile Include="Dtos\CustomerDto.cs" />
-    <Compile Include="Dtos\GeocodeDto.cs" />
     <Compile Include="Dtos\IDto.cs" />
     <Compile Include="Dtos\LoginDto.cs" />
     <Compile Include="Dtos\PetDto.cs" />

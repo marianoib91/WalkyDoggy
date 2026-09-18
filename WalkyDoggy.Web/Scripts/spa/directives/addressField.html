@@ -1,0 +1,81 @@
+<div class="wd-address">
+    <div class="form-group wd-address-search">
+        <label for="{{uid}}-search">Buscá tu dirección</label>
+        <div class="wd-address-combobox">
+            <input type="text"
+                   id="{{uid}}-search"
+                   name="inputAddressSearch"
+                   class="form-control"
+                   autocomplete="off"
+                   role="combobox"
+                   aria-autocomplete="list"
+                   aria-haspopup="listbox"
+                   aria-expanded="{{state.open && suggestions.length > 0}}"
+                   aria-controls="{{uid}}-list"
+                   placeholder="Ej.: Mitre 1265, Rosario"
+                   ng-model="state.query"
+                   ng-change="onQueryChange()"
+                   ng-keydown="onKeydown($event)"
+                   ng-blur="closeSoon()">
+            <ul class="wd-suggest" id="{{uid}}-list" role="listbox" ng-if="state.open && suggestions.length > 0">
+                <li role="option"
+                    ng-repeat="suggestion in suggestions"
+                    ng-class="{'is-active': $index == state.activeIndex}"
+                    aria-selected="{{$index == state.activeIndex}}"
+                    ng-mousedown="select(suggestion); $event.preventDefault()"
+                    ng-mouseenter="state.activeIndex = $index">
+                    <span class="wd-suggest-title">{{suggestion.title}}</span>
+                    <span class="wd-suggest-subtitle">{{suggestion.subtitle}}</span>
+                </li>
+            </ul>
+        </div>
+        <p class="wd-field-hint" ng-if="state.message" role="status">{{state.message}}</p>
+    </div>
+
+    <div class="wd-address-map" role="application" aria-label="Mapa para ubicar el domicilio"></div>
+    <p class="wd-field-hint">Podés hacer clic en el mapa o arrastrar el pin para ajustar la ubicación.</p>
+
+    <div class="wd-form-grid wd-address-fields">
+        <div class="form-group">
+            <label for="{{uid}}-street">Calle</label>
+            <input type="text"
+                   id="{{uid}}-street"
+                   name="inputStreet"
+                   class="form-control"
+                   ng-model="address.streetName"
+                   maxlength="50"
+                   placeholder="Calle"
+                   validate-on="blur"
+                   required
+                   required-message="'Calle es requerido.'">
+        </div>
+        <div class="form-group">
+            <label for="{{uid}}-number">Número</label>
+            <input type="number"
+                   id="{{uid}}-number"
+                   name="inputStreetNumber"
+                   class="form-control wd-address-number"
+                   ng-model="address.streetNumber"
+                   min="1"
+                   placeholder="Número"
+                   validate-on="blur"
+                   required
+                   required-message="'Número de calle es requerido.'">
+        </div>
+        <div class="form-group wd-span-2">
+            <label>Ciudad y provincia</label>
+            <div class="wd-address-city">
+                <span ng-if="address.cityName">{{address.cityName}}, {{address.provinceName}}</span>
+                <span class="wd-address-city-empty" ng-if="!address.cityName">Se completa al elegir una dirección de la lista</span>
+            </div>
+            <input type="text"
+                   class="sr-only"
+                   tabindex="-1"
+                   aria-hidden="true"
+                   name="inputAddressCity"
+                   ng-model="address.cityId"
+                   required
+                   required-message="'Elegí tu dirección de la lista de sugerencias.'">
+        </div>
+    </div>
+</div>

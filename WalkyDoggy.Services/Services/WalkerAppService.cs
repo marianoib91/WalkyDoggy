@@ -24,6 +24,7 @@ namespace WalkyDoggy.Services.Services
 
         #region Variables
         private readonly IEntityBaseRepository<Walker> walkersRepository;
+        private readonly IEntityBaseRepository<Customer> customersRepository;
         private readonly IEntityBaseRepository<WorkDay> workDaysRepository;
         private readonly IEntityBaseRepository<Walk> walksRepository;
         private readonly IEntityBaseRepository<UserRole> userRolesRepository;
@@ -34,6 +35,7 @@ namespace WalkyDoggy.Services.Services
         public WalkerAppService(IEntityBaseRepository<Error> errorsRepository,
                                 IUnitOfWork unitOfWork,
                                 IEntityBaseRepository<Walker> walkersRepository,
+                                IEntityBaseRepository<Customer> customersRepository,
                                 IEntityBaseRepository<WorkDay> workDaysRepository,
                                 IEntityBaseRepository<Walk> walksRepository,
                                 IEntityBaseRepository<UserRole> userRolesRepository,
@@ -42,6 +44,7 @@ namespace WalkyDoggy.Services.Services
             base(errorsRepository, unitOfWork, walkersRepository)
         {
             this.walkersRepository = walkersRepository;
+            this.customersRepository = customersRepository;
             this.workDaysRepository = workDaysRepository;
             this.walksRepository = walksRepository;
             this.userRolesRepository = userRolesRepository;
@@ -82,7 +85,7 @@ namespace WalkyDoggy.Services.Services
 
         public WalkerDto GetByUserId(Int64 userId)
         {
-            var walker = this.walkersRepository.AllIncluding(x => x.City, x => x.Price).Where(x => x.UserId == userId).FirstOrDefault();
+            var walker = this.walkersRepository.AllIncluding(x => x.City, x => x.City.Province, x => x.Price).Where(x => x.UserId == userId).FirstOrDefault();
             var walkerDto = Mapper.Map<Walker, WalkerDto>(walker);
             return walkerDto;
         }
@@ -99,6 +102,55 @@ namespace WalkyDoggy.Services.Services
             var walkers = this.walkersRepository.AllIncluding(x => x.City, x => x.Price, x => x.City.Province).ToList();
             var walkersDto = Mapper.Map<List<Walker>, List<WalkerDto>>(walkers);
             return walkersDto;
+        }
+
+        public List<WalkerDto> GetAllOrderedByDistance(Int64 customerId)
+        {
+            var walkersDto = GetAll();
+
+            var customer = this.customersRepository.GetSingle(customerId);
+            double customerLatitude, customerLongitude;
+            if (customer == null || !TryParseCoordinates(customer.Latitude, customer.Longitude, out customerLatitude, out customerLongitude))
+            {
+                return walkersDto;
+            }
+
+            foreach (var walkerDto in walkersDto)
+            {
+                double walkerLatitude, walkerLongitude;
+                if (TryParseCoordinates(walkerDto.Latitude, walkerDto.Longitude, out walkerLatitude, out walkerLongitude))
+                {
+                    walkerDto.DistanceKm = Math.Round(DistanceInKilometers(customerLatitude, customerLongitude, walkerLatitude, walkerLongitude), 1);
+                }
+            }
+
+            return walkersDto.OrderBy(x => x.DistanceKm.HasValue ? 0 : 1).
+                              ThenBy(x => x.DistanceKm).
+                              ToList();
+        }
+
+        private static Boolean TryParseCoordinates(String latitude, String longitude, out Double parsedLatitude, out Double parsedLongitude)
+        {
+            parsedLatitude = 0;
+            parsedLongitude = 0;
+
+            return Double.TryParse(latitude, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out parsedLatitude) &&
+                   Double.TryParse(longitude, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out parsedLongitude);
+        }
+
+        //Distancia en linea recta entre dos puntos (formula de Haversine)
+        private static Double DistanceInKilometers(Double latitude1, Double longitude1, Double latitude2, Double longitude2)
+        {
+            const Double earthRadiusKm = 6371;
+            Func<Double, Double> toRadians = degrees => degrees * Math.PI / 180;
+
+            var deltaLatitude = toRadians(latitude2 - latitude1);
+            var deltaLongitude = toRadians(longitude2 - longitude1);
+            var a = Math.Sin(deltaLatitude / 2) * Math.Sin(deltaLatitude / 2) +
+                    Math.Cos(toRadians(latitude1)) * Math.Cos(toRadians(latitude2)) *
+                    Math.Sin(deltaLongitude / 2) * Math.Sin(deltaLongitude / 2);
+
+            return earthRadiusKm * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         }
 
         public WalkerDto GetDetail(Int64 id)

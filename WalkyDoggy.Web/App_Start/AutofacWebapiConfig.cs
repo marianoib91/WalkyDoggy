@@ -108,10 +108,6 @@ namespace WalkyDoggy.Web.App_Start
             .As<IWorkDayAppService>()
             .InstancePerRequest();
 
-            builder.RegisterType<GeocodeAppService>()
-           .As<IGeocodeAppService>()
-           .InstancePerRequest();
-
             builder.RegisterType<DistanceMatrixAppService>()
           .As<IDistanceMatrixAppService>()
           .InstancePerRequest();

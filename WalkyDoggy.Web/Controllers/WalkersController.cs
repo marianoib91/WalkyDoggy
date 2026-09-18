@@ -116,6 +116,18 @@ namespace WalkyDoggy.Web.Controllers
         }
 
         [HttpGet]
+        [Route("getAllOrderedByDistance")]
+        public HttpResponseMessage GetAllOrderedByDistance(HttpRequestMessage request, Int64 customerId)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                var walkersDto = this.walkerAppService.GetAllOrderedByDistance(customerId);
+
+                return request.CreateResponse(HttpStatusCode.OK, walkersDto);
+            });
+        }
+
+        [HttpGet]
         [Route("getDetail")]
         public HttpResponseMessage GetDetail(HttpRequestMessage request, Int64 id)
         {

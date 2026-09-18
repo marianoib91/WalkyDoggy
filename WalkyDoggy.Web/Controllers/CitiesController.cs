@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Http;
+using WalkyDoggy.Application.Criterias;
 using WalkyDoggy.Data.Infrastructure;
 using WalkyDoggy.Data.Repositories;
 using WalkyDoggy.Entities;
@@ -46,6 +47,22 @@ namespace WalkyDoggy.Web.Controllers
                 response = request.CreateResponse(HttpStatusCode.OK, citiesDto);
 
                 return response;
+            });
+        }
+
+        [HttpPost]
+        [Route("resolve")]
+        public HttpResponseMessage Resolve(HttpRequestMessage request, CityResolveCriteria cityResolveCriteria)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                var cityDto = this.cityAppService.Resolve(cityResolveCriteria);
+                if (cityDto == null)
+                {
+                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { "No se pudo reconocer la ciudad o la provincia de la dirección." });
+                }
+
+                return request.CreateResponse(HttpStatusCode.OK, cityDto);
             });
         }
 

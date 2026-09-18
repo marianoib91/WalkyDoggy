@@ -13,6 +13,7 @@
         $scope.customerId = $rootScope.repository.loggedUser.customerId;
         var userId = $rootScope.repository.loggedUser.id;
         $scope.walkers = {};
+        $scope.hasDistances = false;
         $scope.prices = {};
         $scope.provinces = {};
         $scope.cities = {};
@@ -26,7 +27,8 @@
             apiService.get('/api/provinces/getAll', null, onLoadProvincesCompleted);
             //Cliente
             if ($scope.roleId == '2') {
-                apiService.get('/api/walkers/getAll', null, onLoadWalkersCompleted);
+                //Los paseadores llegan ordenados por cercania al domicilio del cliente
+                apiService.get('/api/walkers/getAllOrderedByDistance', { params: { customerId: $scope.customerId } }, onLoadWalkersCompleted);
             }
 
             //Paseador
@@ -69,6 +71,9 @@
 
         function onLoadWalkersCompleted(result) {
             $scope.walkers = result.data;
+            $scope.hasDistances = result.data.some(function (walker) {
+                return walker.distanceKm !== null && walker.distanceKm !== undefined;
+            });
         }
     }
 

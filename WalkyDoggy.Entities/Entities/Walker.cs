@@ -32,6 +32,11 @@ namespace WalkyDoggy.Entities
 
         public String ProfileImage { get; set; }
 
+        //Coordenadas del domicilio (decimales con punto, ej: -32.95205)
+        public String Latitude { get; set; }
+
+        public String Longitude { get; set; }
+
         public User User { get; set; }
 
         public City City { get; set; }
