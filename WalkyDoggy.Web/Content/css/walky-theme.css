@@ -1,0 +1,936 @@
+/*
+  Walky Doggy - tema visual
+  Se carga al final del bundle de estilos para sobrescribir Bootstrap 3 y los estilos de cada pantalla.
+  Paleta: tinta #14181F, texto secundario #5B6470, lineas #E7E9EC, acento #166A4F, peligro #B42318.
+  (Sin variables CSS a proposito: el minificador de WebGrease del bundle no las soporta.)
+*/
+
+/* ===== Base ===== */
+body {
+    padding-top: 72px;
+    background-color: #ffffff;
+    color: #14181F;
+    font-family: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+#main {
+    background-color: #ffffff;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    font-family: inherit;
+    font-weight: 600;
+    color: #14181F;
+    letter-spacing: -0.01em;
+}
+
+.panel-body h4 {
+    color: #14181F;
+}
+
+a {
+    color: #166A4F;
+}
+
+a:hover,
+a:focus {
+    color: #0F5640;
+}
+
+label {
+    font-weight: 500;
+    color: #3A424E;
+}
+
+.label-card-info {
+    font-weight: 400;
+}
+
+/* ===== Barra superior ===== */
+.navbar,
+.navbar-default {
+    background-color: #ffffff !important;
+    background-image: none !important;
+    border: 0;
+    border-bottom: 1px solid #E7E9EC;
+    border-radius: 0;
+    box-shadow: none !important;
+    min-height: 72px;
+    margin-bottom: 0;
+    padding: 0 24px;
+}
+
+.navbar-header {
+    min-height: 72px;
+}
+
+.navbar-default .navbar-brand {
+    display: flex;
+    align-items: center;
+    height: 72px;
+    padding: 0;
+    margin-left: 0 !important;
+    font-size: 18px;
+    font-weight: 600;
+    color: #14181F !important;
+}
+
+.navbar-default .navbar-brand .fa-paw {
+    float: none !important;
+    order: -1;
+    margin: 0 10px 0 0;
+    padding-top: 0 !important;
+    font-size: 26px;
+    color: #166A4F;
+}
+
+.navbar-container {
+    width: auto !important;
+}
+
+.navbar-default .navbar-nav > li > a,
+.navbar-default .navbar-nav > li > a.topbar-button {
+    padding: 24px 14px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #3A424E !important;
+    background-color: transparent;
+}
+
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus {
+    color: #166A4F !important;
+    background-color: transparent;
+}
+
+.topbar-icon {
+    display: none;
+}
+
+.navbar-default .navbar-nav > li > a.topbar-cta {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 0 16px 8px;
+    padding: 0 18px;
+    height: 40px;
+    border-radius: 999px;
+    background-color: #166A4F;
+    color: #ffffff !important;
+}
+
+.navbar-default .navbar-nav > li > a.topbar-cta:hover,
+.navbar-default .navbar-nav > li > a.topbar-cta:focus {
+    background-color: #0F5640;
+    color: #ffffff !important;
+}
+
+.navbar-default .navbar-nav > li.userinfo > a.dropdown-toggle {
+    width: 40px;
+    height: 40px;
+    margin: 16px 0 16px 8px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #EEF0F2;
+    color: #14181F !important;
+}
+
+.navbar-default .navbar-nav > li.userinfo > a.dropdown-toggle .caret {
+    display: none;
+}
+
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+    background-color: #EEF0F2;
+}
+
+.dropdown-menu {
+    min-width: 200px;
+    padding: 8px;
+    border: 1px solid #E7E9EC;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(20, 24, 31, 0.08);
+}
+
+.dropdown-menu > li > a {
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: #3A424E;
+}
+
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus {
+    background-color: #F3F4F6;
+    color: #14181F;
+}
+
+.navbar-toggle {
+    margin-top: 19px;
+    border-color: #E7E9EC;
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+    background-color: #3A424E;
+}
+
+@media (max-width: 767px) {
+    .navbar-default .navbar-nav > li > a,
+    .navbar-default .navbar-nav > li > a.topbar-button {
+        padding: 12px 14px;
+    }
+
+    .navbar-default .navbar-nav > li > a.topbar-cta {
+        margin: 8px 0;
+    }
+}
+
+/* ===== Contenedor de pantallas ===== */
+@media (min-width: 992px) {
+    .customer-index,
+    .walker-index,
+    .pets-list,
+    .pets-edit,
+    .profile,
+    .step1,
+    .step2,
+    .work-conditions {
+        max-width: 1040px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .customer-index > [class*="col-md-"],
+    .walker-index > [class*="col-md-"],
+    .pets-list > [class*="col-md-"],
+    .pets-edit > [class*="col-md-"],
+    .profile > [class*="col-md-"],
+    .step1 > [class*="col-md-"],
+    .step2 > [class*="col-md-"],
+    .work-conditions > [class*="col-md-"] {
+        width: 100%;
+        margin-left: 0;
+        float: none;
+    }
+}
+
+.page > br:first-child {
+    display: none;
+}
+
+.customer-index,
+.walker-index,
+.pets-list,
+.pets-edit,
+.profile,
+.step1,
+.step2,
+.work-conditions {
+    padding-top: 40px;
+    padding-bottom: 96px;
+}
+
+/* ===== Encabezados de pantalla ===== */
+.wd-page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.wd-page-title {
+    margin: 0;
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: #14181F;
+}
+
+@media (max-width: 767px) {
+    .wd-page-title,
+    .panel-primary > .panel-heading .panel-title {
+        font-size: 28px;
+    }
+
+    .wd-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .wd-page-header .wd-filter {
+        width: 100%;
+    }
+}
+
+.wd-page-subtitle {
+    margin: 8px 0 0;
+    font-size: 17px;
+    line-height: 1.5;
+    color: #5B6470;
+}
+
+/* ===== Paneles ===== */
+.panel {
+    margin-bottom: 16px;
+    background-color: #ffffff;
+    border: 1px solid #E7E9EC;
+    border-radius: 16px;
+    box-shadow: none;
+}
+
+.panel-default > .panel-heading {
+    background-color: #ffffff;
+    border-color: #E7E9EC;
+    border-radius: 16px 16px 0 0;
+    color: #14181F;
+    font-weight: 600;
+}
+
+.panel-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #14181F;
+}
+
+.panel-footer {
+    background-color: #ffffff;
+    border-top: 1px solid #E7E9EC;
+    border-radius: 0 0 16px 16px;
+}
+
+/* Panel exterior de cada pantalla: pasa a ser solo el titulo de pagina */
+.panel-primary {
+    background-color: transparent;
+    border: 0;
+}
+
+.panel-primary > .panel-heading {
+    padding: 0 0 24px;
+    background-color: transparent;
+    border: 0;
+    color: #14181F;
+    text-align: left !important;
+}
+
+.panel-primary > .panel-heading .panel-title {
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+.panel-primary > .panel-body {
+    padding: 0;
+}
+
+/* Los modales de sesion y registro si son una tarjeta */
+.login-modal-panel.panel-primary,
+.register-modal-panel.panel-primary {
+    background-color: #ffffff;
+    border: 0;
+    border-radius: 16px;
+}
+
+.login-modal-panel.panel-primary > .panel-heading,
+.register-modal-panel.panel-primary > .panel-heading {
+    padding: 20px 24px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #E7E9EC;
+    border-radius: 16px 16px 0 0;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center !important;
+}
+
+.login-modal-panel.panel-primary > .panel-body,
+.register-modal-panel.panel-primary > .panel-body {
+    padding: 24px;
+}
+
+.modal-content {
+    border: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(20, 24, 31, 0.18);
+}
+
+/* ===== Botones ===== */
+.btn {
+    padding: 9px 20px;
+    border-radius: 999px;
+    border-width: 1px;
+    font-size: 15px;
+    font-weight: 500;
+    text-shadow: none;
+    box-shadow: none;
+    background-image: none;
+}
+
+.btn-lg {
+    padding: 12px 24px;
+    font-size: 16px;
+}
+
+.btn:focus,
+.btn:active:focus {
+    outline: 2px solid #166A4F;
+    outline-offset: 2px;
+}
+
+.btn-primary,
+.btn-success {
+    background-color: #166A4F;
+    border-color: #166A4F;
+    color: #ffffff;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active {
+    background-color: #0F5640;
+    border-color: #0F5640;
+    color: #ffffff;
+}
+
+.btn-default {
+    background-color: #ffffff;
+    border-color: #14181F;
+    color: #14181F;
+}
+
+.btn-default:hover,
+.btn-default:focus,
+.btn-default:active {
+    background-color: #F3F4F6;
+    border-color: #14181F;
+    color: #14181F;
+}
+
+.btn-danger {
+    background-color: #ffffff;
+    border-color: #B42318;
+    color: #B42318;
+}
+
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-danger:active {
+    background-color: #FEF3F2;
+    border-color: #B42318;
+    color: #B42318;
+}
+
+/* ===== Formularios ===== */
+.form-control {
+    height: 44px;
+    padding: 0 14px !important;
+    border: 1px solid #8F98A5;
+    border-radius: 10px;
+    background-color: #ffffff;
+    box-shadow: none;
+    font-size: 15px !important;
+    color: #14181F;
+}
+
+textarea.form-control {
+    height: auto;
+    padding: 10px 14px !important;
+}
+
+.form-control:focus {
+    border-color: #166A4F;
+    box-shadow: 0 0 0 3px rgba(22, 106, 79, 0.15);
+}
+
+.form-control[readonly],
+.form-control[disabled] {
+    background-color: #F5F6F7;
+    border-color: #D5D8DD;
+    color: #5B6470;
+}
+
+.has-error .form-control {
+    border-color: #B42318 !important;
+}
+
+.has-error .control-label,
+.has-error .help-block,
+.help-block {
+    color: #B42318;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.checkbox .cr,
+.radio .cr {
+    border-color: #8F98A5;
+    border-radius: 6px;
+}
+
+.checkbox .cr .cr-icon,
+.radio .cr .cr-icon {
+    color: #166A4F;
+}
+
+/* ===== Avatares ===== */
+.wd-avatar {
+    display: block;
+    width: 88px;
+    height: 88px;
+    border: 0;
+    border-radius: 50%;
+    background-color: #EEF0F2;
+    object-fit: cover;
+}
+
+.wd-avatar-lg {
+    width: 120px;
+    height: 120px;
+}
+
+.wd-avatar-sm {
+    width: 80px;
+    height: 80px;
+}
+
+/* ===== Paseadores recomendados (home del cliente) ===== */
+.wd-walker-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.wd-walker-card {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+    border: 1px solid #E7E9EC;
+    border-radius: 16px;
+    background-color: #ffffff;
+}
+
+.wd-walker-card .wd-avatar {
+    flex-shrink: 0;
+}
+
+.wd-walker-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.wd-walker-name-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.wd-walker-name {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.wd-walker-info > .wd-walker-name {
+    margin-bottom: 8px;
+}
+
+.wd-walker-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    color: #5B6470;
+}
+
+.wd-walker-desc {
+    margin: 0;
+    color: #3A424E;
+}
+
+.wd-walker-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex-shrink: 0;
+    gap: 12px;
+}
+
+.wd-price-amount {
+    font-size: 28px;
+    font-weight: 600;
+    color: #14181F;
+}
+
+.wd-price-unit {
+    font-size: 14px;
+    color: #5B6470;
+}
+
+@media (max-width: 767px) {
+    .wd-walker-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .wd-walker-price {
+        align-items: flex-start;
+    }
+}
+
+/* ===== Mis mascotas ===== */
+.wd-pet-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+@media (max-width: 767px) {
+    .wd-pet-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.wd-pet-card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 28px;
+    border: 1px solid #E7E9EC;
+    border-radius: 16px;
+    background-color: #ffffff;
+}
+
+.wd-pet-head {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.wd-pet-name {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.wd-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.wd-chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background-color: #F3F4F6;
+    font-size: 14px;
+    color: #3A424E;
+}
+
+.wd-pet-desc {
+    margin: 0;
+    font-size: 16px;
+    color: #3A424E;
+}
+
+.wd-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid #E7E9EC;
+}
+
+.wd-card-actions .btn-danger {
+    border-color: transparent;
+}
+
+.wd-pet-add {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    min-height: 200px;
+    padding: 28px;
+    border: 1.5px dashed #9AA2AD;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #3A424E;
+    cursor: pointer;
+}
+
+.pets-list .wd-pet-add-icon .fa-plus {
+    color: #3A424E;
+}
+
+.pets-list .wd-pet-add:hover .wd-pet-add-icon .fa-plus {
+    color: #166A4F;
+}
+
+button.wd-pet-add {
+    width: 100%;
+    background-color: transparent;
+    font-family: inherit;
+}
+
+.wd-side-card .file-upload-container {
+    margin-top: 0;
+}
+
+.wd-pet-add:hover {
+    border-color: #166A4F;
+    color: #166A4F;
+}
+
+.wd-pet-add-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #F3F4F6;
+    font-size: 20px;
+}
+
+/* ===== Mi perfil / Editar mascota ===== */
+.wd-form-layout {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+}
+
+@media (max-width: 991px) {
+    .wd-form-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.wd-side-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 32px;
+    border: 1px solid #E7E9EC;
+    border-radius: 16px;
+    background-color: #ffffff;
+    text-align: center;
+}
+
+.wd-side-name {
+    font-size: 20px;
+    font-weight: 600;
+    color: #14181F;
+}
+
+.wd-side-role {
+    font-size: 14px;
+    color: #5B6470;
+}
+
+.wd-side-hint {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #5B6470;
+}
+
+.wd-form-card {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 32px;
+    border: 1px solid #E7E9EC;
+    border-radius: 16px;
+    background-color: #ffffff;
+}
+
+.wd-form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.wd-form-section-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.wd-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.wd-form-grid .form-group {
+    margin-bottom: 0;
+}
+
+.wd-form-grid .wd-span-2 {
+    grid-column: span 2;
+}
+
+@media (max-width: 767px) {
+    .wd-form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .wd-form-grid .wd-span-2 {
+        grid-column: span 1;
+    }
+}
+
+.wd-form-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 24px;
+    border-top: 1px solid #E7E9EC;
+}
+
+/* El input file real queda oculto; la etiqueta actua como boton */
+#upload-photo {
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+}
+
+/* ===== Campos con input-group (fecha, hora) ===== */
+.input-group {
+    display: block;
+    width: 100%;
+}
+
+.input-group .form-control,
+.input-group .form-control:first-child,
+.input-group .form-control:last-child {
+    float: none;
+    width: 100%;
+    border-radius: 10px;
+}
+
+/* ===== Pantallas con panel exterior (reserva y condiciones laborales) ===== */
+.step1 .movie,
+.step2 .movie,
+.work-conditions .movie {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.step1 form > .panel,
+.step2 form > .panel,
+.work-conditions form > .panel {
+    margin-bottom: 0;
+    border: 0;
+}
+
+.step1 form > .panel > .panel-body,
+.step2 form > .panel > .panel-body,
+.work-conditions form > .panel > .panel-body {
+    padding: 0;
+}
+
+.step1 form > .panel > .panel-footer,
+.step2 form > .panel > .panel-footer,
+.work-conditions form > .panel > .panel-footer {
+    border-top: 0;
+    padding: 8px 0 0;
+    text-align: left !important;
+}
+
+/* ===== Reserva de paseo (pasos 1 y 2) ===== */
+.step1 .pet-container,
+.step2 .walker-container {
+    border: 1px solid #E7E9EC;
+    border-radius: 16px;
+    background-color: #ffffff;
+}
+
+.step1 .dog-profile-image,
+.step2 .walker-profile-image {
+    border: 0;
+    background-color: #EEF0F2;
+    object-fit: cover;
+}
+
+/* ===== Dashboard del paseador ===== */
+.wd-filter {
+    width: 220px;
+}
+
+.wd-filter .form-control {
+    margin: 0;
+}
+
+.wd-walk-details {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 4px 16px;
+    margin: 0;
+}
+
+.wd-walk-details dt {
+    font-weight: 500;
+    color: #5B6470;
+}
+
+.wd-walk-details dd {
+    margin: 0;
+    color: #14181F;
+}
+
+.wd-walk-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 12px;
+}
+
+.wd-walk-expired {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background-color: #FEF3F2;
+    font-size: 14px;
+    font-weight: 500;
+    color: #B42318;
+}
+
+/* ===== Condiciones laborales ===== */
+.work-conditions textarea {
+    padding: 10px 14px;
+    border: 1px solid #8F98A5;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+}
+
+.work-conditions textarea:focus {
+    border-color: #166A4F;
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(22, 106, 79, 0.15);
+}
+
+.work-conditions .work-condition-row {
+    background-color: #F5F6F7;
+    border: 1px solid #E7E9EC;
+    border-radius: 12px;
+}

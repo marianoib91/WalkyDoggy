@@ -1,76 +1,37 @@
-﻿<br />
-<div class="row pets-list">
-    <div class="col-md-10 col-md-offset-1">
-        <div class="panel panel-primary">
-            <div ng-if="pets.length>0" class="panel-heading">
-                <h3 class="panel-title text-center">MIS MASCOTAS</h3>
-            </div>
-            <div ng-if="pets.length>0">
-                <div class="panel-body">
-                    <div class="col-xs-12 col-sm-6 col-md-12 movie" ng-repeat="pet in pets">
-                        <div class="panel panel-default">
-
-                            <div class="panel-body">
-                                <div class="col-md-3">
-                                    <div class="panel-heading">
-                                        <div class="text-center">
-                                            <label>{{pet.name}}</label>
-                                        </div>
-                                    </div>
-                                    <div class="dog-profile-image-container">
-                                        <img class="dog-profile-image" ng-src="{{pet.profileImage || '../../../Content/images/dog-profile2.jpg'}}" />
-                                    </div>
-                                </div>
-                                <div class="col-md-9">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <strong><u>Raza</u>:</strong>
-                                            <label class="label-card-info">{{pet.breedName}}</label>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <strong><u>Tamaño</u>:</strong>
-                                            <label class="label-card-info">{{pet.sizeName}}</label>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <strong><u>Edad</u>:</strong>
-                                            <label class="label-card-info">{{pet.age}} años</label>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <p>{{pet.description}}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="panel-footer">
-                                <div class="row col-md-offset-3" style="display:inline-flex">
-                                    <div class="col-md-4 btns-container">
-                                        <button class="btn btn-default" ng-click="edit(pet.id)">Editar</button>
-                                    </div>
-                                    <div class="btns-container col-md-4">
-                                        <button class="btn btn-danger" ng-click="delete(pet.id)">Eliminar</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div ng-if="pets.length==0">
-                <div class="panel-heading">
-                    <h3 class="panel-title text-center">No se encontró ninguna mascota</h3>
-                </div>
-            </div>
+<div class="pets-list">
+    <div class="wd-page-header">
+        <div>
+            <h1 class="wd-page-title">Mis mascotas</h1>
+            <p class="wd-page-subtitle" ng-if="pets.length>0">Los perros que podés sumar a tus paseos.</p>
+            <p class="wd-page-subtitle" ng-if="pets.length==0">Todavía no cargaste ninguna mascota.</p>
         </div>
-        <div ng-click="edit(0)" class="btn-add-pet-container">          
-            <div class="icon-add-pet-container">
-                <i class="fa fa-plus" aria-hidden="true"></i>
+    </div>
+    <div class="wd-pet-grid">
+        <article class="wd-pet-card" ng-repeat="pet in pets">
+            <div class="wd-pet-head">
+                <img class="wd-avatar wd-avatar-sm" ng-src="{{pet.profileImage || '/Content/images/avatar-pet.svg'}}" alt="Foto de {{pet.name}}" />
+                <h2 class="wd-pet-name">{{pet.name}}</h2>
             </div>
-        </div>
+            <div class="wd-chips">
+                <span class="wd-chip">Raza: {{pet.breedName}}</span>
+                <span class="wd-chip">Tamaño: {{pet.sizeName}}</span>
+                <span class="wd-chip">{{pet.age}} años</span>
+            </div>
+            <p class="wd-pet-desc">{{pet.description}}</p>
+            <div class="wd-card-actions">
+                <button type="button" class="btn btn-default" ng-click="edit(pet.id)">
+                    <i class="fa fa-pencil" aria-hidden="true"></i>
+                    Editar
+                </button>
+                <button type="button" class="btn btn-danger" ng-click="delete(pet.id)">
+                    <i class="fa fa-trash-o" aria-hidden="true"></i>
+                    Eliminar
+                </button>
+            </div>
+        </article>
+        <button type="button" class="wd-pet-add" ng-click="edit(0)">
+            <span class="wd-pet-add-icon"><i class="fa fa-plus" aria-hidden="true"></i></span>
+            Agregar mascota
+        </button>
     </div>
 </div>

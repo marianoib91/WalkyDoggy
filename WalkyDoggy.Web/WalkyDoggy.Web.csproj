@@ -157,6 +157,8 @@
     <Content Include="Content\images\index-public2.jpg" />
     <Content Include="Content\images\money-public.png" />
     <Content Include="Content\images\pet-public.jpg" />
+    <Content Include="Content\images\avatar-person.svg" />
+    <Content Include="Content\images\avatar-pet.svg" />
     <Content Include="Content\images\profile-image.png" />
     <Content Include="Content\images\profile2.jpg" />
     <Content Include="Content\images\raty\star-half-big.png" />
@@ -167,6 +169,7 @@
     <Content Include="Content\images\raty\star-on.png" />
     <Content Include="Content\css\morris.css" />
     <Content Include="Content\css\site.css" />
+    <Content Include="Content\css\walky-theme.css" />
     <Content Include="Content\css\toastr.css" />
     <Content Include="Content\fonts\fontawesome-webfont.svg" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.svg" />

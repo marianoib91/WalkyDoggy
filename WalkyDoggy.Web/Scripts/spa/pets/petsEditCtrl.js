@@ -17,7 +17,18 @@
         var pendingPhoto = null;
         init();
 
+        $scope.previewImage = null;
+
         $scope.onPhotoSelected = function ($files) {
+            if (!$files || !$files.length) {
+                return;
+            }
+
+            if ($scope.previewImage) {
+                URL.revokeObjectURL($scope.previewImage);
+            }
+            $scope.previewImage = URL.createObjectURL($files[0]);
+
             if ($scope.pet.id) {
                 fileUploadService.uploadProfileImage($files, 'pet', $scope.pet.id, function (profileImage) {
                     $scope.pet.profileImage = profileImage;

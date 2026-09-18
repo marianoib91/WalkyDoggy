@@ -88,7 +88,6 @@ namespace WalkyDoggy.Web.App_Start
                 "~/content/css/custom.css",
                 "~/content/css/site.css",
                 "~/content/css/bootstrap.css",
-                "~/content/css/bootstrap-theme.css",
                  "~/content/css/font-awesome.css",
                 "~/content/css/morris.css",
                 "~/content/css/toastr.css",
@@ -96,7 +95,8 @@ namespace WalkyDoggy.Web.App_Start
                 "~/content/css/loading-bar.css",
                 "~/content/css/vendors/blockui/angular-block-ui.min.css",
                 "~/content/css/vendors/daterangepicker/daterangepicker.css",
-                "~/content/css/vendors/sweetalert/sweetalert.css"));
+                "~/content/css/vendors/sweetalert/sweetalert.css",
+                "~/content/css/walky-theme.css"));
 
 
             BundleTable.EnableOptimizations = false;
