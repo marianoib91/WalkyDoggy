@@ -73,7 +73,12 @@
                     <dt>Dueño</dt>
                     <dd>{{walk.customerFullName}}</dd>
                     <dt>Ubicación</dt>
-                    <dd>{{walk.location}}</dd>
+                    <dd>
+                        {{walk.location}}
+                        <a ng-if="walk.latitude && walk.longitude"
+                           ng-href="https://www.google.com/maps/dir/?api=1&destination={{walk.latitude}},{{walk.longitude}}"
+                           target="_blank" rel="noopener">Cómo llegar</a>
+                    </dd>
                     <dt>Hora de paseo</dt>
                     <dd>{{walk.timeFrom}}</dd>
                     <dt>Aclaraciones</dt>

@@ -81,6 +81,29 @@
                 <p class="wd-field-hint" ng-if="pets.length==0">No tenés mascotas en tu lista de mascotas. Andá a la sección "Mis mascotas" del menú superior para agregarlas.</p>
             </section>
 
+            <section class="wd-form-section">
+                <h2 class="wd-form-section-title">Dónde retiramos a tus mascotas</h2>
+                <div class="wd-choice-list" role="radiogroup" aria-label="Dirección de retiro">
+                    <label class="wd-choice" ng-class="{'is-selected': pickup.mode == 'home'}">
+                        <input type="radio" name="pickupMode" value="home" ng-model="pickup.mode">
+                        <span class="wd-choice-body">
+                            <span class="wd-choice-title">En mi domicilio</span>
+                            <span class="wd-choice-text">{{homeAddress}}</span>
+                        </span>
+                    </label>
+                    <label class="wd-choice" ng-class="{'is-selected': pickup.mode == 'other'}">
+                        <input type="radio" name="pickupMode" value="other" ng-model="pickup.mode">
+                        <span class="wd-choice-body">
+                            <span class="wd-choice-title">En otra dirección</span>
+                            <span class="wd-choice-text">Por ejemplo, si en este momento estás con tus mascotas en otro lugar.</span>
+                        </span>
+                    </label>
+                </div>
+                <div ng-if="pickup.mode == 'other'">
+                    <wd-address-field address="pickup.other" allow-locate="true"></wd-address-field>
+                </div>
+            </section>
+
             <div class="wd-form-footer">
                 <a class="btn btn-default" href="#/" style="margin-right:12px">Cancelar</a>
                 <button type="submit" class="btn btn-primary" ng-disabled="!hasSchedule">Continuar</button>

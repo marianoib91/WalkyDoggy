@@ -26,8 +26,22 @@ namespace WalkyDoggy.Entities
 
         public Boolean Confirmed { get; set; }
 
+        //Direccion donde se retira a las mascotas. Es una copia de la del cliente o la que eligio para este paseo.
+        //Los paseos anteriores a este cambio no la tienen (se usa la del cliente).
+        public String PickupStreetName { get; set; }
+
+        public Int64? PickupStreetNumber { get; set; }
+
+        public Int64? PickupCityId { get; set; }
+
+        public String PickupLatitude { get; set; }
+
+        public String PickupLongitude { get; set; }
+
         [NotMapped]
         public Boolean IsExpired { get; set; }
+
+        public City PickupCity { get; set; }
 
         public Walker Walker { get; set; }
 

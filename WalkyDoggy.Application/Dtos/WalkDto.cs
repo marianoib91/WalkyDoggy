@@ -23,6 +23,11 @@ namespace WalkyDoggy.Application.Dtos
 
         public String Location { get; set; }
 
+        //Coordenadas del lugar de retiro (para el "Como llegar" del paseador)
+        public String Latitude { get; set; }
+
+        public String Longitude { get; set; }
+
         public String TimeFrom { get; set; }
 
         public Boolean Confirmed { get; set; }

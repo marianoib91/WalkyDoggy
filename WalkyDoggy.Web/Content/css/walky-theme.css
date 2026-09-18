@@ -1144,3 +1144,61 @@ button.wd-pet-add {
     margin-bottom: 0;
     border-radius: 10px;
 }
+
+/* ===== Opciones de dirección de retiro ===== */
+.wd-choice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.wd-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin: 0;
+    padding: 14px 16px;
+    border: 1px solid #E7E9EC;
+    border-radius: 12px;
+    background-color: #ffffff;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.wd-choice.is-selected {
+    border-color: #166A4F;
+    background-color: #F1F8F5;
+}
+
+.wd-choice input[type="radio"] {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+    accent-color: #166A4F;
+}
+
+.wd-choice-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.wd-choice-title {
+    font-weight: 500;
+    color: #14181F;
+}
+
+.wd-choice-text {
+    font-size: 14px;
+    color: #5B6470;
+}
+
+.wd-address-locate {
+    align-self: flex-start;
+    margin-top: 4px;
+}
+
+.wd-walk-details dd a {
+    margin-left: 8px;
+    font-weight: 500;
+}

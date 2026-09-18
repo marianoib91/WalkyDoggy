@@ -30,6 +30,10 @@
             </ul>
         </div>
         <p class="wd-field-hint" ng-if="state.message" role="status">{{state.message}}</p>
+        <button type="button" class="btn btn-default btn-sm wd-address-locate" ng-if="allowLocate == 'true'" ng-click="locate()" ng-disabled="state.locating">
+            <i class="fa fa-crosshairs" aria-hidden="true"></i>
+            {{state.locating ? 'Buscando tu ubicación...' : 'Usar mi ubicación actual'}}
+        </button>
     </div>
 
     <div class="wd-address-map" role="application" aria-label="Mapa para ubicar el domicilio"></div>

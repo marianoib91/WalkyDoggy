@@ -13,7 +13,7 @@
 
         return {
             restrict: 'E',
-            scope: { address: '=' },
+            scope: { address: '=', allowLocate: '@' },
             templateUrl: '/scripts/spa/directives/addressField.html',
             link: link
         };
@@ -36,7 +36,7 @@
             var initialised = false;
 
             scope.uid = 'wd-address-' + (++instanceCounter);
-            scope.state = { query: '', open: false, activeIndex: -1, searching: false, message: null };
+            scope.state = { query: '', open: false, activeIndex: -1, searching: false, locating: false, message: null };
             scope.suggestions = [];
 
             createMap();
@@ -105,6 +105,31 @@
                 scope.state.open = false;
                 scope.suggestions = [];
                 applyPlace(suggestion.place);
+            };
+
+            //Usa la ubicacion del dispositivo (el navegador la pide con permiso; solo funciona en https o localhost)
+            scope.locate = function () {
+                if (!navigator.geolocation) {
+                    scope.state.message = 'Tu navegador no permite obtener la ubicación. Buscá la dirección a mano.';
+                    return;
+                }
+
+                scope.state.locating = true;
+                scope.state.message = null;
+
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    $timeout(function () {
+                        var point = { lat: position.coords.latitude, lng: position.coords.longitude };
+                        scope.state.locating = false;
+                        placePin(point, true);
+                        reverseAndApply(point, 'Usamos tu ubicación actual: revisá que la calle y el número sean los correctos.');
+                    });
+                }, function () {
+                    $timeout(function () {
+                        scope.state.locating = false;
+                        scope.state.message = 'No pudimos obtener tu ubicación. Revisá el permiso del navegador o buscá la dirección a mano.';
+                    });
+                }, { enableHighAccuracy: true, timeout: 10000 });
             };
 
             function runSearch(text) {
@@ -274,7 +299,7 @@
             }
 
             //Al mover el pin se busca la calle de ese punto; si no hay numero se conserva el que ya estaba cargado
-            function reverseAndApply(point) {
+            function reverseAndApply(point, successMessage) {
                 geocodingService.reverse(point.lat, point.lng).then(function (place) {
                     if (!place || !place.street) {
                         scope.state.message = 'No pudimos identificar la calle en ese punto. Corregí la dirección a mano si hace falta.';
@@ -288,7 +313,7 @@
                         address.streetNumber = number;
                     }
                     scope.state.query = formatLabel(address.streetName, address.streetNumber, place.city, place.state);
-                    scope.state.message = 'Ajustaste el pin: revisá que la calle y el número sean los correctos.';
+                    scope.state.message = successMessage || 'Ajustaste el pin: revisá que la calle y el número sean los correctos.';
                     resolveCity(place);
                 });
             }

@@ -21,6 +21,8 @@ namespace WalkyDoggy.Services.Services
         private readonly IEntityBaseRepository<Walk> walksRepository;
         private readonly IEntityBaseRepository<Walker> walkersRepository;
         private readonly IEntityBaseRepository<Pet> petsRepository;
+        private readonly IEntityBaseRepository<Customer> customersRepository;
+        private readonly IEntityBaseRepository<City> citiesRepository;
         private readonly IWalkerAppService walkerAppService;
         #endregion
 
@@ -29,12 +31,16 @@ namespace WalkyDoggy.Services.Services
                                 IEntityBaseRepository<Walk> walksRepository,
                                 IEntityBaseRepository<Walker> walkersRepository,
                                 IEntityBaseRepository<Pet> petsRepository,
+                                IEntityBaseRepository<Customer> customersRepository,
+                                IEntityBaseRepository<City> citiesRepository,
                                 IWalkerAppService walkerAppService) :
             base(errorsRepository, unitOfWork, walksRepository)
         {
             this.walksRepository = walksRepository;
             this.walkersRepository = walkersRepository;
             this.petsRepository = petsRepository;
+            this.customersRepository = customersRepository;
+            this.citiesRepository = citiesRepository;
             this.walkerAppService = walkerAppService;
         }
 
@@ -79,6 +85,14 @@ namespace WalkyDoggy.Services.Services
                 return null;
             }
 
+            //Direccion de retiro: la elegida para este paseo o, si no se informa, el domicilio del cliente.
+            //Siempre se guarda una copia, asi el paseo conserva su direccion aunque el cliente cambie su perfil.
+            var pickup = ResolvePickup(walkRequestCriteria, pets, out error);
+            if (pickup == null)
+            {
+                return null;
+            }
+
             var timeFrom = walkRequestCriteria.TimeFrom;
             var walksAtSameTime = this.walksRepository.GetAll().
                                                        Where(x => x.Date == date && x.TimeFrom == timeFrom).
@@ -110,7 +124,12 @@ namespace WalkyDoggy.Services.Services
                     Date = date,
                     TimeFrom = timeFrom,
                     Details = walkRequestCriteria.Details,
-                    Confirmed = false
+                    Confirmed = false,
+                    PickupStreetName = pickup.StreetName,
+                    PickupStreetNumber = pickup.StreetNumber,
+                    PickupCityId = pickup.CityId,
+                    PickupLatitude = pickup.Latitude,
+                    PickupLongitude = pickup.Longitude
                 };
                 this.walksRepository.Add(walk);
                 walks.Add(walk);
@@ -126,6 +145,59 @@ namespace WalkyDoggy.Services.Services
                 Details = walk.Details,
                 PetName = pets.First(pet => pet.Id == walk.PetId).Name
             }).ToList();
+        }
+
+        private class PickupAddress
+        {
+            public String StreetName { get; set; }
+            public Int64? StreetNumber { get; set; }
+            public Int64? CityId { get; set; }
+            public String Latitude { get; set; }
+            public String Longitude { get; set; }
+        }
+
+        private PickupAddress ResolvePickup(WalkRequestCriteria walkRequestCriteria, List<Pet> pets, out String error)
+        {
+            error = null;
+
+            if (!String.IsNullOrWhiteSpace(walkRequestCriteria.PickupStreetName))
+            {
+                var streetName = walkRequestCriteria.PickupStreetName.Trim();
+                if (streetName.Length > 50 ||
+                    !walkRequestCriteria.PickupStreetNumber.HasValue || walkRequestCriteria.PickupStreetNumber.Value <= 0 ||
+                    !walkRequestCriteria.PickupCityId.HasValue ||
+                    this.citiesRepository.GetSingle(walkRequestCriteria.PickupCityId.Value) == null)
+                {
+                    error = "La dirección de retiro no es válida. Elegila de la lista de sugerencias.";
+                    return null;
+                }
+
+                return new PickupAddress
+                {
+                    StreetName = streetName,
+                    StreetNumber = walkRequestCriteria.PickupStreetNumber,
+                    CityId = walkRequestCriteria.PickupCityId,
+                    Latitude = walkRequestCriteria.PickupLatitude,
+                    Longitude = walkRequestCriteria.PickupLongitude
+                };
+            }
+
+            var customerIds = pets.Select(x => x.CustomerId).Distinct().ToList();
+            var customer = customerIds.Count == 1 ? this.customersRepository.GetSingle(customerIds[0]) : null;
+            if (customer == null)
+            {
+                error = "Las mascotas del paseo deben ser de un mismo cliente.";
+                return null;
+            }
+
+            return new PickupAddress
+            {
+                StreetName = customer.StreetName,
+                StreetNumber = customer.StreetNumber,
+                CityId = customer.CityId,
+                Latitude = customer.Latitude,
+                Longitude = customer.Longitude
+            };
         }
 
         public List<WalkDto> GetAll()
@@ -150,7 +222,8 @@ namespace WalkyDoggy.Services.Services
             var currentDate = currentdateAndTime.Date;
 
             var walks = this.walksRepository.AllIncluding(x => x.Pet, x => x.Pet.Customer,
-                                                          x => x.Pet.Customer.City.Province).
+                                                          x => x.Pet.Customer.City.Province,
+                                                          x => x.PickupCity, x => x.PickupCity.Province).
                                              Where(x => x.WalkerId == walkerId &&
                                                         x.Date == currentDate && x.Confirmed == false).
                                              ToList();

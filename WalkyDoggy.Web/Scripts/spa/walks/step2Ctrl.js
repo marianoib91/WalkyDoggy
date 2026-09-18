@@ -25,6 +25,11 @@
         $scope.timeText = draft.timeFrom + ' a ' + (Number(draft.timeFrom.split(':')[0]) + 1) + ':00';
         $scope.petNames = draft.pets.map(function (pet) { return pet.name; }).join(', ');
 
+        var pickup = draft.pickup;
+        var pickupLine = [pickup.streetName, pickup.streetNumber].filter(Boolean).join(' ');
+        $scope.pickupText = [pickupLine, pickup.cityName, pickup.provinceName].filter(Boolean).join(', ');
+        $scope.pickupIsHome = pickup.isHome;
+
         apiService.get('/api/walkers/getDetail', { params: { id: draft.walkerId } }, function (result) {
             $scope.walker = result.data;
         });
@@ -46,6 +51,15 @@
                 details: $scope.details,
                 petIds: draft.pets.map(function (pet) { return pet.id; })
             };
+
+            //Si retira en el domicilio no se manda nada: el servidor usa (y guarda) el domicilio del cliente
+            if (!pickup.isHome) {
+                request.pickupStreetName = pickup.streetName;
+                request.pickupStreetNumber = pickup.streetNumber;
+                request.pickupCityId = pickup.cityId;
+                request.pickupLatitude = pickup.latitude;
+                request.pickupLongitude = pickup.longitude;
+            }
 
             apiService.post('/api/walks/register', request, function () {
                 notificationService.displaySuccess('Paseo solicitado con éxito.');

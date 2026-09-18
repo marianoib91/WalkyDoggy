@@ -22,6 +22,10 @@
         $scope.hasSchedule = true;
         $scope.loadingTimes = false;
 
+        //Donde se retira a las mascotas: en el domicilio del cliente ('home') o en otra direccion ('other')
+        $scope.pickup = { mode: 'home', other: {} };
+        $scope.homeAddress = '';
+
         //El calendario solo habilita los dias en los que el paseador tiene una jornada laboral
         $scope.opts = {
             singleDatePicker: true,
@@ -42,6 +46,11 @@
         if (draft && draft.walkerId == walkerId) {
             $scope.walk.date = moment(draft.date, 'YYYY-MM-DD');
             $scope.walk.timeFrom = draft.timeFrom;
+
+            if (draft.pickup && !draft.pickup.isHome) {
+                $scope.pickup.mode = 'other';
+                $scope.pickup.other = angular.copy(draft.pickup);
+            }
         }
 
         init();
@@ -89,6 +98,7 @@
 
         function onLoadCustomerCompleted(result) {
             $scope.customer = result.data;
+            $scope.homeAddress = formatAddress($scope.customer);
             apiService.get('/api/pets/getAllByCustomerId/', { params: { customerId: $scope.customer.id } }, onLoadPetsCompleted);
         }
 
@@ -135,6 +145,35 @@
             });
         });
 
+        function formatAddress(address) {
+            var line = [address.streetName, address.streetNumber].filter(Boolean).join(' ');
+            return [line, address.cityName, address.provinceName].filter(Boolean).join(', ');
+        }
+
+        //Devuelve la direccion de retiro elegida, o null si eligio "otra direccion" y no la completo
+        function buildPickup() {
+            var source = $scope.customer;
+            var isHome = $scope.pickup.mode !== 'other';
+
+            if (!isHome) {
+                source = $scope.pickup.other;
+                if (!source.cityId || !source.streetName || !source.streetNumber) {
+                    return null;
+                }
+            }
+
+            return {
+                isHome: isHome,
+                streetName: source.streetName,
+                streetNumber: source.streetNumber,
+                cityId: source.cityId,
+                cityName: source.cityName,
+                provinceName: source.provinceName,
+                latitude: source.latitude,
+                longitude: source.longitude
+            };
+        }
+
         $scope.submit = function () {
             var selectedPets = [];
             for (var i = 0; i < $scope.pets.length; i++) {
@@ -145,6 +184,12 @@
 
             if (selectedPets.length === 0) {
                 notificationService.displayError('Debe seleccionar una mascota para su paseo.');
+                return;
+            }
+
+            var pickup = buildPickup();
+            if (!pickup) {
+                notificationService.displayError('Elegí la dirección de retiro de la lista de sugerencias.');
                 return;
             }
 
@@ -162,6 +207,7 @@
                         walkerId: walkerId,
                         date: date,
                         timeFrom: $scope.walk.timeFrom,
+                        pickup: pickup,
                         pets: selectedPets.map(function (pet) {
                             return { id: pet.id, name: pet.name, profileImage: pet.profileImage };
                         })
