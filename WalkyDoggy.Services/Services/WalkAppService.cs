@@ -25,7 +25,8 @@ namespace WalkyDoggy.Services.Services
         private readonly IEntityBaseRepository<Customer> customersRepository;
         private readonly IEntityBaseRepository<City> citiesRepository;
         private readonly IWalkerAppService walkerAppService;
-        private readonly IPaymentAppService paymentAppService;
+        private readonly ISellerTokenProvider sellerTokens;
+        private readonly IEntityBaseRepository<Ranking> rankingsRepository;
         private readonly INotificationAppService notificationAppService;
         #endregion
 
@@ -37,7 +38,8 @@ namespace WalkyDoggy.Services.Services
                                 IEntityBaseRepository<Customer> customersRepository,
                                 IEntityBaseRepository<City> citiesRepository,
                                 IWalkerAppService walkerAppService,
-                                IPaymentAppService paymentAppService,
+                                ISellerTokenProvider sellerTokens,
+                                IEntityBaseRepository<Ranking> rankingsRepository,
                                 INotificationAppService notificationAppService) :
             base(errorsRepository, unitOfWork, walksRepository)
         {
@@ -47,7 +49,8 @@ namespace WalkyDoggy.Services.Services
             this.customersRepository = customersRepository;
             this.citiesRepository = citiesRepository;
             this.walkerAppService = walkerAppService;
-            this.paymentAppService = paymentAppService;
+            this.sellerTokens = sellerTokens;
+            this.rankingsRepository = rankingsRepository;
             this.notificationAppService = notificationAppService;
         }
 
@@ -104,6 +107,11 @@ namespace WalkyDoggy.Services.Services
             if (paymentMethod != PaymentMethods.Cash && paymentMethod != PaymentMethods.MercadoPago)
             {
                 error = "El método de pago no es válido.";
+                return null;
+            }
+            if (paymentMethod == PaymentMethods.MercadoPago && !this.sellerTokens.IsLinked(walker.Id))
+            {
+                error = "Este paseador todavía no vinculó su cuenta de Mercado Pago. Elegí pagar en efectivo.";
                 return null;
             }
 
@@ -228,9 +236,15 @@ namespace WalkyDoggy.Services.Services
         {
             ExpirePendingWalks();
 
+            //Ademas de los paseos de hoy en adelante se devuelven los que ya pasaron pero todavia tienen algo pendiente
+            //(darlos por finalizados o confirmar que se cobraron) y los cobrados en la ultima semana
             var today = DateTime.Now.Date;
+            var recentlyReceived = today.AddDays(-7);
             var walks = IncludeBookingData().
-                        Where(x => x.WalkerId == walkerId && x.Date >= today && x.Status != WalkStatus.Cancelled).
+                        Where(x => x.WalkerId == walkerId && x.Status != WalkStatus.Cancelled &&
+                                   (x.Date >= today ||
+                                    (x.Status == WalkStatus.Confirmed &&
+                                     (x.ReceivedAt == null || x.ReceivedAt >= recentlyReceived)))).
                         ToList();
 
             return BuildBookings(walks).
@@ -315,13 +329,6 @@ namespace WalkyDoggy.Services.Services
                 return false;
             }
 
-            //Si el cliente ya habia pagado con Mercado Pago, el dinero retenido se le devuelve antes de cancelar
-            if (!this.paymentAppService.Refund(walks, out error))
-            {
-                error = "No se pudo devolver el pago, por eso el paseo no se canceló. " + error;
-                return false;
-            }
-
             walks.Where(x => x.Status != WalkStatus.Cancelled).ToList().ForEach(x => SetStatus(x, WalkStatus.Cancelled, actor));
             this.unitOfWork.Commit();
 
@@ -329,34 +336,102 @@ namespace WalkyDoggy.Services.Services
             return true;
         }
 
-        //Reglas que dependen de la hora: un pedido que el paseador no respondio antes del paseo se cancela solo,
-        //lo mismo que un paseo confirmado que el cliente no pago a tiempo, y los pagos sin reclamo se liberan.
+        //El paseador da por finalizado el paseo (ya devolvio a la mascota). Desde ese momento el cliente puede pagarlo.
+        public Boolean Finish(BookingActionCriteria bookingActionCriteria, out String error)
+        {
+            error = null;
+            ExpirePendingWalks();
+
+            var walks = FindBooking(bookingActionCriteria.BookingKey);
+            if (walks.Count == 0 || walks[0].WalkerId != bookingActionCriteria.ActorId)
+            {
+                error = "La reserva no existe.";
+                return false;
+            }
+
+            if (walks.Any(x => x.Status != WalkStatus.Confirmed))
+            {
+                error = walks.All(x => x.Status == WalkStatus.Cancelled)
+                    ? "Esta reserva fue cancelada."
+                    : "Primero tenés que confirmar la reserva.";
+                return false;
+            }
+
+            if (walks.Any(x => x.FinishedAt.HasValue))
+            {
+                error = "Este paseo ya estaba finalizado.";
+                return false;
+            }
+
+            if (StartOf(walks[0]) > DateTime.Now)
+            {
+                error = "El paseo todavía no empezó.";
+                return false;
+            }
+
+            walks.ForEach(x => x.FinishedAt = DateTime.Now);
+            this.unitOfWork.Commit();
+            return true;
+        }
+
+        //El paseador confirma que recibio el pago, ya sea en efectivo o con Mercado Pago. Con eso la reserva queda cerrada.
+        public Boolean ConfirmReceived(BookingActionCriteria bookingActionCriteria, out String error)
+        {
+            error = null;
+
+            var walks = FindBooking(bookingActionCriteria.BookingKey);
+            if (walks.Count == 0 || walks[0].WalkerId != bookingActionCriteria.ActorId)
+            {
+                error = "La reserva no existe.";
+                return false;
+            }
+
+            if (walks.Any(x => x.Status != WalkStatus.Confirmed || !x.FinishedAt.HasValue))
+            {
+                error = "Primero tenés que dar el paseo por finalizado.";
+                return false;
+            }
+
+            if (walks.All(x => x.PaymentStatus == PaymentStatuses.Received))
+            {
+                error = "Ya confirmaste que recibiste este pago.";
+                return false;
+            }
+
+            //Con Mercado Pago el pago tiene que figurar como pagado; en efectivo se confirma directamente
+            if (walks[0].PaymentMethod == PaymentMethods.MercadoPago && walks.Any(x => x.PaymentStatus != PaymentStatuses.Paid))
+            {
+                error = "El cliente todavía no pagó con Mercado Pago.";
+                return false;
+            }
+
+            walks.ForEach(x =>
+            {
+                x.PaymentStatus = PaymentStatuses.Received;
+                x.ReceivedAt = DateTime.Now;
+            });
+            this.unitOfWork.Commit();
+            return true;
+        }
+
+        //Un pedido que el paseador no respondio antes de la hora del paseo se cancela solo
         private void ExpirePendingWalks()
         {
             var now = DateTime.Now;
-            var openWalks = this.walksRepository.GetAll().
-                                                 Where(x => x.Date <= now.Date &&
-                                                            (x.Status == WalkStatus.Pending ||
-                                                             (x.Status == WalkStatus.Confirmed &&
-                                                              x.PaymentMethod == PaymentMethods.MercadoPago &&
-                                                              x.PaymentStatus == PaymentStatuses.Pending))).
-                                                 ToList();
+            var pendingWalks = this.walksRepository.GetAll().
+                                                    Where(x => x.Status == WalkStatus.Pending && x.Date <= now.Date).
+                                                    ToList();
 
-            var expired = openWalks.Where(x => StartOf(x) <= now).ToList();
-            if (expired.Count > 0)
+            var expired = pendingWalks.Where(x => StartOf(x) <= now).ToList();
+            if (expired.Count == 0)
             {
-                var unanswered = expired.Where(x => x.Status == WalkStatus.Pending).ToList();
-                var unpaid = expired.Where(x => x.Status != WalkStatus.Pending).ToList();
-
-                unanswered.ForEach(x => SetStatus(x, WalkStatus.Cancelled, WalkCancelledBy.System));
-                unpaid.ForEach(x => SetStatus(x, WalkStatus.Cancelled, WalkCancelledBy.NoPayment));
-                this.unitOfWork.Commit();
-
-                this.notificationAppService.BookingCancelled(unanswered, WalkCancelledBy.System);
-                this.notificationAppService.BookingCancelled(unpaid, WalkCancelledBy.NoPayment);
+                return;
             }
 
-            this.paymentAppService.ReleaseDuePayments();
+            expired.ForEach(x => SetStatus(x, WalkStatus.Cancelled, WalkCancelledBy.System));
+            this.unitOfWork.Commit();
+
+            this.notificationAppService.BookingCancelled(expired, WalkCancelledBy.System);
         }
 
         private static DateTime StartOf(Walk walk)
@@ -392,6 +467,13 @@ namespace WalkyDoggy.Services.Services
 
         private List<BookingDto> BuildBookings(List<Walk> walks)
         {
+            //Valoraciones ya hechas por el cliente para estas reservas
+            var bookingKeys = walks.Select(BookingKeyOf).Distinct().ToList();
+            var ratedByKey = this.rankingsRepository.GetAll().
+                                                     Where(x => bookingKeys.Contains(x.BookingKey)).
+                                                     ToList().
+                                                     ToDictionary(x => x.BookingKey, x => (Int32)Math.Round(x.Score));
+
             return walks.GroupBy(BookingKeyOf).Select(group =>
             {
                 var first = group.First();
@@ -425,6 +507,10 @@ namespace WalkyDoggy.Services.Services
                     CancelledBy = first.CancelledBy,
                     PaymentMethod = first.PaymentMethod,
                     PaymentStatus = first.PaymentStatus,
+                    FinishedAt = first.FinishedAt,
+                    PaidAt = first.PaidAt,
+                    ReceivedAt = first.ReceivedAt,
+                    RatingStars = ratedByKey.ContainsKey(group.Key) ? ratedByKey[group.Key] : (Int32?)null,
                     Details = first.Details,
                     Location = location,
                     Latitude = usesPickup ? first.PickupLatitude : customer.Latitude,

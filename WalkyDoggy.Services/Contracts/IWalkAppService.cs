@@ -31,6 +31,12 @@ namespace WalkyDoggy.Services.Contracts
         //El paseador o el cliente cancelan una reserva que todavia no empezo
         Boolean Cancel(BookingActionCriteria bookingActionCriteria, out String error);
 
+        //El paseador da por finalizado un paseo que ya empezo (devolvio a la mascota): desde ahi el cliente puede pagarlo
+        Boolean Finish(BookingActionCriteria bookingActionCriteria, out String error);
+
+        //El paseador confirma que recibio el pago (en efectivo o con Mercado Pago) y la reserva queda cerrada
+        Boolean ConfirmReceived(BookingActionCriteria bookingActionCriteria, out String error);
+
         //Crea un paseo por cada mascota. Si no se puede reservar devuelve null y el motivo en error.
         List<WalkDto> Register(WalkRequestCriteria walkRequestCriteria, out String error);
     }

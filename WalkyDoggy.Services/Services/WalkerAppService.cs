@@ -27,6 +27,8 @@ namespace WalkyDoggy.Services.Services
         private readonly IEntityBaseRepository<Customer> customersRepository;
         private readonly IEntityBaseRepository<WorkDay> workDaysRepository;
         private readonly IEntityBaseRepository<Walk> walksRepository;
+        private readonly IEntityBaseRepository<Ranking> rankingsRepository;
+        private readonly IEntityBaseRepository<Price> pricesRepository;
         private readonly IEntityBaseRepository<UserRole> userRolesRepository;
         private readonly IEncryptionService encryptionService;
         private readonly IMembershipService membershipService;
@@ -38,6 +40,8 @@ namespace WalkyDoggy.Services.Services
                                 IEntityBaseRepository<Customer> customersRepository,
                                 IEntityBaseRepository<WorkDay> workDaysRepository,
                                 IEntityBaseRepository<Walk> walksRepository,
+                                IEntityBaseRepository<Ranking> rankingsRepository,
+                                IEntityBaseRepository<Price> pricesRepository,
                                 IEntityBaseRepository<UserRole> userRolesRepository,
                                 IEncryptionService encryptionService,
                                 IMembershipService membershipService) :
@@ -47,6 +51,8 @@ namespace WalkyDoggy.Services.Services
             this.customersRepository = customersRepository;
             this.workDaysRepository = workDaysRepository;
             this.walksRepository = walksRepository;
+            this.rankingsRepository = rankingsRepository;
+            this.pricesRepository = pricesRepository;
             this.userRolesRepository = userRolesRepository;
             this.encryptionService = encryptionService;
             this.membershipService = membershipService;
@@ -68,9 +74,10 @@ namespace WalkyDoggy.Services.Services
             userRole.RoleId = Roles.Walker;
             this.userRolesRepository.Add(userRole);
 
-            //Se registra el paseador
+            //Se registra el paseador, con la tarifa por hora que el mismo eligio
             var walker = Mapper.Map<WalkerDto, Walker>(walkerDto);
             walker.UserId = createdUser.Id;
+            ApplyRate(walker, walkerDto.Amount);
             this.walkersRepository.Add(walker);
 
             //Se guardan los registros en la base de datos y se devuelve el Walker creado
@@ -83,10 +90,59 @@ namespace WalkyDoggy.Services.Services
             return walkerDto;
         }
 
+        //Tarifa por hora que puede fijar un paseador (en pesos)
+        public const Double MinRate = 1;
+        public const Double MaxRate = 1000000;
+
+        //La tarifa la fija cada paseador. Se reutiliza la tabla de precios: si ya existe un precio con ese monto se usa,
+        //y si no se crea. Los paseos ya reservados conservan el precio con el que se pidieron.
+        private void ApplyRate(Walker walker, Double amount)
+        {
+            var rate = Math.Round(amount, 2);
+
+            var price = this.pricesRepository.GetAll().Where(x => x.Amount == rate).FirstOrDefault();
+            if (price == null)
+            {
+                price = new Price { Amount = rate };
+                this.pricesRepository.Add(price);
+                walker.Price = price;
+            }
+            else
+            {
+                walker.PriceId = price.Id;
+                walker.Price = price;
+            }
+        }
+
+        //Completa el promedio y la cantidad de valoraciones de los paseadores
+        private void AttachRatings(List<WalkerDto> walkersDto)
+        {
+            if (walkersDto.Count == 0)
+            {
+                return;
+            }
+
+            var stats = this.rankingsRepository.GetAll().
+                                                GroupBy(x => x.WalkerId).
+                                                Select(g => new { WalkerId = g.Key, Count = g.Count(), Average = g.Average(x => x.Score) }).
+                                                ToList();
+
+            foreach (var walkerDto in walkersDto)
+            {
+                var stat = stats.FirstOrDefault(x => x.WalkerId == walkerDto.Id);
+                walkerDto.RatingCount = stat != null ? stat.Count : 0;
+                walkerDto.AverageRating = stat != null ? Math.Round(stat.Average, 1) : (Double?)null;
+            }
+        }
+
         public WalkerDto GetByUserId(Int64 userId)
         {
             var walker = this.walkersRepository.AllIncluding(x => x.City, x => x.City.Province, x => x.Price).Where(x => x.UserId == userId).FirstOrDefault();
             var walkerDto = Mapper.Map<Walker, WalkerDto>(walker);
+            if (walkerDto != null)
+            {
+                AttachRatings(new List<WalkerDto> { walkerDto });
+            }
             return walkerDto;
         }
 
@@ -100,7 +156,19 @@ namespace WalkyDoggy.Services.Services
                 return;
             }
 
+            var priceIdBefore = walker.PriceId;
             Mapper.Map(walkerDto, walker);
+
+            //La tarifa por hora se ajusta con el monto que informa el paseador (si no informa ninguno, queda la que tenia)
+            if (walkerDto.Amount > 0)
+            {
+                ApplyRate(walker, walkerDto.Amount);
+            }
+            else
+            {
+                walker.PriceId = priceIdBefore;
+            }
+
             this.unitOfWork.Commit();
         }
 
@@ -108,6 +176,7 @@ namespace WalkyDoggy.Services.Services
         {
             var walkers = this.walkersRepository.AllIncluding(x => x.City, x => x.Price, x => x.City.Province).ToList();
             var walkersDto = Mapper.Map<List<Walker>, List<WalkerDto>>(walkers);
+            AttachRatings(walkersDto);
             return walkersDto;
         }
 
@@ -170,7 +239,9 @@ namespace WalkyDoggy.Services.Services
                 return null;
             }
 
-            return Mapper.Map<Walker, WalkerDto>(walker);
+            var walkerDto = Mapper.Map<Walker, WalkerDto>(walker);
+            AttachRatings(new List<WalkerDto> { walkerDto });
+            return walkerDto;
         }
 
         //Horarios en los que el paseador puede recibir un paseo en la fecha indicada.

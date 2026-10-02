@@ -30,8 +30,6 @@ namespace WalkyDoggy.Services.Services
             public String WalkerName { get; set; }
             public String WalkerFirstName { get; set; }
             public String WalkerEmail { get; set; }
-            public String WalkerPayoutAccount { get; set; }
-            public String WalkerPayoutHolder { get; set; }
             public String CustomerName { get; set; }
             public String CustomerFirstName { get; set; }
             public String CustomerEmail { get; set; }
@@ -39,8 +37,6 @@ namespace WalkyDoggy.Services.Services
             public String When { get; set; }
             public String Total { get; set; }
             public Boolean PaysWithMercadoPago { get; set; }
-            public String PaymentStatus { get; set; }
-            public String DisputeReason { get; set; }
         }
 
         public void BookingRequested(IEnumerable<Walk> walks)
@@ -48,7 +44,7 @@ namespace WalkyDoggy.Services.Services
             Notify(walks, booking =>
             {
                 var payment = booking.PaysWithMercadoPago
-                    ? "Mercado Pago (el cliente paga cuando confirmes el paseo)"
+                    ? "Mercado Pago (el cliente te paga online cuando termines el paseo)"
                     : "Efectivo (te paga en mano al terminar)";
 
                 SendTo(booking.WalkerEmail, "Nueva solicitud de paseo de " + booking.CustomerName,
@@ -64,15 +60,14 @@ namespace WalkyDoggy.Services.Services
         {
             Notify(walks, booking =>
             {
-                var next = booking.PaysWithMercadoPago
-                    ? "Para asegurarlo, pagalo desde \"Paseos solicitados\" antes del horario: " + Link("#/walks/requested") + "\n" +
-                      "WalkyDoggy retiene el pago y se lo libera al paseador cuando el paseo se hace; si no se hace, te lo devolvemos.\n" +
-                      "Si no lo pagás a tiempo, el paseo se cancela."
-                    : "Le pagás al paseador en mano cuando termina el paseo.\n\nVer tus paseos: " + Link("#/walks/requested");
+                var payment = booking.PaysWithMercadoPago
+                    ? "Cuando el paseador termine el paseo vas a poder pagarlo online desde \"Paseos solicitados\"."
+                    : "Le pagás al paseador en mano cuando termina el paseo.";
 
                 SendTo(booking.CustomerEmail, booking.WalkerName + " confirmó tu paseo",
                     "Hola " + booking.CustomerFirstName + ",\n\n" +
-                    booking.WalkerName + " confirmó el paseo de " + booking.Pets + " el " + booking.When + " (" + booking.Total + ").\n\n" + next);
+                    booking.WalkerName + " confirmó el paseo de " + booking.Pets + " el " + booking.When + " (" + booking.Total + ").\n\n" +
+                    payment + "\n\nVer tus paseos: " + Link("#/walks/requested"));
             });
         }
 
@@ -80,30 +75,18 @@ namespace WalkyDoggy.Services.Services
         {
             Notify(walks, booking =>
             {
-                var refunded = booking.PaymentStatus == PaymentStatuses.Refunded
-                    ? "\n\nComo ya habías pagado, te devolvimos el pago de " + booking.Total + "."
-                    : String.Empty;
                 var detail = booking.Pets + " el " + booking.When;
 
                 if (cancelledBy == WalkCancelledBy.Walker)
                 {
                     SendTo(booking.CustomerEmail, booking.WalkerName + " canceló tu paseo",
-                        "Hola " + booking.CustomerFirstName + ",\n\n" + booking.WalkerName + " canceló el paseo de " + detail + "." + refunded +
+                        "Hola " + booking.CustomerFirstName + ",\n\n" + booking.WalkerName + " canceló el paseo de " + detail + "." +
                         "\n\nPodés pedirle el paseo a otro paseador: " + Link("#/"));
                 }
                 else if (cancelledBy == WalkCancelledBy.Customer)
                 {
                     SendTo(booking.WalkerEmail, booking.CustomerName + " canceló un paseo",
                         "Hola " + booking.WalkerFirstName + ",\n\n" + booking.CustomerName + " canceló el paseo de " + detail + ". El horario quedó libre.");
-                }
-                else if (cancelledBy == WalkCancelledBy.NoPayment)
-                {
-                    SendTo(booking.CustomerEmail, "Se canceló tu paseo por falta de pago",
-                        "Hola " + booking.CustomerFirstName + ",\n\nEl paseo de " + detail + " con " + booking.WalkerName +
-                        " se canceló porque no se pagó antes del horario.\n\nPodés volver a reservar: " + Link("#/"));
-                    SendTo(booking.WalkerEmail, "Se canceló un paseo por falta de pago",
-                        "Hola " + booking.WalkerFirstName + ",\n\nEl paseo de " + detail + " con " + booking.CustomerName +
-                        " se canceló porque el cliente no pagó antes del horario. El horario quedó libre.");
                 }
                 else
                 {
@@ -114,46 +97,6 @@ namespace WalkyDoggy.Services.Services
                         "Hola " + booking.WalkerFirstName + ",\n\nLa solicitud de " + booking.CustomerName + " para " + detail +
                         " se canceló porque no la respondiste antes del horario.");
                 }
-            });
-        }
-
-        public void PaymentHeld(IEnumerable<Walk> walks)
-        {
-            Notify(walks, booking =>
-            {
-                SendTo(booking.CustomerEmail, "Recibimos tu pago de " + booking.Total,
-                    "Hola " + booking.CustomerFirstName + ",\n\nRecibimos tu pago de " + booking.Total + " por el paseo de " + booking.Pets +
-                    " con " + booking.WalkerName + " el " + booking.When + ".\n\n" +
-                    "Lo retenemos hasta que el paseo se haga. Después le liberamos el pago al paseador; si no se hace, te lo devolvemos.\n" +
-                    "Cuando termine, confirmá que salió bien (o reportá un problema) desde: " + Link("#/walks/requested"));
-                SendTo(booking.WalkerEmail, booking.CustomerName + " pagó el paseo",
-                    "Hola " + booking.WalkerFirstName + ",\n\n" + booking.CustomerName + " pagó " + booking.Total + " por el paseo de " + booking.Pets +
-                    " el " + booking.When + ".\n\nWalkyDoggy retiene el pago y te lo liquida cuando el paseo se hace." + PayoutNote(booking));
-            });
-        }
-
-        public void PaymentReleased(IEnumerable<Walk> walks)
-        {
-            Notify(walks, booking =>
-            {
-                SendTo(booking.WalkerEmail, "Se liberó el pago de un paseo",
-                    "Hola " + booking.WalkerFirstName + ",\n\nSe liberó el pago de " + booking.Total + " por el paseo de " + booking.Pets +
-                    " el " + booking.When + " (" + booking.CustomerName + ").\n\nWalkyDoggy te lo liquida a la brevedad. Ver tus cobros: " + Link("#/") +
-                    PayoutNote(booking));
-            });
-        }
-
-        public void PaymentDisputed(IEnumerable<Walk> walks)
-        {
-            Notify(walks, booking =>
-            {
-                SendTo(booking.WalkerEmail, booking.CustomerName + " reportó un problema con un paseo",
-                    "Hola " + booking.WalkerFirstName + ",\n\n" + booking.CustomerName + " reportó un problema con el paseo de " + booking.Pets +
-                    " el " + booking.When + ".\n\nMotivo: " + booking.DisputeReason + "\n\n" +
-                    "El pago de " + booking.Total + " queda retenido mientras se revisa.");
-                SendTo(booking.CustomerEmail, "Recibimos tu reclamo",
-                    "Hola " + booking.CustomerFirstName + ",\n\nRecibimos tu reclamo por el paseo de " + booking.Pets + " con " + booking.WalkerName +
-                    " el " + booking.When + ". El pago de " + booking.Total + " queda retenido y no se le libera al paseador mientras lo revisamos.");
             });
         }
 
@@ -208,8 +151,6 @@ namespace WalkyDoggy.Services.Services
                     WalkerName = walker.FirstName + " " + walker.LastName,
                     WalkerFirstName = walker.FirstName,
                     WalkerEmail = walker.User != null ? walker.User.Email : null,
-                    WalkerPayoutAccount = walker.PayoutAccount,
-                    WalkerPayoutHolder = walker.PayoutHolder,
                     CustomerName = customer.FirstName + " " + customer.LastName,
                     CustomerFirstName = customer.FirstName,
                     CustomerEmail = customer.User != null ? customer.User.Email : null,
@@ -217,9 +158,7 @@ namespace WalkyDoggy.Services.Services
                     When = start.ToString("dddd d 'de' MMMM", Spanish) + ", de " + start.ToString("HH:mm", Spanish) +
                            " a " + start.AddHours(1).ToString("HH:mm", Spanish),
                     Total = "$" + total.ToString("N0", Spanish),
-                    PaysWithMercadoPago = first.PaymentMethod == PaymentMethods.MercadoPago,
-                    PaymentStatus = first.PaymentStatus,
-                    DisputeReason = group.Select(x => x.PaymentDisputeReason).FirstOrDefault(x => x != null)
+                    PaysWithMercadoPago = first.PaymentMethod == PaymentMethods.MercadoPago
                 };
             }).ToList();
         }
@@ -232,17 +171,6 @@ namespace WalkyDoggy.Services.Services
             }
 
             this.emailSender.Send(email, subject, body + "\n\n— WalkyDoggy");
-        }
-
-        //Adonde se le va a transferir al paseador, o el pedido de que cargue su cuenta si todavia no lo hizo
-        private String PayoutNote(Booking booking)
-        {
-            if (String.IsNullOrEmpty(booking.WalkerPayoutAccount))
-            {
-                return "\n\nTodavía no cargaste dónde cobrar. Completá tu alias, CBU/CVU o email de Mercado Pago en tu perfil para que podamos transferirte:" + Link("#/profile");
-            }
-
-            return "\n\nTe lo transferimos a " + booking.WalkerPayoutAccount + " (titular: " + booking.WalkerPayoutHolder + "). Si no es correcto, corregilo en tu perfil: " + Link("#/profile");
         }
 
         private String Link(String path)

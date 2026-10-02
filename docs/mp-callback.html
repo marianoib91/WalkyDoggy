@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>Volviendo a WalkyDoggy</title>
+    <style>
+        body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #14181F; display: flex; min-height: 100vh; align-items: center; justify-content: center; margin: 0; text-align: center; }
+        p { max-width: 28rem; padding: 0 1rem; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <p id="msg">Volviendo a WalkyDoggy…</p>
+    <noscript><p>Necesitás activar JavaScript para volver a WalkyDoggy.</p></noscript>
+
+    <!--
+      Pagina puente para vincular la cuenta de Mercado Pago de un paseador.
+
+      Mercado Pago no acepta "localhost" como Redirect URL, pero si una direccion publica con https. Esta pagina (publicada en
+      GitHub Pages) es esa direccion: Mercado Pago devuelve aca al paseador con el codigo de autorizacion y esta pagina lo
+      reenvia al instante a la aplicacion que corre en su computadora.
+
+      A donde reenviar viaja en el parametro "state", que arma la aplicacion con la forma  h8085~<dato firmado>
+      (h = http, s = https; 8085 = puerto). Solo se reenvia a localhost, nunca a otro servidor, por eso no se puede usar para
+      mandar a nadie a un sitio ajeno. La pagina no guarda nada: el codigo es de un solo uso y no sirve sin el Client Secret,
+      que nunca sale de la aplicacion.
+    -->
+    <script>
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            var target = /^([hs])(\d{2,5})~/.exec(params.get('state') || '');
+
+            if (!target) {
+                document.getElementById('msg').textContent =
+                    'No se pudo volver a WalkyDoggy: falta indicar a qué aplicación volver. Intentá vincular la cuenta de nuevo desde tu perfil.';
+                return;
+            }
+
+            var origin = (target[1] === 's' ? 'https' : 'http') + '://localhost:' + target[2];
+            window.location.replace(origin + '/api/mercadopago/callback' + window.location.search);
+        })();
+    </script>
+</body>
+</html>

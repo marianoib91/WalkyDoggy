@@ -27,6 +27,9 @@ namespace WalkyDoggy.Web.Infrastructure.Validators
             RuleFor(r => r.Description).NotEmpty()
                 .WithMessage("Debe ingresar una descripción.");
 
+            RuleFor(r => r.Amount).InclusiveBetween(1, 1000000)
+                .WithMessage("Debe ingresar una tarifa por hora válida (entre $1 y $1.000.000).");
+
             RuleFor(r => r.Phone).NotEmpty().Length(10, 10)
                 .WithMessage("Debe ingresar un número de teléfono válido.");
 

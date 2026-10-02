@@ -8,13 +8,45 @@
             <p class="wd-page-subtitle" ng-if="walkers.length>0 && !hasDistances">Elegí a la persona que va a pasear a tu mascota. Ubicá tu domicilio en el mapa desde <a href="#/profile">tu perfil</a> para verlos ordenados por cercanía.</p>
         </div>
     </div>
+
+    <div class="wd-sort" ng-if="walkers.length > 1">
+        <span class="wd-sort-label">Ordenar por</span>
+        <div class="wd-segmented" role="group" aria-label="Ordenar paseadores">
+            <button type="button" ng-class="{'is-active': sortBy == 'distance'}" ng-disabled="!hasDistances"
+                    ng-click="setSort('distance')" aria-pressed="{{sortBy == 'distance'}}"
+                    title="{{hasDistances ? '' : 'Ubicá tu domicilio en el mapa desde tu perfil para ordenar por cercanía'}}">
+                <i class="fa fa-map-marker" aria-hidden="true"></i> Más cercanos
+            </button>
+            <button type="button" ng-class="{'is-active': sortBy == 'rating'}"
+                    ng-click="setSort('rating')" aria-pressed="{{sortBy == 'rating'}}">
+                <i class="fa fa-star" aria-hidden="true"></i> Mejor valorados
+            </button>
+        </div>
+    </div>
+
+    <div class="wd-notice" ng-if="pendingPayments > 0">
+        <i class="fa fa-credit-card" aria-hidden="true"></i>
+        <div>
+            <strong>Tenés {{pendingPayments}} {{pendingPayments == 1 ? 'paseo' : 'paseos'}} para pagar.</strong>
+            Tu paseador ya {{pendingPayments == 1 ? 'terminó el paseo' : 'terminó los paseos'}}.
+            <a href="#/walks/requested">Ir a pagar</a>
+        </div>
+    </div>
+
     <div class="wd-walker-list">
-        <article class="wd-walker-card" ng-repeat="walker in walkers">
-            <img class="wd-avatar" ng-src="{{walker.profileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{walker.firstName}} {{walker.lastName}}" />
+        <article class="wd-walker-card" ng-repeat="walker in orderedWalkers">
+            <a ng-href="#/walkers/{{walker.id}}" aria-label="Ver el perfil de {{walker.firstName}} {{walker.lastName}}">
+                <img class="wd-avatar" ng-src="{{walker.profileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{walker.firstName}} {{walker.lastName}}" />
+            </a>
             <div class="wd-walker-info">
                 <div class="wd-walker-name-row">
-                    <h2 class="wd-walker-name">{{walker.firstName}} {{walker.lastName}}</h2>
-                    <span component-rating="4"></span>
+                    <h2 class="wd-walker-name"><a class="wd-link-plain" ng-href="#/walkers/{{walker.id}}">{{walker.firstName}} {{walker.lastName}}</a></h2>
+                    <span class="wd-rating-inline" ng-if="walker.ratingCount > 0">
+                        <wd-stars value="walker.averageRating"></wd-stars>
+                        <strong>{{walker.averageRating.toFixed(1).replace('.', ',')}}</strong>
+                        ({{walker.ratingCount}})
+                    </span>
+                    <span class="wd-rating-inline" ng-if="walker.ratingCount == 0">Sin valoraciones todavía</span>
                 </div>
                 <div class="wd-walker-meta">
                     <i class="fa fa-map-marker" aria-hidden="true"></i>
@@ -25,10 +57,11 @@
             </div>
             <div class="wd-walker-price">
                 <div>
-                    <span class="wd-price-amount">${{walker.amount}}</span>
+                    <span class="wd-price-amount">${{walker.amount | wdMoney}}</span>
                     <span class="wd-price-unit">/ hora</span>
                 </div>
-                <a class="btn btn-default" ng-href="#/walks/step-1?walkerId={{walker.id}}">Solicitar paseo</a>
+                <a class="btn btn-primary" ng-href="#/walks/step-1?walkerId={{walker.id}}">Solicitar paseo</a>
+                <a class="wd-link-plain wd-link-sm" ng-href="#/walkers/{{walker.id}}">Ver perfil y opiniones</a>
             </div>
         </article>
     </div>
@@ -39,35 +72,19 @@
     <div class="wd-page-header">
         <div>
             <h1 class="wd-page-title">Mis paseos</h1>
-            <p class="wd-page-subtitle">Confirmá las solicitudes de tus clientes y seguí tus próximos paseos.</p>
+            <p class="wd-page-subtitle">Confirmá las solicitudes, dá por finalizados tus paseos y confirmá cuando te pagan.</p>
         </div>
+        <a class="btn btn-default" ng-href="#/walkers/{{walkerId}}">Ver mi perfil público</a>
     </div>
 
-    <div class="wd-notice" ng-if="balanceLoaded && !balance.hasPayoutAccount">
+    <div class="wd-notice" ng-if="walkerProfile && !walkerProfile.mercadoPagoLinked">
         <i class="fa fa-credit-card" aria-hidden="true"></i>
         <div>
-            <strong>Cargá dónde cobrar.</strong>
-            Los clientes que pagan con Mercado Pago le pagan a WalkyDoggy, que te transfiere el dinero cuando el paseo se hace.
-            Indicanos tu alias, CBU/CVU o email de Mercado Pago en <a href="#/profile">tu perfil</a> para poder liquidarte.
+            <strong>Cobrá online con Mercado Pago.</strong>
+            Vinculá tu cuenta desde <a href="#/profile">tu perfil</a> y tus clientes van a poder pagarte por la app: el dinero te llega directo a vos.
+            Mientras tanto solo podés cobrar en efectivo.
         </div>
     </div>
-
-    <section class="wd-payout" ng-if="hasBalance">
-        <h2 class="wd-section-title">Tus cobros con Mercado Pago</h2>
-        <p class="wd-payout-text">
-            Los clientes le pagan a WalkyDoggy, que retiene el dinero hasta que el paseo se hace y después te lo liquida.
-        </p>
-        <dl class="wd-walk-details">
-            <dt>Retenido</dt>
-            <dd><strong>${{balance.retained}}</strong> · pagado por clientes, paseos todavía sin confirmar como realizados</dd>
-            <dt>A liquidar</dt>
-            <dd><strong>${{balance.toSettle}}</strong> · paseos realizados, WalkyDoggy te lo transfiere</dd>
-            <dt ng-if="balance.inReview > 0">En revisión</dt>
-            <dd ng-if="balance.inReview > 0"><strong>${{balance.inReview}}</strong> · el cliente reclamó un problema</dd>
-            <dt ng-if="balance.hasPayoutAccount">Cuenta de cobro</dt>
-            <dd ng-if="balance.hasPayoutAccount">{{balance.payoutAccount}} · {{balance.payoutHolder}} (<a href="#/profile">cambiar</a>)</dd>
-        </dl>
-    </section>
 
     <section>
         <h2 class="wd-section-title">Solicitudes por confirmar <span class="wd-count" ng-if="pending.length > 0">{{pending.length}}</span></h2>
@@ -95,7 +112,7 @@
                         <dt ng-if="booking.details">Aclaraciones</dt>
                         <dd ng-if="booking.details">{{booking.details}}</dd>
                         <dt>Pago</dt>
-                        <dd>{{paymentText(booking)}} · <strong>${{booking.total}}</strong></dd>
+                        <dd>{{paymentText(booking)}} · <strong>${{booking.total | wdMoney}}</strong></dd>
                     </dl>
                 </div>
                 <div class="wd-walk-actions">
@@ -106,11 +123,38 @@
         </div>
     </section>
 
-    <section>
-        <h2 class="wd-section-title">Paseos confirmados <span class="wd-count" ng-if="confirmed.length > 0">{{confirmed.length}}</span></h2>
-        <p class="wd-field-hint" ng-if="loadedBookings && confirmed.length == 0">Todavía no tenés paseos confirmados.</p>
+    <section ng-if="toFinish.length > 0">
+        <h2 class="wd-section-title">Para finalizar <span class="wd-count">{{toFinish.length}}</span></h2>
+        <p class="wd-field-hint">Cuando devuelvas a la mascota, dá el paseo por finalizado: desde ahí el cliente puede pagarte.</p>
         <div class="wd-walker-list">
-            <article class="wd-walker-card" ng-repeat="booking in confirmed">
+            <article class="wd-walker-card" ng-repeat="booking in toFinish">
+                <img class="wd-avatar" ng-src="{{booking.pets[0].profileImage || '/Content/images/avatar-pet.svg'}}" alt="Foto de {{booking.pets[0].name}}" />
+                <div class="wd-walker-info">
+                    <div class="wd-walker-name-row">
+                        <h3 class="wd-walker-name">{{petNames(booking)}}</h3>
+                        <span class="wd-status wd-status-pending">En curso</span>
+                    </div>
+                    <dl class="wd-walk-details">
+                        <dt>Dueño</dt>
+                        <dd>{{booking.customerFullName}}</dd>
+                        <dt>Fecha</dt>
+                        <dd>{{dateText(booking)}}, {{timeText(booking)}}</dd>
+                        <dt>Pago</dt>
+                        <dd>{{paymentText(booking)}} · <strong>${{booking.total | wdMoney}}</strong></dd>
+                    </dl>
+                </div>
+                <div class="wd-walk-actions">
+                    <button type="button" class="btn btn-primary" ng-disabled="working" ng-click="finish(booking)">Terminé el paseo</button>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2 class="wd-section-title">Próximos paseos <span class="wd-count" ng-if="upcoming.length > 0">{{upcoming.length}}</span></h2>
+        <p class="wd-field-hint" ng-if="loadedBookings && upcoming.length == 0">Todavía no tenés paseos confirmados por hacer.</p>
+        <div class="wd-walker-list">
+            <article class="wd-walker-card" ng-repeat="booking in upcoming">
                 <img class="wd-avatar" ng-src="{{booking.pets[0].profileImage || '/Content/images/avatar-pet.svg'}}" alt="Foto de {{booking.pets[0].name}}" />
                 <div class="wd-walker-info">
                     <div class="wd-walker-name-row">
@@ -132,11 +176,59 @@
                         <dt ng-if="booking.details">Aclaraciones</dt>
                         <dd ng-if="booking.details">{{booking.details}}</dd>
                         <dt>Pago</dt>
-                        <dd>{{paymentText(booking)}} · <strong>${{booking.total}}</strong></dd>
+                        <dd>{{paymentText(booking)}} · <strong>${{booking.total | wdMoney}}</strong></dd>
                     </dl>
                 </div>
                 <div class="wd-walk-actions">
                     <button type="button" class="btn btn-danger" ng-click="cancelConfirmed(booking)">Cancelar</button>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section ng-if="toCollect.length > 0">
+        <h2 class="wd-section-title">Para cobrar <span class="wd-count">{{toCollect.length}}</span></h2>
+        <p class="wd-field-hint">Cuando tengas el pago (en mano o en tu cuenta de Mercado Pago), confirmalo para cerrar el paseo.</p>
+        <div class="wd-walker-list">
+            <article class="wd-walker-card" ng-repeat="booking in toCollect">
+                <img class="wd-avatar" ng-src="{{booking.pets[0].profileImage || '/Content/images/avatar-pet.svg'}}" alt="Foto de {{booking.pets[0].name}}" />
+                <div class="wd-walker-info">
+                    <div class="wd-walker-name-row">
+                        <h3 class="wd-walker-name">{{petNames(booking)}}</h3>
+                        <span class="wd-status" ng-class="booking.paymentStatus == 'Paid' ? 'wd-status-confirmed' : 'wd-status-pending'">{{collectStatusText(booking)}}</span>
+                    </div>
+                    <dl class="wd-walk-details">
+                        <dt>Dueño</dt>
+                        <dd>{{booking.customerFullName}}</dd>
+                        <dt>Fecha</dt>
+                        <dd>{{dateText(booking)}}, {{timeText(booking)}}</dd>
+                        <dt>Pago</dt>
+                        <dd>{{paymentText(booking)}} · <strong>${{booking.total | wdMoney}}</strong></dd>
+                    </dl>
+                </div>
+                <div class="wd-walk-actions">
+                    <button type="button" class="btn btn-primary" ng-if="canReceive(booking)" ng-disabled="working" ng-click="receive(booking)">Recibí el pago</button>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section ng-if="collected.length > 0">
+        <h2 class="wd-section-title">Cobrados recientemente</h2>
+        <div class="wd-walker-list">
+            <article class="wd-walker-card wd-walk-past" ng-repeat="booking in collected">
+                <img class="wd-avatar wd-avatar-sm" ng-src="{{booking.pets[0].profileImage || '/Content/images/avatar-pet.svg'}}" alt="Foto de {{booking.pets[0].name}}" />
+                <div class="wd-walker-info">
+                    <div class="wd-walker-name-row">
+                        <h3 class="wd-walker-name">{{petNames(booking)}}</h3>
+                        <span class="wd-status wd-status-confirmed">Cobrado</span>
+                    </div>
+                    <dl class="wd-walk-details">
+                        <dt>Fecha</dt>
+                        <dd>{{dateText(booking)}}, {{timeText(booking)}}</dd>
+                        <dt>Pago</dt>
+                        <dd>{{paymentText(booking)}} · <strong>${{booking.total | wdMoney}}</strong></dd>
+                    </dl>
                 </div>
             </article>
         </div>

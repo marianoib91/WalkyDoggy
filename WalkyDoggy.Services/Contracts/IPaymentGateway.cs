@@ -29,21 +29,17 @@ namespace WalkyDoggy.Services.Contracts
         public String Currency { get; set; }
     }
 
-    //Acceso a la pasarela de pagos (Mercado Pago). Todos los pagos entran a la cuenta de WalkyDoggy.
+    //Acceso a Mercado Pago. El cliente le paga directamente al paseador: todas las operaciones se hacen con el access token
+    //de la cuenta de Mercado Pago del paseador (vinculada por OAuth), y el dinero va a su cuenta.
     public interface IPaymentGateway
     {
-        Boolean IsConfigured { get; }
-
         //Crea el pago y devuelve la direccion de la pagina de Mercado Pago donde el cliente paga; null si fallo
-        String CreateCheckout(CheckoutRequest request, out String error);
+        String CreateCheckout(String sellerAccessToken, CheckoutRequest request, out String error);
 
         //Consulta un pago; null si no existe o no se pudo consultar (en ese caso error trae el motivo)
-        GatewayPayment GetPayment(String paymentId, out String error);
+        GatewayPayment GetPayment(String sellerAccessToken, String paymentId, out String error);
 
-        //Busca el pago aprobado de una reserva; null si todavia no hay ninguno
-        GatewayPayment FindApprovedPayment(String externalReference, out String error);
-
-        //Devuelve el pago completo al cliente
-        Boolean Refund(String paymentId, out String error);
+        //Busca el pago aprobado de una reserva; null si todavia no hay ninguno. Si hay varios, prefiere el que coincide con el monto esperado.
+        GatewayPayment FindApprovedPayment(String sellerAccessToken, String externalReference, Decimal expectedAmount, out String error);
     }
 }

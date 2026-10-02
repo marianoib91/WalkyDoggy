@@ -9,29 +9,26 @@ using WalkyDoggy.Data.Repositories;
 using WalkyDoggy.Entities;
 using WalkyDoggy.Services.Contracts;
 using WalkyDoggy.Web.Infrastructure.Core;
-using WalkyDoggy.Web.Infrastructure.MercadoPago;
 
 namespace WalkyDoggy.Web.Controllers
 {
-    //Pagos con Mercado Pago. Todo el dinero entra a la cuenta de WalkyDoggy y queda retenido hasta que el paseo se hace.
-    //Las acciones sobre una reserva exigen que quien llama haya iniciado sesion como el cliente dueño de la reserva.
+    //Pago de un paseo con Mercado Pago. Se paga despues del paseo, cuando el paseador lo dio por finalizado, y el dinero va
+    //directo a la cuenta de Mercado Pago del paseador. Las acciones sobre una reserva exigen que quien llama haya iniciado
+    //sesion como el cliente dueño de la reserva.
     [RoutePrefix("api/payments")]
     public class PaymentsController : ApiControllerBase
     {
         private readonly IPaymentAppService paymentAppService;
         private readonly IEntityBaseRepository<Customer> customersRepository;
-        private readonly IEntityBaseRepository<Walker> walkersRepository;
 
         public PaymentsController(IPaymentAppService paymentAppService,
                                   IEntityBaseRepository<Customer> customersRepository,
-                                  IEntityBaseRepository<Walker> walkersRepository,
                                   IEntityBaseRepository<Error> errorsRepository,
                                   IUnitOfWork unitOfWork)
             : base(errorsRepository, unitOfWork)
         {
             this.paymentAppService = paymentAppService;
             this.customersRepository = customersRepository;
-            this.walkersRepository = walkersRepository;
         }
 
         public class PaymentActionRequest
@@ -39,18 +36,6 @@ namespace WalkyDoggy.Web.Controllers
             public String BookingKey { get; set; }
 
             public Int64 CustomerId { get; set; }
-
-            //Solo para reclamos
-            public String Reason { get; set; }
-        }
-
-        //Indica si los pagos con Mercado Pago estan configurados, para ofrecerlos o no al reservar
-        [HttpGet]
-        [Route("status")]
-        public HttpResponseMessage Status(HttpRequestMessage request)
-        {
-            return CreateHttpResponse(request, () =>
-                request.CreateResponse(HttpStatusCode.OK, new { enabled = MercadoPagoSettings.FromConfig().PaymentsConfigured }));
         }
 
         //Crea el pago en Mercado Pago y devuelve la direccion adonde mandar al cliente para que pague
@@ -113,7 +98,7 @@ namespace WalkyDoggy.Web.Controllers
             return response;
         }
 
-        //El cliente ya pago pero la app no se entero (por ejemplo, cerro la pagina antes de volver): se vuelve a verificar
+        //El cliente ya pago pero la app no se entero (por ejemplo, no volvio a la app despues de pagar): se vuelve a verificar
         [HttpPost]
         [Route("sync")]
         public HttpResponseMessage Sync(HttpRequestMessage request, PaymentActionRequest action)
@@ -135,136 +120,6 @@ namespace WalkyDoggy.Web.Controllers
 
                 return request.CreateResponse(HttpStatusCode.OK, new { result });
             });
-        }
-
-        [HttpPost]
-        [Route("release")]
-        public HttpResponseMessage Release(HttpRequestMessage request, PaymentActionRequest action)
-        {
-            return CreateHttpResponse(request, () =>
-            {
-                HttpResponseMessage denied;
-                if (!CheckCustomer(request, action, out denied))
-                {
-                    return denied;
-                }
-
-                String error;
-                if (!paymentAppService.Release(action.BookingKey, action.CustomerId, out error))
-                {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
-                }
-
-                return request.CreateResponse(HttpStatusCode.OK, true);
-            });
-        }
-
-        [HttpPost]
-        [Route("dispute")]
-        public HttpResponseMessage Dispute(HttpRequestMessage request, PaymentActionRequest action)
-        {
-            return CreateHttpResponse(request, () =>
-            {
-                HttpResponseMessage denied;
-                if (!CheckCustomer(request, action, out denied))
-                {
-                    return denied;
-                }
-
-                String error;
-                if (!paymentAppService.Dispute(action.BookingKey, action.CustomerId, action.Reason, out error))
-                {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
-                }
-
-                return request.CreateResponse(HttpStatusCode.OK, true);
-            });
-        }
-
-        //Cuanto tiene cobrado WalkyDoggy a nombre del paseador y en que etapa esta cada pago
-        [HttpGet]
-        [Route("walkerBalance")]
-        public HttpResponseMessage WalkerBalance(HttpRequestMessage request, Int64 walkerId)
-        {
-            return CreateHttpResponse(request, () =>
-            {
-                if (!ActorIdentity.IsAuthenticated(User))
-                {
-                    return request.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
-                }
-                if (!ActorIdentity.IsWalker(User, walkersRepository, walkerId))
-                {
-                    return request.CreateResponse(HttpStatusCode.Forbidden, new[] { "No podés ver los cobros de otro paseador." });
-                }
-
-                return request.CreateResponse(HttpStatusCode.OK, paymentAppService.GetWalkerBalance(walkerId));
-            });
-        }
-
-        public class PayoutAccountRequest
-        {
-            public Int64 WalkerId { get; set; }
-
-            public String Account { get; set; }
-
-            public String Holder { get; set; }
-        }
-
-        //La cuenta donde el paseador cobra. Solo el propio paseador la ve o la cambia: no sale en los listados publicos.
-        [HttpGet]
-        [Route("payoutAccount")]
-        public HttpResponseMessage GetPayoutAccount(HttpRequestMessage request, Int64 walkerId)
-        {
-            return CreateHttpResponse(request, () =>
-            {
-                HttpResponseMessage denied;
-                if (!CheckWalker(request, walkerId, out denied))
-                {
-                    return denied;
-                }
-
-                return request.CreateResponse(HttpStatusCode.OK, paymentAppService.GetPayoutAccount(walkerId));
-            });
-        }
-
-        [HttpPost]
-        [Route("payoutAccount")]
-        public HttpResponseMessage SavePayoutAccount(HttpRequestMessage request, PayoutAccountRequest action)
-        {
-            return CreateHttpResponse(request, () =>
-            {
-                HttpResponseMessage denied;
-                if (!CheckWalker(request, action == null ? 0 : action.WalkerId, out denied))
-                {
-                    return denied;
-                }
-
-                String error;
-                if (!paymentAppService.SavePayoutAccount(action.WalkerId, action.Account, action.Holder, out error))
-                {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
-                }
-
-                return request.CreateResponse(HttpStatusCode.OK, paymentAppService.GetPayoutAccount(action.WalkerId));
-            });
-        }
-
-        private Boolean CheckWalker(HttpRequestMessage request, Int64 walkerId, out HttpResponseMessage denied)
-        {
-            denied = null;
-
-            if (!ActorIdentity.IsAuthenticated(User))
-            {
-                denied = request.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
-                return false;
-            }
-            if (!ActorIdentity.IsWalker(User, walkersRepository, walkerId))
-            {
-                denied = request.CreateResponse(HttpStatusCode.Forbidden, new[] { "No podés ver ni cambiar los datos de cobro de otro paseador." });
-                return false;
-            }
-
-            return true;
         }
 
         private Boolean CheckCustomer(HttpRequestMessage request, PaymentActionRequest action, out HttpResponseMessage denied)

@@ -1,4 +1,4 @@
-﻿using WalkyDoggy.Entities;
+using WalkyDoggy.Entities;
 
 namespace WalkyDoggy.Data.Configurations
 {
@@ -7,10 +7,12 @@ namespace WalkyDoggy.Data.Configurations
         public RankingsConfiguration()
         {
             Property(u => u.WalkId).IsRequired();
+            Property(u => u.WalkerId).IsRequired();
+            Property(u => u.CustomerId).IsRequired();
+            Property(u => u.BookingKey).IsRequired().HasMaxLength(40);
             Property(u => u.Date).IsRequired();
-            Property(u => u.Comments).IsRequired();
             Property(u => u.Score).IsRequired();
-            Property(u => u.Comments).HasMaxLength(150);
+            Property(u => u.Comments).HasMaxLength(500);
         }
     }
 }

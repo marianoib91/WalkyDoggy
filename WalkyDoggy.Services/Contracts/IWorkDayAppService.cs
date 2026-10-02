@@ -17,5 +17,8 @@ namespace WalkyDoggy.Services.Contracts
         void Delete(Int64 id);
 
         WorkDay Save(WorkDayDto workDayDto);
+
+        //Reemplaza todas las franjas horarias de la semana del paseador (cualquier dia, de 00:00 a 24:00)
+        Boolean SaveWeek(Int64 walkerId, List<WorkRangeDto> ranges, out String error);
     }
 }

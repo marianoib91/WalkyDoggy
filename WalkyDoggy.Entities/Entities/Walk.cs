@@ -40,21 +40,19 @@ namespace WalkyDoggy.Entities
         //Cash | MercadoPago (ver PaymentMethods)
         public String PaymentMethod { get; set; }
 
-        //Pending | Held | Released | Refunded | Disputed (ver PaymentStatuses)
+        //Pending | Paid | Received (ver PaymentStatuses)
         public String PaymentStatus { get; set; }
 
-        //Id del pago en Mercado Pago. Todos los paseos de una reserva comparten el mismo pago.
+        //El paseador dio por finalizado el paseo (devolvio a la mascota). Desde ese momento el cliente puede pagar.
+        public DateTime? FinishedAt { get; set; }
+
+        //Id del pago en Mercado Pago (que va a la cuenta del paseador) y cuando se pago. Todos los paseos de una reserva comparten el mismo pago.
         public String PaymentId { get; set; }
 
-        //Cuando se cobro (queda retenido), cuando se libero al paseador y cuando se reembolso al cliente
         public DateTime? PaidAt { get; set; }
 
-        public DateTime? ReleasedAt { get; set; }
-
-        public DateTime? RefundedAt { get; set; }
-
-        //Motivo del reclamo del cliente cuando el pago queda en revision
-        public String PaymentDisputeReason { get; set; }
+        //El paseador confirmo que recibio el pago (con Mercado Pago o en efectivo)
+        public DateTime? ReceivedAt { get; set; }
 
         //Direccion donde se retira a las mascotas. Es una copia de la del cliente o la que eligio para este paseo.
         //Los paseos anteriores a este cambio no la tienen (se usa la del cliente).

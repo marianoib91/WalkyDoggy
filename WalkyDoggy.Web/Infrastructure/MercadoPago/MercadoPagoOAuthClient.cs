@@ -61,13 +61,32 @@ namespace WalkyDoggy.Web.Infrastructure.MercadoPago
                 body.Add("test_token", "true");
             }
 
-            var response = await Http.PostAsync(settings.TokenUrl, new StringContent(body.ToString(), Encoding.UTF8, "application/json"));
-            var content = await response.Content.ReadAsStringAsync();
+            return await RequestTokensAsync(body, "la vinculación");
+        }
+
+        //Los tokens vencen (a los 180 dias): con el refresh token se piden unos nuevos sin que el paseador vuelva a autorizar
+        public async Task<MercadoPagoTokens> RefreshAsync(String refreshToken)
+        {
+            var body = new JObject
+            {
+                { "client_id", settings.ClientId },
+                { "client_secret", settings.ClientSecret },
+                { "grant_type", "refresh_token" },
+                { "refresh_token", refreshToken }
+            };
+
+            return await RequestTokensAsync(body, "la renovación del acceso");
+        }
+
+        private async Task<MercadoPagoTokens> RequestTokensAsync(JObject body, String what)
+        {
+            var response = await Http.PostAsync(settings.TokenUrl, new StringContent(body.ToString(), Encoding.UTF8, "application/json")).ConfigureAwait(false);
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
                 //No se incluye el cuerpo completo para no volcar datos sensibles en el log de errores
-                throw new InvalidOperationException("Mercado Pago rechazó la vinculación (HTTP " + (int)response.StatusCode + ").");
+                throw new InvalidOperationException("Mercado Pago rechazó " + what + " (HTTP " + (int)response.StatusCode + ").");
             }
 
             var json = JObject.Parse(content);

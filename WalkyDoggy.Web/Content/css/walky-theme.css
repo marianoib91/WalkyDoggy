@@ -17,6 +17,23 @@ body {
 
 #main {
     background-color: #ffffff;
+    overflow-x: hidden;
+}
+
+/* Contenido centrado con un ancho maximo: en pantallas muy anchas no se estira de punta a punta.
+   La barra superior usa el mismo ancho (ver mas abajo) para que logo y contenido queden alineados. */
+#main > .col-md-12 {
+    float: none;
+    width: auto;
+    max-width: 1600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* La portada publica si ocupa todo el ancho de la ventana */
+.public-section1 {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
 }
 
 h1, h2, h3, h4, h5, h6,
@@ -65,6 +82,14 @@ label {
 
 .navbar-header {
     min-height: 72px;
+}
+
+@media (min-width: 1648px) {
+    .navbar,
+    .navbar-default {
+        padding-left: calc((100% - 1600px) / 2 + 15px);
+        padding-right: calc((100% - 1600px) / 2 + 15px);
+    }
 }
 
 .navbar-default .navbar-brand {
@@ -1338,4 +1363,437 @@ button.wd-pet-add {
 
 .wd-payout-linked .wd-field-hint {
     margin: 0;
+}
+
+/* ===== Valoraciones: estrellas, resumen y opiniones ===== */
+.wd-stars {
+    display: inline-flex;
+    gap: 2px;
+    font-size: 14px;
+    color: #E3A008;
+    white-space: nowrap;
+}
+
+.wd-stars-md {
+    font-size: 18px;
+}
+
+.wd-stars-lg {
+    font-size: 22px;
+}
+
+.wd-rating-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #5B6470;
+}
+
+.wd-rating-inline strong {
+    color: #14181F;
+}
+
+.wd-profile-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+    padding: 28px;
+    border: 1px solid #E7E9EC;
+    border-radius: 16px;
+}
+
+.wd-profile-header .wd-avatar {
+    flex-shrink: 0;
+}
+
+.wd-profile-main {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.wd-profile-main .wd-page-title {
+    margin-bottom: 8px;
+    font-size: 30px;
+}
+
+.wd-profile-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+@media (max-width: 767px) {
+    .wd-profile-header {
+        flex-direction: column;
+        padding: 20px;
+    }
+}
+
+/* Disponibilidad: una tarjeta por dia que se reparte el ancho disponible. En pantallas anchas entran los 7 dias en una fila;
+   a medida que la pantalla se achica pasan a 4, 3, 2 y, en celular, a uno debajo del otro. */
+.wd-availability {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+    margin: 0;
+}
+
+.wd-availability-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid #E7E9EC;
+    border-radius: 12px;
+    background-color: #ffffff;
+}
+
+.wd-availability-row dt {
+    font-weight: 600;
+}
+
+.wd-availability-row dd {
+    margin: 0;
+    color: #3A424E;
+    overflow-wrap: anywhere;
+}
+
+.wd-availability-row.is-off {
+    background-color: #F8F9FA;
+}
+
+.wd-availability-row.is-off dt,
+.wd-availability-row.is-off dd {
+    font-weight: 400;
+    color: #9AA1AB;
+}
+
+/* Mensaje cuando todavia no hay valoraciones: ocupa todo el ancho y se ajusta a la pantalla */
+.wd-rating-empty {
+    padding: 28px 24px;
+    border: 1px dashed #D5D9DE;
+    border-radius: 16px;
+    background-color: #F8F9FA;
+    color: #5B6470;
+    line-height: 1.55;
+}
+
+.wd-rating-empty strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 17px;
+    color: #14181F;
+}
+
+.wd-rating-layout {
+    display: grid;
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+}
+
+@media (max-width: 899px) {
+    .wd-rating-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+    }
+}
+
+.wd-rating-average {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.wd-rating-number {
+    font-size: 56px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #166A4F;
+}
+
+.wd-rating-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.wd-rating-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 14px;
+    color: #3A424E;
+    text-align: left;
+}
+
+.wd-rating-bar-row:hover:not([disabled]),
+.wd-rating-bar-row.is-active {
+    background-color: #F3F4F6;
+}
+
+.wd-rating-bar-row[disabled] {
+    cursor: default;
+    color: #9AA1AB;
+}
+
+.wd-rating-bar-label {
+    width: 34px;
+    flex-shrink: 0;
+}
+
+.wd-rating-bar-label .fa {
+    color: #E3A008;
+}
+
+.wd-rating-bar {
+    flex-grow: 1;
+    height: 8px;
+    border-radius: 999px;
+    background-color: #E7E9EC;
+    overflow: hidden;
+}
+
+.wd-rating-bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background-color: #166A4F;
+}
+
+.wd-rating-bar-count {
+    width: 32px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.wd-rating-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.wd-rating-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.wd-rating-filters .form-control {
+    width: auto;
+    min-width: 180px;
+}
+
+.wd-review {
+    padding: 20px 0;
+    border-bottom: 1px solid #E7E9EC;
+}
+
+.wd-review-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.wd-review-text {
+    max-width: 80ch;
+    margin: 10px 0 0;
+    color: #14181F;
+    line-height: 1.55;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.wd-rating-list .btn {
+    margin-top: 20px;
+}
+
+/* Dialogo para valorar */
+.wd-rating-picker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 16px;
+}
+
+.wd-rating-star {
+    padding: 2px;
+    border: 0;
+    background: transparent;
+    font-size: 30px;
+    line-height: 1;
+    color: #E3A008;
+}
+
+.wd-rating-label {
+    flex-basis: 100%;
+    margin-top: 4px;
+    font-size: 14px;
+    color: #5B6470;
+}
+
+/* ===== Orden de la lista de paseadores ===== */
+.wd-sort {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.wd-sort-label {
+    font-size: 14px;
+    color: #5B6470;
+}
+
+.wd-segmented {
+    display: inline-flex;
+    padding: 3px;
+    border: 1px solid #E7E9EC;
+    border-radius: 999px;
+    background-color: #F3F4F6;
+}
+
+.wd-segmented button {
+    padding: 7px 16px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: #3A424E;
+}
+
+.wd-segmented button:hover:not([disabled]):not(.is-active) {
+    color: #14181F;
+}
+
+.wd-segmented button.is-active {
+    background-color: #166A4F;
+    color: #ffffff;
+}
+
+.wd-segmented button[disabled] {
+    color: #9AA1AB;
+    cursor: not-allowed;
+}
+
+.wd-link-plain {
+    color: inherit;
+    text-decoration: none;
+}
+
+.wd-link-plain:hover {
+    color: #166A4F;
+    text-decoration: underline;
+}
+
+.wd-link-sm {
+    font-size: 13px;
+    color: #5B6470;
+}
+
+/* ===== Condiciones laborales: grilla semanal ===== */
+.wd-week-tools {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.wd-week-scroll {
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.wd-week {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 100%;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.wd-week-row {
+    display: grid;
+    grid-template-columns: 150px repeat(24, minmax(26px, 1fr));
+    gap: 3px;
+    align-items: center;
+}
+
+.wd-week-day {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-right: 8px;
+}
+
+.wd-week-day-name {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.wd-week-day-actions {
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+}
+
+.wd-week-day-actions a {
+    color: #5B6470;
+}
+
+.wd-week-day-actions a:hover {
+    color: #166A4F;
+}
+
+.wd-week-hour-label {
+    font-size: 11px;
+    text-align: center;
+    color: #9AA1AB;
+}
+
+.wd-hour {
+    height: 34px;
+    padding: 0;
+    border: 1px solid #E7E9EC;
+    border-radius: 6px;
+    background-color: #F3F4F6;
+    transition: background-color 0.1s;
+}
+
+.wd-hour:hover {
+    background-color: #D9EDE4;
+}
+
+.wd-hour.is-on {
+    border-color: #166A4F;
+    background-color: #166A4F;
+}
+
+.wd-hour.is-on:hover {
+    background-color: #0F5640;
+}
+
+.wd-rate-input {
+    max-width: 260px;
 }

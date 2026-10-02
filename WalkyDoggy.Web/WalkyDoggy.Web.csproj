@@ -185,6 +185,7 @@
     <Content Include="Scripts\spa\directives\angular-daterangepicker.js" />
     <Content Include="Scripts\spa\services\geocodingService.js" />
     <Content Include="Scripts\spa\services\confirmService.js" />
+    <Content Include="Scripts\spa\services\ratingService.js" />
     <Content Include="Scripts\Vendors\leaflet.js" />
     <Content Include="Content\css\vendors\leaflet\leaflet.css" />
     <Content Include="Scripts\spa\directives\sweetalert.js" />
@@ -216,6 +217,8 @@
     <Content Include="Scripts\spa\home\rootCtrl.js" />
     <Content Include="Scripts\spa\layout\sideBar.directive.js" />
     <Content Include="Scripts\spa\directives\rating.directive.js" />
+    <Content Include="Scripts\spa\directives\stars.directive.js" />
+    <Content Include="Scripts\spa\filters\money.filter.js" />
     <Content Include="Scripts\spa\layout\customPager.directive.js" />
     <Content Include="Scripts\spa\layout\topBar.directive.js" />
     <Content Include="Scripts\spa\profile\profile.html" />
@@ -238,8 +241,8 @@
     <Content Include="Scripts\spa\walks\requested.html" />
     <Content Include="Scripts\spa\workConditions\workConditions.html" />
     <Content Include="Scripts\spa\workConditions\workConditionsCtrl.js" />
-    <Content Include="Scripts\spa\workDays\workDay.html" />
-    <Content Include="Scripts\spa\workDays\workDayCtrl.js" />
+    <Content Include="Scripts\spa\walkers\walkerProfile.html" />
+    <Content Include="Scripts\spa\walkers\walkerProfileCtrl.js" />
     <Content Include="Scripts\vendors\angucomplete-alt.min.js" />
     <Content Include="Scripts\vendors\angular-base64.js" />
     <Content Include="Scripts\vendors\angular-cookies.js" />
@@ -293,6 +296,7 @@
     <Compile Include="Controllers\ImagesController.cs" />
     <Compile Include="Controllers\MercadoPagoController.cs" />
     <Compile Include="Controllers\PaymentsController.cs" />
+    <Compile Include="Controllers\RatingsController.cs" />
     <Compile Include="Controllers\PetsController.cs" />
     <Compile Include="Controllers\PricesController.cs" />
     <Compile Include="Controllers\ProvincesController.cs" />
@@ -314,6 +318,7 @@
     <Compile Include="Infrastructure\MercadoPago\MercadoPagoOAuthClient.cs" />
     <Compile Include="Infrastructure\MercadoPago\MercadoPagoPaymentGateway.cs" />
     <Compile Include="Infrastructure\MercadoPago\MercadoPagoSettings.cs" />
+    <Compile Include="Infrastructure\MercadoPago\SellerTokenProvider.cs" />
     <Compile Include="Infrastructure\Core\DataRepositoryFactory.cs" />
     <Compile Include="Infrastructure\Core\FileUploadResult.cs" />
     <Compile Include="Infrastructure\Core\MimeMultipart.cs" />

@@ -50,12 +50,6 @@ namespace WalkyDoggy.Entities
 
         public DateTime? MercadoPagoLinkedAt { get; set; }
 
-        //Cuenta donde WalkyDoggy le transfiere lo que cobra con Mercado Pago: alias, CBU/CVU o email, y nombre del titular.
-        //No va en WalkerDto (los listados publicos no deben exponerlo): se lee y escribe por PaymentsController.
-        public String PayoutAccount { get; set; }
-
-        public String PayoutHolder { get; set; }
-
         public User User { get; set; }
 
         public City City { get; set; }

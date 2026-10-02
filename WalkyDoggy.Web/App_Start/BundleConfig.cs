@@ -50,10 +50,13 @@ namespace WalkyDoggy.Web.App_Start
                 "~/Scripts/spa/services/fileUploadService.js",
                 "~/Scripts/spa/services/geocodingService.js",
                 "~/Scripts/spa/services/confirmService.js",
+                "~/Scripts/spa/services/ratingService.js",
                 "~/Scripts/spa/layout/topBar.directive.js",
                 "~/Scripts/spa/layout/sideBar.directive.js",
                 "~/Scripts/spa/layout/customPager.directive.js",
                 "~/Scripts/spa/directives/rating.directive.js",
+                "~/Scripts/spa/directives/stars.directive.js",
+                "~/Scripts/spa/filters/money.filter.js",
                 "~/Scripts/spa/directives/availableMovie.directive.js",
                 "~/Scripts/spa/directives/angular-block-ui.min.js",
                 "~/Scripts/spa/directives/angular-daterangepicker.js",
@@ -85,7 +88,7 @@ namespace WalkyDoggy.Web.App_Start
                  "~/Scripts/spa/walks/step2Ctrl.js",
                  "~/Scripts/spa/walks/requestedCtrl.js",
                   "~/Scripts/spa/workConditions/workConditionsCtrl.js",
-                  "~/Scripts/spa/workDays/workDayCtrl.js"
+                  "~/Scripts/spa/walkers/walkerProfileCtrl.js"
                 ));
 
             bundles.Add(new StyleBundle("~/Content/css").Include(

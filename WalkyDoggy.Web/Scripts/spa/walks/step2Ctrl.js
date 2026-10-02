@@ -21,11 +21,8 @@
         $scope.saving = false;
         $scope.payment = { method: 'Cash' };
 
-        //Mercado Pago solo se ofrece si los pagos estan configurados en el servidor
+        //Mercado Pago solo se ofrece si el paseador vinculo su cuenta (se sabe al cargar su detalle)
         $scope.mpEnabled = false;
-        apiService.get('/api/payments/status', null, function (result) {
-            $scope.mpEnabled = result.data.enabled;
-        });
 
         var walkDate = moment(draft.date, 'YYYY-MM-DD');
         $scope.dateText = dayNames[walkDate.day()] + ' ' + walkDate.format('DD/MM/YYYY');
@@ -39,6 +36,10 @@
 
         apiService.get('/api/walkers/getDetail', { params: { id: draft.walkerId } }, function (result) {
             $scope.walker = result.data;
+            $scope.mpEnabled = !!result.data.mercadoPagoLinked;
+            if (!$scope.mpEnabled && $scope.payment.method === 'MercadoPago') {
+                $scope.payment.method = 'Cash';
+            }
         });
 
         $scope.total = function () {
@@ -70,9 +71,7 @@
             }
 
             apiService.post('/api/walks/register', request, function () {
-                notificationService.displaySuccess($scope.payment.method == 'MercadoPago'
-                    ? 'Solicitud enviada. Cuando el paseador confirme el paseo vas a poder pagarlo desde "Paseos solicitados".'
-                    : 'Solicitud enviada. Cuando el paseador confirme el paseo lo vas a ver en "Paseos solicitados".');
+                notificationService.displaySuccess('Solicitud enviada. Cuando el paseador confirme el paseo lo vas a ver en "Paseos solicitados".');
                 $rootScope.walkDraft = null;
                 $location.search({}).path('/walks/requested');
             }, function (error) {

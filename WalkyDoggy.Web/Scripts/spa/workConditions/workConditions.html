@@ -1,140 +1,85 @@
-﻿<br />
-<div class="row work-conditions">
-    <div class="col-md-10 col-md-offset-1">
-        <div class="panel panel-primary">
-            <div class="panel-heading text-center">
-                <h3 class="panel-title">Condiciones laborales</h3>
+<div class="work-conditions">
+    <div class="wd-page-header">
+        <div>
+            <h1 class="wd-page-title">Condiciones laborales</h1>
+            <p class="wd-page-subtitle">Elegí cuándo trabajás, cuánto cobrás por hora y contales a tus clientes sobre vos.</p>
+        </div>
+        <a class="btn btn-default" ng-href="#/walkers/{{walker.id}}" ng-if="walker">Ver mi perfil público</a>
+    </div>
+
+    <form class="wd-form-card" role="form" novalidate ng-submit="submit()">
+        <section class="wd-form-section">
+            <h2 class="wd-form-section-title">Horarios en los que trabajás</h2>
+            <p class="wd-field-hint">
+                Podés trabajar cualquier día a cualquier hora, también de noche y los fines de semana.
+                Hacé clic en las horas en las que estás disponible o arrastrá para marcar varias de una vez.
+                Los clientes solo van a poder pedirte paseos dentro de estas horas.
+            </p>
+
+            <div class="wd-week-tools">
+                <button type="button" class="btn btn-default" ng-click="fillAll(true)">Todos los días, las 24 horas</button>
+                <button type="button" class="btn btn-default" ng-click="fillAll(false)">Limpiar todo</button>
+                <span class="wd-field-hint" ng-if="loaded">Trabajás {{workedDays()}} {{workedDays() == 1 ? 'día' : 'días'}} · {{weeklyHours()}} {{weeklyHours() == 1 ? 'hora' : 'horas'}} por semana</span>
             </div>
-            <div class="panel-body">
-                <div class="col-xs-12 col-sm-6 col-md-12 movie">
-                    <form role="form" novalidate angular-validator name="walkRequest" angular-validator-submit="submit()">
-                        <div class="panel panel-default">
-                            <div class="panel-body">
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                        <h3 class="panel-title">Jornadas laborales</h3>
-                                    </div>
-                                    <div class="panel-body">
-                                        <div class="row work-condition-row" ng-repeat="workDay in workDays">
-                                            <div class="col-md-3">
-                                                <div class="form-group">
-                                                    <label>Día de la semana</label>
-                                                    <input type="text"
-                                                           name="inputWorkDay"
-                                                           class="form-control"
-                                                           ng-model="workDay.dayOfWeek"
-                                                           placeholder="Día de la semana"
-                                                           readonly>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group">
-                                                    <label>Hora desde</label>
-                                                    <input type="text"
-                                                           name="inputTimeFrom"
-                                                           class="form-control"
-                                                           ng-model="workDay.timeFrom"
-                                                           placeholder="Hora desde"
-                                                           readonly>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group">
-                                                    <label>Hora hasta</label>
-                                                    <input type="text"
-                                                           name="inputTimeUntil"
-                                                           class="form-control"
-                                                           ng-model="workDay.timeUntil"
-                                                           placeholder="Hora hasta"
-                                                           readonly>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <div class="pull-right">
-                                                    <div class="col-md-6">
-                                                        <button ng-click="edit(workDay.id)" type="button" data-tooltip="Editar jornada laboral" class="btn btn-group-lg btn-success">
-                                                            <span class="glyphicon glyphicon-pencil"></span>&nbsp;
-                                                        </button>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <button ng-click="delete(workDay.id)" type="button" data-tooltip="Eliminar jornada laboral" class="btn btn-group-lg btn-danger">
-                                                            <span class="glyphicon glyphicon-trash"></span>&nbsp;
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-12 new-work-day-btn-container">
-                                                <a ng-click="edit(0)" class="btn btn-success" role="button">Agregar nueva jornada laboral</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                        <h3 class="panel-title">Precio</h3>
-                                    </div>
-                                    <div class="panel-body">
-                                        <div class="row input-data-row">
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label>Precio por paseo</label>
-                                                    <div class="input-group">
-                                                        <select type="text"
-                                                                name="inputPrices"
-                                                                class="form-control"
-                                                                ng-model="walker.priceId"
-                                                                ng-options="price.id as '$ '+price.amount for price in prices"
-                                                                validate-on="blur"
-                                                                required
-                                                                required-message="'Precio por paseo es requerido.'">
-                                                            <option value="" disabled selected>Seleccione un precio por paseo</option>
-                                                        </select>
 
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                        <h3 class="panel-title">Información adicional</h3>
-                                    </div>
-                                    <div class="panel-body">
-                                        <div class="row input-data-row">
-                                            <div class="col-md-12">
-                                                <div class="form-group">
-                                                    <textarea class="textarea-aditional-information"
-                                                              rows="6"
-                                                              placeholder="Ingrese la información que considera importante para que los clientes lo tengan en cuenta y así poder resaltar del resto de los paseadores"
-                                                              name="textAreaAditionalInformation"
-                                                              ng-model="walker.description"
-                                                              validate-on="blur"
-                                                              required
-                                                              required-message="Debe ingresar información adicional"></textarea>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="panel-footer text-center">
-                                <div class="row" style="display:inline-flex">
-                                    <div class="text-center btns-footer-container">
-                                        <a class="btn btn-danger" href="#/">Cancelar</a>
-                                    </div>
-                                    <div class="text-center btns-footer-container">
-                                        <button type="submit" class="btn btn-success" href="">Guardar</button>
-                                    </div>
-                                </div>
+            <div class="wd-week-scroll">
+                <div class="wd-week" role="group" aria-label="Horarios de trabajo por día">
+                    <div class="wd-week-row wd-week-head">
+                        <div class="wd-week-day"></div>
+                        <div class="wd-week-hour-label" ng-repeat="hour in hours">{{hour}}</div>
+                    </div>
 
-                            </div>
+                    <div class="wd-week-row" ng-repeat="day in days">
+                        <div class="wd-week-day">
+                            <span class="wd-week-day-name">{{day}}</span>
+                            <span class="wd-week-day-actions">
+                                <a href="" ng-click="fillDay(day, true)" title="Marcar todo el día">Todo</a>
+                                <a href="" ng-click="fillDay(day, false)" title="Desmarcar todo el día">Nada</a>
+                                <a href="" ng-click="copyToAll(day)" title="Copiar este horario a todos los días">Copiar</a>
+                            </span>
                         </div>
-                    </form>
+                        <button type="button" class="wd-hour" ng-repeat="hour in hours" ng-class="{'is-on': week[day][hour]}"
+                                ng-mousedown="startPaint(day, hour, $event)" ng-mouseenter="paintOver(day, hour)"
+                                aria-pressed="{{week[day][hour]}}" aria-label="{{day}} de {{hour}}:00 a {{hour + 1}}:00"></button>
+                    </div>
                 </div>
             </div>
+
+            <dl class="wd-availability">
+                <div class="wd-availability-row" ng-repeat="day in days" ng-class="{'is-off': summaryOf(day) == 'No trabajás'}">
+                    <dt>{{day}}</dt>
+                    <dd>{{summaryOf(day)}}</dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="wd-form-section">
+            <h2 class="wd-form-section-title">Tarifa</h2>
+            <div class="wd-form-grid">
+                <div class="form-group">
+                    <label for="inputRate">Cuánto cobrás por hora</label>
+                    <div class="input-group wd-rate-input">
+                        <span class="input-group-addon">$</span>
+                        <input type="number" id="inputRate" class="form-control" ng-model="form.amount" min="1" max="1000000" step="1" placeholder="Por ejemplo, 3500" required>
+                    </div>
+                    <p class="wd-field-hint">Es el precio por mascota y por hora. Los clientes lo ven en tu perfil y en la lista de paseadores. Los paseos que ya te pidieron conservan el precio con el que se reservaron.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="wd-form-section">
+            <h2 class="wd-form-section-title">Sobre vos</h2>
+            <div class="form-group">
+                <label for="inputDescription">Descripción</label>
+                <textarea id="inputDescription" class="form-control" rows="4" maxlength="200" ng-model="form.description"
+                          placeholder="Contá tu experiencia, qué razas preferís, qué zonas cubrís..." required></textarea>
+                <p class="wd-field-hint">{{(form.description || '').length}} / 200</p>
+            </div>
+        </section>
+
+        <div class="wd-form-footer">
+            <a class="btn btn-default" href="#/" style="margin-right:12px">Cancelar</a>
+            <button type="submit" class="btn btn-primary btn-lg" ng-disabled="saving || !loaded">{{saving ? 'Guardando...' : 'Guardar cambios'}}</button>
         </div>
-    </div>
+    </form>
 </div>

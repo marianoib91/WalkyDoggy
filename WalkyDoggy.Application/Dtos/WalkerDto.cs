@@ -54,5 +54,10 @@ namespace WalkyDoggy.Application.Dtos
 
         //Indica si el paseador vinculo su cuenta de Mercado Pago (los tokens nunca viajan al navegador)
         public Boolean MercadoPagoLinked { get; set; }
+
+        //Valoracion promedio (null si todavia no tiene) y cantidad de valoraciones
+        public Double? AverageRating { get; set; }
+
+        public Int32 RatingCount { get; set; }
     }
 }

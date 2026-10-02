@@ -8,20 +8,6 @@
     function registerWalkerCtrl($scope, apiService, membershipService, notificationService, $rootScope, $location) {
 
         $scope.walker = {};
-        $scope.prices = {};
-
-        init();
-
-        function init() {
-            apiService.get('/api/prices/getAll', null, onLoadPricesCompleted);
-        }
-
-
-        function onLoadPricesCompleted(result) {
-            $scope.prices = result.data;
-        }
-
-
 
         $scope.register = function register() {
             if ($scope.walker.password == $scope.walker.confirmPassword) {

@@ -31,6 +31,17 @@ namespace WalkyDoggy.Application.Dtos
 
         public String PaymentStatus { get; set; }
 
+        //El paseador dio por finalizado el paseo; null mientras no lo haga
+        public DateTime? FinishedAt { get; set; }
+
+        public DateTime? PaidAt { get; set; }
+
+        //El paseador confirmo que recibio el pago; null mientras no lo haga
+        public DateTime? ReceivedAt { get; set; }
+
+        //El cliente ya valoro al paseador por este paseo y con cuantas estrellas (null si todavia no)
+        public Int32? RatingStars { get; set; }
+
         public String Details { get; set; }
 
         public String Location { get; set; }

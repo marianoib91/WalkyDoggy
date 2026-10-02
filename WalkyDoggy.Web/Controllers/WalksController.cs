@@ -159,6 +159,52 @@ namespace WalkyDoggy.Web.Controllers
             });
         }
 
+        //El paseador da por finalizado el paseo (ya devolvio a la mascota): desde ahi el cliente puede pagarlo
+        [HttpPost]
+        [Route("finish")]
+        public HttpResponseMessage Finish(HttpRequestMessage request, BookingActionCriteria bookingActionCriteria)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                HttpResponseMessage denied;
+                if (!CheckActor(request, bookingActionCriteria, out denied))
+                {
+                    return denied;
+                }
+
+                String error = null;
+                if (bookingActionCriteria.Actor != "Walker" || !this.walkAppService.Finish(bookingActionCriteria, out error))
+                {
+                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { bookingActionCriteria.Actor != "Walker" ? "Solo el paseador puede dar el paseo por finalizado." : error });
+                }
+
+                return request.CreateResponse(HttpStatusCode.OK, true);
+            });
+        }
+
+        //El paseador confirma que recibio el pago (en efectivo o con Mercado Pago) y la reserva queda cerrada
+        [HttpPost]
+        [Route("receive")]
+        public HttpResponseMessage Receive(HttpRequestMessage request, BookingActionCriteria bookingActionCriteria)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                HttpResponseMessage denied;
+                if (!CheckActor(request, bookingActionCriteria, out denied))
+                {
+                    return denied;
+                }
+
+                String error = null;
+                if (bookingActionCriteria.Actor != "Walker" || !this.walkAppService.ConfirmReceived(bookingActionCriteria, out error))
+                {
+                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { bookingActionCriteria.Actor != "Walker" ? "Solo el paseador puede confirmar que recibió el pago." : error });
+                }
+
+                return request.CreateResponse(HttpStatusCode.OK, true);
+            });
+        }
+
         [HttpPost]
         [Route("cancel")]
         public HttpResponseMessage Cancel(HttpRequestMessage request, BookingActionCriteria bookingActionCriteria)

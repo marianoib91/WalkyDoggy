@@ -19,13 +19,16 @@ namespace WalkyDoggy.Web.Controllers
     public class WorkDaysController : ApiControllerBase
     {
         private readonly IWorkDayAppService workDayAppService;
+        private readonly IEntityBaseRepository<Walker> walkersRepository;
 
         public WorkDaysController(IWorkDayAppService workDayAppService,
+                                 IEntityBaseRepository<Walker> walkersRepository,
                                  IEntityBaseRepository<Error> errorsRepository,
                                  IUnitOfWork unitOfWork)
             : base(errorsRepository, unitOfWork)
         {
             this.workDayAppService = workDayAppService;
+            this.walkersRepository = walkersRepository;
         }
 
         [HttpGet]
@@ -64,6 +67,36 @@ namespace WalkyDoggy.Web.Controllers
                 var workDaysDto = this.workDayAppService.GetById(id);
                 response = request.CreateResponse(HttpStatusCode.OK, workDaysDto);
                 return response;
+            });
+        }
+
+        //Guarda de una vez toda la semana de trabajo del paseador (cualquier dia, de 00:00 a 24:00). Solo el propio paseador.
+        [HttpPost]
+        [Route("saveWeek")]
+        public HttpResponseMessage SaveWeek(HttpRequestMessage request, WorkWeekDto week)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                if (week == null)
+                {
+                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { "Faltan datos de la semana de trabajo." });
+                }
+                if (!ActorIdentity.IsAuthenticated(User))
+                {
+                    return request.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
+                }
+                if (!ActorIdentity.IsWalker(User, walkersRepository, week.WalkerId))
+                {
+                    return request.CreateResponse(HttpStatusCode.Forbidden, new[] { "No podés cambiar los horarios de otro paseador." });
+                }
+
+                String error;
+                if (!this.workDayAppService.SaveWeek(week.WalkerId, week.Ranges, out error))
+                {
+                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                }
+
+                return request.CreateResponse(HttpStatusCode.OK, this.workDayAppService.GetAllByWalkerId(week.WalkerId));
             });
         }
 

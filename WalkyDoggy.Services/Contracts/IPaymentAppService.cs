@@ -1,39 +1,16 @@
 using System;
-using System.Collections.Generic;
-using WalkyDoggy.Application.Dtos;
-using WalkyDoggy.Entities;
 
 namespace WalkyDoggy.Services.Contracts
 {
-    //Pagos con retencion: el cliente le paga a WalkyDoggy y el dinero se retiene hasta que el paseo se hace
+    //Pago de un paseo con Mercado Pago. Se paga despues del paseo y el dinero va directo a la cuenta del paseador.
     public interface IPaymentAppService
     {
-        //Crea el pago en Mercado Pago de una reserva confirmada y devuelve la direccion donde el cliente paga
+        //Crea el pago en Mercado Pago de una reserva que el paseador ya dio por finalizada y devuelve la direccion donde el cliente paga
         String CreateCheckout(String bookingKey, Int64 customerId, String returnUrl, out String error);
 
-        //Verifica contra Mercado Pago que la reserva este pagada y, si es asi, deja el pago retenido.
-        //Devuelve "approved", "pending", "failed" o "refunded" (se pago una reserva que ya estaba cancelada); null si no se pudo verificar.
+        //Verifica contra Mercado Pago que la reserva este pagada y, si es asi, la marca como pagada.
+        //Devuelve "approved", "pending" o "failed"; null si no se pudo verificar (el motivo queda en error).
         //Si no se informa paymentId se busca el pago de la reserva en Mercado Pago.
         String ConfirmPayment(String bookingKey, String paymentId, out String error);
-
-        //El cliente confirma que el paseo salio bien: el pago se libera al paseador
-        Boolean Release(String bookingKey, Int64 customerId, out String error);
-
-        //El cliente reclama un problema con el paseo: el pago queda en revision y no se libera
-        Boolean Dispute(String bookingKey, Int64 customerId, String reason, out String error);
-
-        //Devuelve al cliente un pago retenido. Solo cambia las entidades: quien lo llama confirma los cambios.
-        Boolean Refund(List<Walk> walks, out String error);
-
-        //Libera los pagos retenidos cuyo paseo termino hace mas de 24 horas sin reclamo
-        void ReleaseDuePayments();
-
-        WalkerBalanceDto GetWalkerBalance(Int64 walkerId);
-
-        //Cuenta donde el paseador cobra; Account y Holder vienen null si todavia no la cargo
-        PayoutAccountDto GetPayoutAccount(Int64 walkerId);
-
-        //Guarda el alias o CBU/CVU y el titular. Devuelve false con el motivo en error si no son validos.
-        Boolean SavePayoutAccount(Int64 walkerId, String account, String holder, out String error);
     }
 }

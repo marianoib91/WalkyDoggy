@@ -12,11 +12,7 @@
 
         //Cuenta de Mercado Pago del paseador (solo aplica al perfil de paseador)
         $scope.isWalker = userRoleId == 3;
-        //La vinculacion es opcional y viene deshabilitada: los pagos los cobra WalkyDoggy (ver MercadoPago.LinkingEnabled)
-        //Cuenta donde cobra (alias o CBU/CVU) y su titular: WalkyDoggy le transfiere ahi lo que cobra con Mercado Pago
-        $scope.payout = { account: '', holder: '', saving: false };
-
-        $scope.mp = { enabled: false, loaded: false, configured: false, linked: false, userId: null, working: false };
+        $scope.mp = { loaded: false, configured: false, linked: false, userId: null, working: false };
 
         //2=Customer, 3=Walker
         var entityType = userRoleId == 2 ? 'customer' : 'walker';
@@ -61,41 +57,15 @@
             $scope.user.streetNumber = parseFloat($scope.user.streetNumber, 10);
 
             if ($scope.isWalker) {
-                loadPayoutAccount();
                 loadMercadoPagoStatus();
                 showMercadoPagoResult();
             }
         }
 
-        /* ---------- Datos para cobrar (paseador) ---------- */
-
-        function loadPayoutAccount() {
-            apiService.get('/api/payments/payoutAccount', { params: { walkerId: walkerId } }, function (result) {
-                $scope.payout.account = result.data.account || '';
-                $scope.payout.holder = result.data.holder || '';
-            });
-        }
-
-        $scope.savePayout = function () {
-            $scope.payout.saving = true;
-
-            var request = { walkerId: walkerId, account: $scope.payout.account, holder: $scope.payout.holder };
-            apiService.post('/api/payments/payoutAccount', request, function (result) {
-                $scope.payout.saving = false;
-                $scope.payout.account = result.data.account;
-                $scope.payout.holder = result.data.holder;
-                notificationService.displaySuccess('Guardamos tus datos de cobro.');
-            }, function (error) {
-                $scope.payout.saving = false;
-                notificationService.displayError(error.data && error.data[0] ? error.data[0] : 'No se pudieron guardar los datos de cobro.');
-            });
-        };
-
         /* ---------- Cobros con Mercado Pago (paseador) ---------- */
 
         function loadMercadoPagoStatus() {
             apiService.get('/api/mercadopago/status', { params: { walkerId: walkerId } }, function (result) {
-                $scope.mp.enabled = result.data.enabled;
                 $scope.mp.configured = result.data.configured;
                 $scope.mp.linked = result.data.linked;
                 $scope.mp.userId = result.data.userId;

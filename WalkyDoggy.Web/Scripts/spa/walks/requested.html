@@ -2,7 +2,7 @@
     <div class="wd-page-header">
         <div>
             <h1 class="wd-page-title">Paseos solicitados</h1>
-            <p class="wd-page-subtitle">Seguí el estado de tus reservas. Cada paseo tiene que ser confirmado por el paseador.</p>
+            <p class="wd-page-subtitle">Seguí el estado de tus reservas. Cada paseo tiene que ser confirmado por el paseador y se paga cuando termina.</p>
         </div>
         <a class="btn btn-primary btn-lg" href="#/">
             <i class="fa fa-plus" aria-hidden="true"></i>
@@ -10,7 +10,43 @@
         </a>
     </div>
 
-    <p class="wd-field-hint" ng-if="loaded && upcoming.length == 0 && history.length == 0">Todavía no solicitaste ningún paseo. Elegí un paseador para reservar el primero.</p>
+    <p class="wd-field-hint" ng-if="loaded && toPay.length == 0 && upcoming.length == 0 && history.length == 0">Todavía no solicitaste ningún paseo. Elegí un paseador para reservar el primero.</p>
+
+    <section ng-if="toPay.length > 0">
+        <h2 class="wd-section-title">Para pagar <span class="wd-count">{{toPay.length}}</span></h2>
+        <div class="wd-walker-list">
+            <article class="wd-walker-card" ng-repeat="booking in toPay">
+                <img class="wd-avatar" ng-src="{{booking.walkerProfileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{booking.walkerName}}" />
+                <div class="wd-walker-info">
+                    <div class="wd-walker-name-row">
+                        <h3 class="wd-walker-name">{{booking.walkerName}}</h3>
+                        <span class="wd-status" ng-class="statusClass(booking)">{{statusText(booking)}}</span>
+                    </div>
+                    <dl class="wd-walk-details">
+                        <dt>Fecha</dt>
+                        <dd>{{dateText(booking)}}, {{timeText(booking)}}</dd>
+                        <dt>Mascotas</dt>
+                        <dd>{{petNames(booking)}}</dd>
+                        <dt>Pago</dt>
+                        <dd>{{paymentText(booking)}} · <strong>${{booking.total | wdMoney}}</strong></dd>
+                        <dt ng-if="booking.ratingStars">Tu valoración</dt>
+                        <dd ng-if="booking.ratingStars"><wd-stars value="booking.ratingStars"></wd-stars></dd>
+                    </dl>
+                    <p class="wd-field-hint" ng-if="isMercadoPago(booking)">
+                        {{booking.walkerName}} ya terminó el paseo. Pagá con Mercado Pago: el dinero va directo a su cuenta.
+                    </p>
+                    <p class="wd-field-hint" ng-if="!isMercadoPago(booking)">
+                        {{booking.walkerName}} ya terminó el paseo. Pagale <strong>${{booking.total | wdMoney}}</strong> en efectivo; cuando confirme que lo recibió, el paseo queda cerrado.
+                    </p>
+                </div>
+                <div class="wd-walk-actions">
+                    <button type="button" class="btn btn-primary" ng-if="isMercadoPago(booking)" ng-disabled="working" ng-click="pay(booking)">Pagar ${{booking.total | wdMoney}}</button>
+                    <button type="button" class="btn btn-default" ng-if="isMercadoPago(booking)" ng-disabled="working" ng-click="verifyPayment(booking)">Ya pagué, verificar</button>
+                    <button type="button" class="btn btn-default" ng-if="canRate(booking)" ng-click="rate(booking)"><i class="fa fa-star" aria-hidden="true"></i> Valorar al paseador</button>
+                </div>
+            </article>
+        </div>
+    </section>
 
     <section ng-if="upcoming.length > 0">
         <h2 class="wd-section-title">Próximos</h2>
@@ -32,17 +68,11 @@
                         <dt>Retiro en</dt>
                         <dd>{{booking.location}}</dd>
                         <dt>Pago</dt>
-                        <dd>{{paymentText(booking)}} · <strong>${{booking.total}}</strong></dd>
+                        <dd>{{paymentText(booking)}} · <strong>${{booking.total | wdMoney}}</strong></dd>
                     </dl>
-                    <p class="wd-field-hint" ng-if="canPay(booking)">
-                        Pagá ahora para asegurar el paseo. El dinero lo retiene WalkyDoggy y se le libera al paseador cuando el paseo se hace; si no se hace, se te devuelve.
-                        Si no pagás antes del horario, el paseo se cancela.
-                    </p>
                 </div>
-                <div class="wd-walk-actions">
-                    <button type="button" class="btn btn-primary" ng-if="canPay(booking)" ng-disabled="working" ng-click="pay(booking)">Pagar ${{booking.total}}</button>
-                    <button type="button" class="btn btn-default" ng-if="canPay(booking)" ng-disabled="working" ng-click="verifyPayment(booking)">Ya pagué, verificar</button>
-                    <button type="button" class="btn btn-danger" ng-if="canCancel(booking)" ng-click="cancel(booking)">Cancelar</button>
+                <div class="wd-walk-actions" ng-if="canCancel(booking)">
+                    <button type="button" class="btn btn-danger" ng-click="cancel(booking)">Cancelar</button>
                 </div>
             </article>
         </div>
@@ -63,14 +93,14 @@
                         <dd>{{dateText(booking)}}, {{timeText(booking)}}</dd>
                         <dt>Mascotas</dt>
                         <dd>{{petNames(booking)}}</dd>
-                        <dt ng-if="booking.paymentMethod == 'MercadoPago'">Pago</dt>
-                        <dd ng-if="booking.paymentMethod == 'MercadoPago'">{{paymentText(booking)}} · <strong>${{booking.total}}</strong></dd>
+                        <dt ng-if="booking.status != 'Cancelled'">Pago</dt>
+                        <dd ng-if="booking.status != 'Cancelled'">{{paymentText(booking)}} · <strong>${{booking.total | wdMoney}}</strong></dd>
+                        <dt ng-if="booking.ratingStars">Tu valoración</dt>
+                        <dd ng-if="booking.ratingStars"><wd-stars value="booking.ratingStars"></wd-stars></dd>
                     </dl>
-                    <p class="wd-field-hint" ng-if="canDispute(booking) && !canRelease(booking)">El paseo ya comenzó. Cuando termine vas a poder confirmar que salió bien o reportar un problema.</p>
                 </div>
-                <div class="wd-walk-actions" ng-if="canRelease(booking)">
-                    <button type="button" class="btn btn-primary" ng-click="release(booking)">Salió todo bien</button>
-                    <button type="button" class="btn btn-danger" ng-click="dispute(booking)">Tuve un problema</button>
+                <div class="wd-walk-actions" ng-if="canRate(booking)">
+                    <button type="button" class="btn btn-default" ng-click="rate(booking)"><i class="fa fa-star" aria-hidden="true"></i> Valorar al paseador</button>
                 </div>
             </article>
         </div>

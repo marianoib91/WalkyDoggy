@@ -114,8 +114,16 @@ namespace WalkyDoggy.Web.App_Start
             .As<IPaymentGateway>()
             .InstancePerRequest();
 
+            builder.RegisterType<SellerTokenProvider>()
+            .As<ISellerTokenProvider>()
+            .InstancePerRequest();
+
             builder.RegisterType<PaymentAppService>()
             .As<IPaymentAppService>()
+            .InstancePerRequest();
+
+            builder.RegisterType<RatingAppService>()
+            .As<IRatingAppService>()
             .InstancePerRequest();
 
             builder.RegisterType<PriceAppService>()

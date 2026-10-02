@@ -10,8 +10,9 @@ using WalkyDoggy.Services.Contracts;
 
 namespace WalkyDoggy.Web.Infrastructure.MercadoPago
 {
-    //Crea, consulta y reembolsa pagos en Mercado Pago con el Access Token de la cuenta de WalkyDoggy (Checkout Pro).
-    //Documentacion: POST /checkout/preferences, GET /v1/payments/{id}, GET /v1/payments/search, POST /v1/payments/{id}/refunds
+    //Crea y consulta pagos en Mercado Pago (Checkout Pro) con el access token de la cuenta del paseador: el pago se crea
+    //en la cuenta del paseador y el dinero le llega a el. Si se configura una comision, Mercado Pago la deriva a WalkyDoggy.
+    //Documentacion: POST /checkout/preferences, GET /v1/payments/{id}, GET /v1/payments/search
     public class MercadoPagoPaymentGateway : IPaymentGateway
     {
         private static readonly HttpClient Http = new HttpClient();
@@ -24,12 +25,7 @@ namespace WalkyDoggy.Web.Infrastructure.MercadoPago
             ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
         }
 
-        public Boolean IsConfigured
-        {
-            get { return settings.PaymentsConfigured; }
-        }
-
-        public String CreateCheckout(CheckoutRequest request, out String error)
+        public String CreateCheckout(String sellerAccessToken, CheckoutRequest request, out String error)
         {
             var returnUrl = request.ReturnUrl;
             var body = new JObject
@@ -53,7 +49,13 @@ namespace WalkyDoggy.Web.Infrastructure.MercadoPago
                 body.Add("auto_return", "approved");
             }
 
-            var response = Send(HttpMethod.Post, "/checkout/preferences", body, null, out error);
+            //Comision de WalkyDoggy (opcional): Mercado Pago se la deriva a la cuenta de la aplicacion
+            if (settings.CommissionPercent > 0)
+            {
+                body.Add("marketplace_fee", Math.Round(request.Amount * settings.CommissionPercent / 100m, 2));
+            }
+
+            var response = Send(HttpMethod.Post, "/checkout/preferences", sellerAccessToken, body, out error);
             if (response == null)
             {
                 return null;
@@ -69,7 +71,7 @@ namespace WalkyDoggy.Web.Infrastructure.MercadoPago
             return url;
         }
 
-        public GatewayPayment GetPayment(String paymentId, out String error)
+        public GatewayPayment GetPayment(String sellerAccessToken, String paymentId, out String error)
         {
             long id;
             if (!Int64.TryParse(paymentId, NumberStyles.None, CultureInfo.InvariantCulture, out id))
@@ -78,45 +80,42 @@ namespace WalkyDoggy.Web.Infrastructure.MercadoPago
                 return null;
             }
 
-            var response = Send(HttpMethod.Get, "/v1/payments/" + id, null, null, out error);
+            var response = Send(HttpMethod.Get, "/v1/payments/" + id, sellerAccessToken, null, out error);
             return response == null ? null : ToPayment(response);
         }
 
-        public GatewayPayment FindApprovedPayment(String externalReference, out String error)
+        public GatewayPayment FindApprovedPayment(String sellerAccessToken, String externalReference, Decimal expectedAmount, out String error)
         {
             var path = "/v1/payments/search?sort=date_created&criteria=desc&external_reference=" + Uri.EscapeDataString(externalReference);
-            var response = Send(HttpMethod.Get, path, null, null, out error);
+            var response = Send(HttpMethod.Get, path, sellerAccessToken, null, out error);
             if (response == null)
             {
                 return null;
             }
 
+            //Entre los pagos aprobados de la reserva se prefiere el de monto correcto (por si se pago de mas de una vez)
+            GatewayPayment firstApproved = null;
             var results = response["results"] as JArray;
             if (results != null)
             {
                 foreach (var result in results)
                 {
-                    if ((String)result["status"] == "approved")
+                    if ((String)result["status"] != "approved")
                     {
-                        return ToPayment((JObject)result);
+                        continue;
                     }
+
+                    var payment = ToPayment((JObject)result);
+                    if (payment.Amount == expectedAmount)
+                    {
+                        return payment;
+                    }
+
+                    firstApproved = firstApproved ?? payment;
                 }
             }
 
-            return null;
-        }
-
-        public Boolean Refund(String paymentId, out String error)
-        {
-            long id;
-            if (!Int64.TryParse(paymentId, NumberStyles.None, CultureInfo.InvariantCulture, out id))
-            {
-                error = "El número de pago no es válido.";
-                return false;
-            }
-
-            //Sin monto se devuelve el pago completo. La clave de idempotencia evita devolverlo dos veces si se reintenta.
-            return Send(HttpMethod.Post, "/v1/payments/" + id + "/refunds", new JObject(), "refund-" + id, out error) != null;
+            return firstApproved;
         }
 
         private static GatewayPayment ToPayment(JObject json)
@@ -132,22 +131,18 @@ namespace WalkyDoggy.Web.Infrastructure.MercadoPago
         }
 
         //No se incluye el cuerpo de la respuesta del error para no volcar datos sensibles; solo el codigo HTTP
-        private JObject Send(HttpMethod method, String path, JObject body, String idempotencyKey, out String error)
+        private JObject Send(HttpMethod method, String path, String accessToken, JObject body, out String error)
         {
             error = null;
 
-            if (!settings.PaymentsConfigured)
-            {
-                error = "Los pagos con Mercado Pago todavía no están configurados en el sistema.";
-                return null;
-            }
-
             try
             {
-                var result = Task.Run(() => SendAsync(method, path, body, idempotencyKey)).GetAwaiter().GetResult();
+                var result = Task.Run(() => SendAsync(method, path, accessToken, body)).GetAwaiter().GetResult();
                 if (result.Item1 < 200 || result.Item1 >= 300)
                 {
-                    error = "Mercado Pago respondió con un error (HTTP " + result.Item1 + ").";
+                    error = result.Item1 == 401
+                        ? "Mercado Pago no aceptó la cuenta del paseador. Que la vincule de nuevo desde su perfil."
+                        : "Mercado Pago respondió con un error (HTTP " + result.Item1 + ").";
                     return null;
                 }
 
@@ -160,15 +155,11 @@ namespace WalkyDoggy.Web.Infrastructure.MercadoPago
             }
         }
 
-        private async Task<Tuple<int, String>> SendAsync(HttpMethod method, String path, JObject body, String idempotencyKey)
+        private async Task<Tuple<int, String>> SendAsync(HttpMethod method, String path, String accessToken, JObject body)
         {
             using (var message = new HttpRequestMessage(method, settings.ApiUrl + path))
             {
-                message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.AccessToken);
-                if (idempotencyKey != null)
-                {
-                    message.Headers.Add("X-Idempotency-Key", idempotencyKey);
-                }
+                message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 if (body != null)
                 {
                     message.Content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");

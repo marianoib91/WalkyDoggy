@@ -13,13 +13,13 @@ using WalkyDoggy.Web.Infrastructure.MercadoPago;
 
 namespace WalkyDoggy.Web.Controllers
 {
-    //Vinculacion de la cuenta de Mercado Pago del paseador (OAuth) para que cobre los pagos online directamente.
+    //Vinculacion de la cuenta de Mercado Pago del paseador (OAuth): los clientes le pagan directamente a su cuenta.
     //Los endpoints que leen o cambian el vinculo exigen que quien llama haya iniciado sesion como ese paseador.
     [RoutePrefix("api/mercadopago")]
     public class MercadoPagoController : ApiControllerBase
     {
         private const String StatePurpose = "WalkyDoggy.MercadoPago.State";
-        private const String TokenPurpose = "WalkyDoggy.MercadoPago.Token";
+        private const String TokenPurpose = SellerTokenProvider.TokenPurpose;
         private static readonly TimeSpan StateLifetime = TimeSpan.FromMinutes(15);
 
         private readonly IEntityBaseRepository<Walker> walkersRepository;
@@ -54,8 +54,6 @@ namespace WalkyDoggy.Web.Controllers
 
                 return request.CreateResponse(HttpStatusCode.OK, new
                 {
-                    //La vinculacion esta en desuso: los pagos los cobra WalkyDoggy. Solo se ofrece si se la habilita en la configuracion.
-                    enabled = settings.LinkingEnabled,
                     configured = settings.IsConfigured,
                     linked = walker.MercadoPagoAccessToken != null,
                     userId = walker.MercadoPagoUserId,
@@ -86,7 +84,10 @@ namespace WalkyDoggy.Web.Controllers
                 }
 
                 //El "state" identifica al paseador y vence a los 15 minutos; se verifica al volver de Mercado Pago
-                var state = SecretProtector.ProtectForUrl(walker.Id + "|" + DateTime.UtcNow.Add(StateLifetime).Ticks, StatePurpose);
+                //El "state" lleva adelante a que servidor local volver ("h8085~" = http://localhost:8085): Mercado Pago devuelve al
+                //paseador a la pagina puente publica y esta lo reenvia a esta aplicacion usando ese dato
+                var origin = (request.RequestUri.Scheme == Uri.UriSchemeHttps ? "s" : "h") + request.RequestUri.Port + "~";
+                var state = origin + SecretProtector.ProtectForUrl(walker.Id + "|" + DateTime.UtcNow.Add(StateLifetime).Ticks, StatePurpose);
                 var url = new MercadoPagoOAuthClient(settings).BuildAuthorizationUrl(state);
 
                 return request.CreateResponse(HttpStatusCode.OK, new { url });
@@ -200,7 +201,9 @@ namespace WalkyDoggy.Web.Controllers
                 return null;
             }
 
-            var plain = SecretProtector.UnprotectFromUrl(state, StatePurpose);
+            //Se descarta el prefijo "h8085~" que solo usa la pagina puente para saber a donde volver
+            var separator = state.IndexOf('~');
+            var plain = SecretProtector.UnprotectFromUrl(separator >= 0 ? state.Substring(separator + 1) : state, StatePurpose);
             if (plain == null)
             {
                 return null;

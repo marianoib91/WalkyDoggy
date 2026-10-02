@@ -12,6 +12,7 @@ using WalkyDoggy.Data.Repositories;
 using WalkyDoggy.Entities;
 using WalkyDoggy.Services;
 using WalkyDoggy.Services.Contracts;
+using WalkyDoggy.Services.Services;
 using WalkyDoggy.Web.Infrastructure.Core;
 
 namespace WalkyDoggy.Web.Controllers
@@ -48,6 +49,12 @@ namespace WalkyDoggy.Web.Controllers
                     response = request.CreateResponse(HttpStatusCode.BadRequest,
                         ModelState.Keys.SelectMany(k => ModelState[k].Errors)
                               .Select(m => m.ErrorMessage).ToArray());
+                }
+                else if (walkerDto == null || walkerDto.Amount < WalkerAppService.MinRate || walkerDto.Amount > WalkerAppService.MaxRate)
+                {
+                    //Los validadores de FluentValidation no estan conectados a la API: la tarifa se valida aca
+                    response = request.CreateResponse(HttpStatusCode.BadRequest,
+                        new[] { "Debe ingresar una tarifa por hora válida (entre $" + WalkerAppService.MinRate + " y $" + WalkerAppService.MaxRate.ToString("N0") + ")." });
                 }
                 else
                 {
@@ -105,6 +112,11 @@ namespace WalkyDoggy.Web.Controllers
         {
             return CreateHttpResponse(request, () =>
             {
+
+                if (walkerDto != null && walkerDto.Amount > 0 && (walkerDto.Amount < WalkerAppService.MinRate || walkerDto.Amount > WalkerAppService.MaxRate))
+                {
+                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { "La tarifa por hora tiene que estar entre $" + WalkerAppService.MinRate + " y $" + WalkerAppService.MaxRate.ToString("N0") + "." });
+                }
 
                 HttpResponseMessage response = null;
                 this.walkerAppService.Update(walkerDto);

@@ -68,11 +68,11 @@
             controller: "workConditionsCtrl",
             resolve: { isAuthenticated: isAuthenticated }
         })
-         .when("/work-days/edit/:id", {
-             templateUrl: "scripts/spa/workDays/workDay.html",
-             controller: "workDayCtrl",
-             resolve: { isAuthenticated: isAuthenticated }
-         })
+        .when("/walkers/:id", {
+            templateUrl: "scripts/spa/walkers/walkerProfile.html",
+            controller: "walkerProfileCtrl",
+            resolve: { isAuthenticated: isAuthenticated }
+        })
                .when("/error/404", {
                    templateUrl: "scripts/spa/errors/page404.html",
                    resolve: { isAuthenticated: isAuthenticated }
