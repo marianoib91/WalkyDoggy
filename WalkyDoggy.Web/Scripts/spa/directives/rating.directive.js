@@ -17,7 +17,7 @@
                     starOn: "../Content/images/raty/star-on.png",
                     hints: ["Poor", "Average", "Good", "Very Good", "Excellent"],
                     click: function (score, event) {
-                        //Set the model value
+                        //Se guarda el valor en el modelo
                         $scope.movie.Rating = score;
                         $scope.$apply();
                     }

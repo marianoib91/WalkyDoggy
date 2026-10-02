@@ -18,9 +18,9 @@ namespace WalkyDoggy.Entities.Entities
 
         public Int32 Status { get; set; }
 
-        // Use deepCopy in true for cases in where the items of the details exist beyond the principal item. Example: Users with Roles.
-        // Uses deepCopy in false when the items are created with the principal item. Example: Order and OrderItem.
-        // Remember to check the UpdateEntityColllections method in RepositoryBase to update detail items
+        // Usar deepCopy en true cuando los items del detalle existen mas alla del item principal. Ejemplo: usuarios con roles.
+        // Usar deepCopy en false cuando los items se crean junto con el item principal. Ejemplo: pedido y sus renglones.
+        // Revisar el metodo UpdateEntityColllections de RepositoryBase para actualizar los items del detalle.
         public void CopyTo(EntityBase entityBase, Boolean deepCopy)
         {
             foreach (PropertyInfo pi in this.GetType().GetProperties())

@@ -9,12 +9,12 @@ namespace WalkyDoggy.Services
     public interface IEncryptionService
     {
         /// <summary>
-        /// Creates a random salt
+        /// Crea una sal aleatoria
         /// </summary>
         /// <returns></returns>
         string CreateSalt();
         /// <summary>
-        /// Generates a Hashed password
+        /// Genera la contrasena encriptada (hash)
         /// </summary>
         /// <param name="password"></param>
         /// <param name="salt"></param>

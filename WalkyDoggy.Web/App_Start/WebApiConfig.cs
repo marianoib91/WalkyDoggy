@@ -10,10 +10,10 @@ namespace WalkyDoggy.Web
     {
         public static void Register(HttpConfiguration config)
         {
-            // Web API configuration and services
+            // Configuracion y servicios de Web API
             config.MessageHandlers.Add(new WalkyDoggyAuthHandler());
 
-            // Web API routes
+            // Rutas de Web API
             config.MapHttpAttributeRoutes();
 
             config.Routes.MapHttpRoute(

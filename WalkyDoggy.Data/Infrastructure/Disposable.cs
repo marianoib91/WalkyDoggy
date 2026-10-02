@@ -26,7 +26,7 @@ namespace WalkyDoggy.Data.Infrastructure
             isDisposed = true;
         }
 
-        // Ovveride this to dispose custom objects
+        // Sobrescribir para liberar objetos propios
         protected virtual void DisposeCore()
         {
         }

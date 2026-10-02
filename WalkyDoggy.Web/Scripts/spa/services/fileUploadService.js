@@ -32,17 +32,17 @@
         }
 
         function uploadImage($files, movieId, callback) {
-            //$files: an array of files selected
+            //$files: lista de archivos seleccionados
             for (var i = 0; i < $files.length; i++) {
                 var $file = $files[i];
                 (function (index) {
                     $rootScope.upload[index] = $upload.upload({
-                        url: "api/movies/images/upload?movieId=" + movieId, // webapi url
+                        url: "api/movies/images/upload?movieId=" + movieId, // url de la API
                         method: "POST",
                         file: $file
                     }).progress(function (evt) {
                     }).success(function (data, status, headers, config) {
-                        // file is uploaded successfully
+                        // el archivo se subio correctamente
                         notificationService.displaySuccess(data.FileName + ' uploaded successfully');
                         callback();
                     }).error(function (data, status, headers, config) {

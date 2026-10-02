@@ -21,7 +21,7 @@ namespace WalkyDoggy.Web.MessageHandlers
             {
                 request.Headers.TryGetValues("Authorization",out authHeaderValues);
                 if(authHeaderValues == null)
-                    return base.SendAsync(request, cancellationToken); // cross fingers
+                    return base.SendAsync(request, cancellationToken); // sin credenciales se deja pasar el pedido y cada accion decide si exige autenticacion
 
                 var tokens = authHeaderValues.FirstOrDefault();
                 tokens = tokens.Replace("Basic","").Trim();
