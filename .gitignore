@@ -25,3 +25,6 @@ packages/
 WalkyDoggy.Web/Content/images/uploads/
 # Credenciales locales (Mercado Pago)
 WalkyDoggy.Web/Secrets.config
+
+# Mails de desarrollo (sin servidor SMTP se guardan aca)
+WalkyDoggy.Web/App_Data/outbox/

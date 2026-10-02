@@ -319,6 +319,7 @@
     <Compile Include="Infrastructure\Core\MimeMultipart.cs" />
     <Compile Include="Infrastructure\Core\PaginationSet.cs" />
     <Compile Include="Infrastructure\Core\UploadMultipartFormProvider.cs" />
+    <Compile Include="Infrastructure\Email\SmtpEmailSender.cs" />
     <Compile Include="Infrastructure\Extensions\EntitiesExtensions.cs" />
     <Compile Include="Infrastructure\Extensions\RequestMessageExtensions.cs" />
     <Compile Include="Infrastructure\MessageHandlers\WalkyDoggyAuthHandler.cs" />

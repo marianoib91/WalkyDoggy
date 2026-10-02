@@ -26,6 +26,7 @@ namespace WalkyDoggy.Services.Services
         private readonly IEntityBaseRepository<City> citiesRepository;
         private readonly IWalkerAppService walkerAppService;
         private readonly IPaymentAppService paymentAppService;
+        private readonly INotificationAppService notificationAppService;
         #endregion
 
         public WalkAppService(IEntityBaseRepository<Error> errorsRepository,
@@ -36,7 +37,8 @@ namespace WalkyDoggy.Services.Services
                                 IEntityBaseRepository<Customer> customersRepository,
                                 IEntityBaseRepository<City> citiesRepository,
                                 IWalkerAppService walkerAppService,
-                                IPaymentAppService paymentAppService) :
+                                IPaymentAppService paymentAppService,
+                                INotificationAppService notificationAppService) :
             base(errorsRepository, unitOfWork, walksRepository)
         {
             this.walksRepository = walksRepository;
@@ -46,6 +48,7 @@ namespace WalkyDoggy.Services.Services
             this.citiesRepository = citiesRepository;
             this.walkerAppService = walkerAppService;
             this.paymentAppService = paymentAppService;
+            this.notificationAppService = notificationAppService;
         }
 
         public List<WalkDto> Register(WalkRequestCriteria walkRequestCriteria, out String error)
@@ -153,6 +156,8 @@ namespace WalkyDoggy.Services.Services
             }
 
             this.unitOfWork.Commit();
+
+            this.notificationAppService.BookingRequested(walks);
 
             return walks.Select(walk => new WalkDto
             {
@@ -270,6 +275,8 @@ namespace WalkyDoggy.Services.Services
 
             walks.ForEach(x => SetStatus(x, WalkStatus.Confirmed, null));
             this.unitOfWork.Commit();
+
+            this.notificationAppService.BookingConfirmed(walks);
             return true;
         }
 
@@ -317,6 +324,8 @@ namespace WalkyDoggy.Services.Services
 
             walks.Where(x => x.Status != WalkStatus.Cancelled).ToList().ForEach(x => SetStatus(x, WalkStatus.Cancelled, actor));
             this.unitOfWork.Commit();
+
+            this.notificationAppService.BookingCancelled(walks, actor);
             return true;
         }
 
@@ -336,9 +345,15 @@ namespace WalkyDoggy.Services.Services
             var expired = openWalks.Where(x => StartOf(x) <= now).ToList();
             if (expired.Count > 0)
             {
-                expired.ForEach(x => SetStatus(x, WalkStatus.Cancelled,
-                                               x.Status == WalkStatus.Pending ? WalkCancelledBy.System : WalkCancelledBy.NoPayment));
+                var unanswered = expired.Where(x => x.Status == WalkStatus.Pending).ToList();
+                var unpaid = expired.Where(x => x.Status != WalkStatus.Pending).ToList();
+
+                unanswered.ForEach(x => SetStatus(x, WalkStatus.Cancelled, WalkCancelledBy.System));
+                unpaid.ForEach(x => SetStatus(x, WalkStatus.Cancelled, WalkCancelledBy.NoPayment));
                 this.unitOfWork.Commit();
+
+                this.notificationAppService.BookingCancelled(unanswered, WalkCancelledBy.System);
+                this.notificationAppService.BookingCancelled(unpaid, WalkCancelledBy.NoPayment);
             }
 
             this.paymentAppService.ReleaseDuePayments();

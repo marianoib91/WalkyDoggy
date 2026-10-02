@@ -59,6 +59,8 @@
     <Compile Include="Contracts\IEncryptionService.cs" />
     <Compile Include="Contracts\IEntityBaseAppService.cs" />
     <Compile Include="Contracts\IMembershipService.cs" />
+    <Compile Include="Contracts\IEmailSender.cs" />
+    <Compile Include="Contracts\INotificationAppService.cs" />
     <Compile Include="Contracts\IPaymentAppService.cs" />
     <Compile Include="Contracts\IPaymentGateway.cs" />
     <Compile Include="Contracts\IPetAppService.cs" />
@@ -75,6 +77,7 @@
     <Compile Include="Services\CustomerAppService.cs" />
     <Compile Include="Services\DistanceMatrixAppService.cs" />
     <Compile Include="Services\EntityBaseAppService.cs" />
+    <Compile Include="Services\NotificationAppService.cs" />
     <Compile Include="Services\PaymentAppService.cs" />
     <Compile Include="Services\PetAppService.cs" />
     <Compile Include="Services\PriceAppService.cs" />

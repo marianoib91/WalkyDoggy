@@ -6,6 +6,7 @@ using WalkyDoggy.Data.Infrastructure;
 using WalkyDoggy.Data.Repositories;
 using WalkyDoggy.Services;
 using WalkyDoggy.Web.Infrastructure.Core;
+using WalkyDoggy.Web.Infrastructure.Email;
 using WalkyDoggy.Web.Infrastructure.MercadoPago;
 using System;
 using System.Collections.Generic;
@@ -99,6 +100,14 @@ namespace WalkyDoggy.Web.App_Start
 
             builder.RegisterType<WalkAppService>()
             .As<IWalkAppService>()
+            .InstancePerRequest();
+
+            builder.RegisterType<SmtpEmailSender>()
+            .As<IEmailSender>()
+            .InstancePerRequest();
+
+            builder.RegisterType<NotificationAppService>()
+            .As<INotificationAppService>()
             .InstancePerRequest();
 
             builder.RegisterType<MercadoPagoPaymentGateway>()

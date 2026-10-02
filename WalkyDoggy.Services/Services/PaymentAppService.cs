@@ -19,14 +19,17 @@ namespace WalkyDoggy.Services.Services
         private readonly IEntityBaseRepository<Walk> walksRepository;
         private readonly IUnitOfWork unitOfWork;
         private readonly IPaymentGateway gateway;
+        private readonly INotificationAppService notificationAppService;
 
         public PaymentAppService(IEntityBaseRepository<Walk> walksRepository,
                                  IUnitOfWork unitOfWork,
-                                 IPaymentGateway gateway)
+                                 IPaymentGateway gateway,
+                                 INotificationAppService notificationAppService)
         {
             this.walksRepository = walksRepository;
             this.unitOfWork = unitOfWork;
             this.gateway = gateway;
+            this.notificationAppService = notificationAppService;
         }
 
         public String CreateCheckout(String bookingKey, Int64 customerId, String returnUrl, out String error)
@@ -172,6 +175,8 @@ namespace WalkyDoggy.Services.Services
                 walk.PaidAt = DateTime.Now;
             }
             this.unitOfWork.Commit();
+
+            this.notificationAppService.PaymentHeld(active);
             return "approved";
         }
 
@@ -202,6 +207,8 @@ namespace WalkyDoggy.Services.Services
                 x.ReleasedAt = DateTime.Now;
             });
             this.unitOfWork.Commit();
+
+            this.notificationAppService.PaymentReleased(held);
             return true;
         }
 
@@ -239,6 +246,8 @@ namespace WalkyDoggy.Services.Services
                 x.PaymentDisputeReason = reason;
             });
             this.unitOfWork.Commit();
+
+            this.notificationAppService.PaymentDisputed(held);
             return true;
         }
 
@@ -291,6 +300,8 @@ namespace WalkyDoggy.Services.Services
                 x.ReleasedAt = now;
             });
             this.unitOfWork.Commit();
+
+            this.notificationAppService.PaymentReleased(due);
         }
 
         public WalkerBalanceDto GetWalkerBalance(Int64 walkerId)
