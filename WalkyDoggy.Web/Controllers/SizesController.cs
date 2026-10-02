@@ -15,37 +15,37 @@ using WalkyDoggy.Web.Infrastructure.Core;
 namespace WalkyDoggy.Web.Controllers
 {
     [RoutePrefix("api/sizes")]
-    public class SizesController : ApiControllerBase
+    public class SizesController : ControladorApiBase
     {
-        private readonly IEntityBaseRepository<Size> sizesRepository;
-        private readonly IMembershipService membershipService;
-        private readonly ISizeAppService sizeAppService;
+        private readonly IRepositorioEntidadBase<Size> repositorioTamanos;
+        private readonly IServicioMembresia servicioMembresia;
+        private readonly IServicioTamanos servicioTamanos;
 
-        public SizesController(IEntityBaseRepository<Size> sizesRepository,
-                                 IMembershipService membershipService,
-                                 ISizeAppService sizeAppService,
-                                 IEntityBaseRepository<Error> errorsRepository,
-                                 IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public SizesController(IRepositorioEntidadBase<Size> repositorioTamanos,
+                                 IServicioMembresia servicioMembresia,
+                                 IServicioTamanos servicioTamanos,
+                                 IRepositorioEntidadBase<Error> repositorioErrores,
+                                 IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.sizesRepository = sizesRepository;
-            this.membershipService = membershipService;
-            this.sizeAppService = sizeAppService;
+            this.repositorioTamanos = repositorioTamanos;
+            this.servicioMembresia = servicioMembresia;
+            this.servicioTamanos = servicioTamanos;
         }
 
         [HttpGet]
         [Route("getAll")]
-        public HttpResponseMessage GetAll(HttpRequestMessage request)
+        public HttpResponseMessage GetAll(HttpRequestMessage pedido)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
-                var sizesDto = this.sizeAppService.GetAll();
+                HttpResponseMessage respuesta = null;
+                var tamanosDto = this.servicioTamanos.ObtenerTodos();
 
-                response = request.CreateResponse(HttpStatusCode.OK, sizesDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, tamanosDto);
 
-                return response;
+                return respuesta;
             });
         }
     }

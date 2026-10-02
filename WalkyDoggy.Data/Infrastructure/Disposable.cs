@@ -4,7 +4,7 @@ namespace WalkyDoggy.Data.Infrastructure
 {
     public class Disposable : IDisposable
     {
-        private bool isDisposed;
+        private bool estaLiberado;
 
         ~Disposable()
         {
@@ -16,14 +16,14 @@ namespace WalkyDoggy.Data.Infrastructure
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        private void Dispose(bool disposing)
+        private void Dispose(bool liberando)
         {
-            if (!isDisposed && disposing)
+            if (!estaLiberado && liberando)
             {
                 DisposeCore();
             }
 
-            isDisposed = true;
+            estaLiberado = true;
         }
 
         // Sobrescribir para liberar objetos propios

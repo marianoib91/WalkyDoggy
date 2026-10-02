@@ -16,87 +16,87 @@ using WalkyDoggy.Web.Infrastructure.Core;
 namespace WalkyDoggy.Web.Controllers
 {
     [RoutePrefix("api/customers")]
-    public class CustomersController : ApiControllerBase
+    public class CustomersController : ControladorApiBase
     {
-        private readonly IEntityBaseRepository<Customer> customersRepository;
-        private readonly IMembershipService membershipService;
-        private readonly ICustomerAppService customerAppService;
+        private readonly IRepositorioEntidadBase<Customer> repositorioClientes;
+        private readonly IServicioMembresia servicioMembresia;
+        private readonly IServicioClientes servicioClientes;
 
-        public CustomersController(IEntityBaseRepository<Customer> customersRepository,
-                                 IMembershipService membershipService,
-                                 ICustomerAppService customerAppService,
-                                 IEntityBaseRepository<Error> errorsRepository,
-                                 IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public CustomersController(IRepositorioEntidadBase<Customer> repositorioClientes,
+                                 IServicioMembresia servicioMembresia,
+                                 IServicioClientes servicioClientes,
+                                 IRepositorioEntidadBase<Error> repositorioErrores,
+                                 IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.customersRepository = customersRepository;
-            this.membershipService = membershipService;
-            this.customerAppService = customerAppService;
+            this.repositorioClientes = repositorioClientes;
+            this.servicioMembresia = servicioMembresia;
+            this.servicioClientes = servicioClientes;
         }
 
         [HttpPost]
         [Route("register")]
-        public HttpResponseMessage Register(HttpRequestMessage request, CustomerDto customerDto)
+        public HttpResponseMessage Register(HttpRequestMessage pedido, CustomerDto clienteDto)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
                 if (!ModelState.IsValid)
                 {
-                    response = request.CreateResponse(HttpStatusCode.BadRequest,
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         ModelState.Keys.SelectMany(k => ModelState[k].Errors)
                               .Select(m => m.ErrorMessage).ToArray());
                 }
                 else
                 {
-                    if (membershipService.UserExists(customerDto.Email))
+                    if (servicioMembresia.ExisteUsuario(clienteDto.Email))
                     {
                         ModelState.AddModelError("E-mail invalido", "El email ingresado ya se encuentra en uso.");
-                        response = request.CreateResponse(HttpStatusCode.BadRequest,
+                        respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         ModelState.Keys.SelectMany(k => ModelState[k].Errors)
                               .Select(m => m.ErrorMessage).ToArray());
                     }
                     else
                     {
-                        var customer = this.customerAppService.Register(customerDto);
-                        response = request.CreateResponse<CustomerDto>(HttpStatusCode.OK, customer);
+                        var cliente = this.servicioClientes.Registrar(clienteDto);
+                        respuesta = pedido.CreateResponse<CustomerDto>(HttpStatusCode.OK, cliente);
                     }
                 }
 
-                return response;
+                return respuesta;
             });
         }
 
         [HttpGet]
         [Route("getByUserId")]
-        public HttpResponseMessage GetByUserId(HttpRequestMessage request, Int64 userId)
+        public HttpResponseMessage GetByUserId(HttpRequestMessage pedido, Int64 userId)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
-                var customerDto = this.customerAppService.GetByUserId(userId);
+                HttpResponseMessage respuesta = null;
+                var clienteDto = this.servicioClientes.ObtenerPorIdUsuario(userId);
 
-                response = request.CreateResponse(HttpStatusCode.OK, customerDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, clienteDto);
 
-                return response;
+                return respuesta;
             });
         }
 
         [HttpPost]
         [Route("update")]
-        public HttpResponseMessage Update(HttpRequestMessage request, CustomerDto customerDto)
+        public HttpResponseMessage Update(HttpRequestMessage pedido, CustomerDto clienteDto)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
-                this.customerAppService.Update(customerDto);
+                HttpResponseMessage respuesta = null;
+                this.servicioClientes.Actualizar(clienteDto);
 
-                response = request.CreateResponse(HttpStatusCode.OK, customerDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, clienteDto);
 
-                return response;
+                return respuesta;
             });
         }
     }

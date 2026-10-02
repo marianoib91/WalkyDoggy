@@ -16,130 +16,130 @@ using WalkyDoggy.Web.Infrastructure.Core;
 namespace WalkyDoggy.Web.Controllers
 {
     [RoutePrefix("api/workDays")]
-    public class WorkDaysController : ApiControllerBase
+    public class WorkDaysController : ControladorApiBase
     {
-        private readonly IWorkDayAppService workDayAppService;
-        private readonly IEntityBaseRepository<Walker> walkersRepository;
+        private readonly IServicioJornadas servicioJornadas;
+        private readonly IRepositorioEntidadBase<Walker> repositorioPaseadores;
 
-        public WorkDaysController(IWorkDayAppService workDayAppService,
-                                 IEntityBaseRepository<Walker> walkersRepository,
-                                 IEntityBaseRepository<Error> errorsRepository,
-                                 IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public WorkDaysController(IServicioJornadas servicioJornadas,
+                                 IRepositorioEntidadBase<Walker> repositorioPaseadores,
+                                 IRepositorioEntidadBase<Error> repositorioErrores,
+                                 IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.workDayAppService = workDayAppService;
-            this.walkersRepository = walkersRepository;
+            this.servicioJornadas = servicioJornadas;
+            this.repositorioPaseadores = repositorioPaseadores;
         }
 
         [HttpGet]
         [Route("getAll")]
-        public HttpResponseMessage GetAll(HttpRequestMessage request)
+        public HttpResponseMessage GetAll(HttpRequestMessage pedido)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
-                var workDaysDto = this.workDayAppService.GetAll();
-                response = request.CreateResponse(HttpStatusCode.OK, workDaysDto);
-                return response;
+                HttpResponseMessage respuesta = null;
+                var jornadasDto = this.servicioJornadas.ObtenerTodos();
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, jornadasDto);
+                return respuesta;
             });
         }
 
         [HttpGet]
         [Route("getAllByWalkerId")]
-        public HttpResponseMessage GetAllByWalkerId(HttpRequestMessage request, Int64 walkerId)
+        public HttpResponseMessage GetAllByWalkerId(HttpRequestMessage pedido, Int64 walkerId)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
-                var workDaysDto = this.workDayAppService.GetAllByWalkerId(walkerId);
-                response = request.CreateResponse(HttpStatusCode.OK, workDaysDto);
-                return response;
+                HttpResponseMessage respuesta = null;
+                var jornadasDto = this.servicioJornadas.ObtenerTodosPorIdPaseador(walkerId);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, jornadasDto);
+                return respuesta;
             });
         }
 
         [HttpGet]
         [Route("getById")]
-        public HttpResponseMessage GetById(HttpRequestMessage request, Int64 id)
+        public HttpResponseMessage GetById(HttpRequestMessage pedido, Int64 id)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
-                var workDaysDto = this.workDayAppService.GetById(id);
-                response = request.CreateResponse(HttpStatusCode.OK, workDaysDto);
-                return response;
+                HttpResponseMessage respuesta = null;
+                var jornadasDto = this.servicioJornadas.ObtenerPorId(id);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, jornadasDto);
+                return respuesta;
             });
         }
 
         //Guarda de una vez toda la semana de trabajo del paseador (cualquier dia, de 00:00 a 24:00). Solo el propio paseador.
         [HttpPost]
         [Route("saveWeek")]
-        public HttpResponseMessage SaveWeek(HttpRequestMessage request, WorkWeekDto week)
+        public HttpResponseMessage SaveWeek(HttpRequestMessage pedido, WorkWeekDto week)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
                 if (week == null)
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { "Faltan datos de la semana de trabajo." });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { "Faltan datos de la semana de trabajo." });
                 }
-                if (!ActorIdentity.IsAuthenticated(User))
+                if (!IdentidadDelActor.EstaAutenticado(User))
                 {
-                    return request.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
+                    return pedido.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
                 }
-                if (!ActorIdentity.IsWalker(User, walkersRepository, week.WalkerId))
+                if (!IdentidadDelActor.EsPaseador(User, repositorioPaseadores, week.WalkerId))
                 {
-                    return request.CreateResponse(HttpStatusCode.Forbidden, new[] { "No podés cambiar los horarios de otro paseador." });
+                    return pedido.CreateResponse(HttpStatusCode.Forbidden, new[] { "No podés cambiar los horarios de otro paseador." });
                 }
 
                 String error;
-                if (!this.workDayAppService.SaveWeek(week.WalkerId, week.Ranges, out error))
+                if (!this.servicioJornadas.SaveWeek(week.WalkerId, week.Ranges, out error))
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
                 }
 
-                return request.CreateResponse(HttpStatusCode.OK, this.workDayAppService.GetAllByWalkerId(week.WalkerId));
+                return pedido.CreateResponse(HttpStatusCode.OK, this.servicioJornadas.ObtenerTodosPorIdPaseador(week.WalkerId));
             });
         }
 
         [HttpPost]
         [Route("save")]
-        public HttpResponseMessage Save(HttpRequestMessage request, WorkDayDto workDayDto)
+        public HttpResponseMessage Save(HttpRequestMessage pedido, WorkDayDto jornadaDto)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
                 if (!ModelState.IsValid)
                 {
-                    response = request.CreateResponse(HttpStatusCode.BadRequest,
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         ModelState.Keys.SelectMany(k => ModelState[k].Errors)
                               .Select(m => m.ErrorMessage).ToArray());
                 }
                 else
                 {
-                    var workDay = this.workDayAppService.Save(workDayDto);
-                    if (workDay != null)
+                    var jornada = this.servicioJornadas.Guardar(jornadaDto);
+                    if (jornada != null)
                     {
-                        response = request.CreateResponse<WorkDay>(HttpStatusCode.OK, workDay);
+                        respuesta = pedido.CreateResponse<WorkDay>(HttpStatusCode.OK, jornada);
                     }
                     else
                     {
-                        response = request.CreateResponse(HttpStatusCode.InternalServerError, "Ya existe una jornada laboral con los valores seleccionados.");
+                        respuesta = pedido.CreateResponse(HttpStatusCode.InternalServerError, "Ya existe una jornada laboral con los valores seleccionados.");
                     }
 
                 }
 
-                return response;
+                return respuesta;
             });
         }
 
-        public HttpResponseMessage Delete(HttpRequestMessage request, Int64 id)
+        public HttpResponseMessage Delete(HttpRequestMessage pedido, Int64 id)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
-                this.workDayAppService.Delete(id);
-                response = request.CreateResponse(HttpStatusCode.OK);
-                return response;
+                HttpResponseMessage respuesta = null;
+                this.servicioJornadas.Eliminar(id);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK);
+                return respuesta;
             });
         }
     }

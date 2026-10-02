@@ -18,176 +18,176 @@ using WalkyDoggy.Web.Infrastructure.Core;
 namespace WalkyDoggy.Web.Controllers
 {
     [RoutePrefix("api/walkers")]
-    public class WalkersController : ApiControllerBase
+    public class WalkersController : ControladorApiBase
     {
-        private readonly IEntityBaseRepository<Walker> walkersRepository;
-        private readonly IMembershipService membershipService;
-        private readonly IWalkerAppService walkerAppService;
+        private readonly IRepositorioEntidadBase<Walker> repositorioPaseadores;
+        private readonly IServicioMembresia servicioMembresia;
+        private readonly IServicioPaseadores servicioPaseadores;
 
-        public WalkersController(IEntityBaseRepository<Walker> walkersRepository,
-                                 IMembershipService membershipService,
-                                 IWalkerAppService walkerAppService,
-                                 IEntityBaseRepository<Error> errorsRepository,
-                                 IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public WalkersController(IRepositorioEntidadBase<Walker> repositorioPaseadores,
+                                 IServicioMembresia servicioMembresia,
+                                 IServicioPaseadores servicioPaseadores,
+                                 IRepositorioEntidadBase<Error> repositorioErrores,
+                                 IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.walkersRepository = walkersRepository;
-            this.membershipService = membershipService;
-            this.walkerAppService = walkerAppService;
+            this.repositorioPaseadores = repositorioPaseadores;
+            this.servicioMembresia = servicioMembresia;
+            this.servicioPaseadores = servicioPaseadores;
         }
 
         [HttpPost]
         [Route("register")]
-        public HttpResponseMessage Register(HttpRequestMessage request, WalkerDto walkerDto)
+        public HttpResponseMessage Register(HttpRequestMessage pedido, WalkerDto paseadorDto)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
                 if (!ModelState.IsValid)
                 {
-                    response = request.CreateResponse(HttpStatusCode.BadRequest,
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         ModelState.Keys.SelectMany(k => ModelState[k].Errors)
                               .Select(m => m.ErrorMessage).ToArray());
                 }
-                else if (walkerDto == null || walkerDto.Amount < WalkerAppService.MinRate || walkerDto.Amount > WalkerAppService.MaxRate)
+                else if (paseadorDto == null || paseadorDto.Amount < ServicioPaseadores.TarifaMinima || paseadorDto.Amount > ServicioPaseadores.TarifaMaxima)
                 {
                     //Los validadores de FluentValidation no estan conectados a la API: la tarifa se valida aca
-                    response = request.CreateResponse(HttpStatusCode.BadRequest,
-                        new[] { "Debe ingresar una tarifa por hora válida (entre $" + WalkerAppService.MinRate + " y $" + WalkerAppService.MaxRate.ToString("N0") + ")." });
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
+                        new[] { "Debe ingresar una tarifa por hora válida (entre $" + ServicioPaseadores.TarifaMinima + " y $" + ServicioPaseadores.TarifaMaxima.ToString("N0") + ")." });
                 }
                 else
                 {
-                    if (membershipService.UserExists(walkerDto.Email))
+                    if (servicioMembresia.ExisteUsuario(paseadorDto.Email))
                     {
                         ModelState.AddModelError("E-mail invalido", "El email ingresado ya se encuentra en uso.");
-                        response = request.CreateResponse(HttpStatusCode.BadRequest,
+                        respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         ModelState.Keys.SelectMany(k => ModelState[k].Errors)
                               .Select(m => m.ErrorMessage).ToArray());
                     }
                     else
                     {
-                        var walker = this.walkerAppService.Register(walkerDto);
-                        response = request.CreateResponse<WalkerDto>(HttpStatusCode.OK, walker);
+                        var paseador = this.servicioPaseadores.Registrar(paseadorDto);
+                        respuesta = pedido.CreateResponse<WalkerDto>(HttpStatusCode.OK, paseador);
                     }
                 }
 
-                return response;
+                return respuesta;
             });
         }
 
         [HttpGet]
         [Route("getByUserId")]
-        public HttpResponseMessage GetByUserId(HttpRequestMessage request, Int64 userId)
+        public HttpResponseMessage GetByUserId(HttpRequestMessage pedido, Int64 userId)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
-                var walkerDto = this.walkerAppService.GetByUserId(userId);
+                HttpResponseMessage respuesta = null;
+                var paseadorDto = this.servicioPaseadores.ObtenerPorIdUsuario(userId);
 
-                response = request.CreateResponse(HttpStatusCode.OK, walkerDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, paseadorDto);
 
-                return response;
+                return respuesta;
             });
         }
 
         [HttpPost]
         [Route("getAvailableWalkers")]
-        public HttpResponseMessage GetAvailableWalkers(HttpRequestMessage request, AvailableWalkersCriteria availableWalkersCriteria)
+        public HttpResponseMessage GetAvailableWalkers(HttpRequestMessage pedido, AvailableWalkersCriteria criterioPaseadoresDisponibles)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
-                var walkersDto = this.walkerAppService.GetAvailableWalkers(availableWalkersCriteria);
-                response = request.CreateResponse(HttpStatusCode.OK, walkersDto);
-                return response;
+                HttpResponseMessage respuesta = null;
+                var paseadoresDto = this.servicioPaseadores.ObtenerPaseadoresDisponibles(criterioPaseadoresDisponibles);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, paseadoresDto);
+                return respuesta;
             });
         }
 
         [HttpPost]
         [Route("update")]
-        public HttpResponseMessage Update(HttpRequestMessage request, WalkerDto walkerDto)
+        public HttpResponseMessage Update(HttpRequestMessage pedido, WalkerDto paseadorDto)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                if (walkerDto != null && walkerDto.Amount > 0 && (walkerDto.Amount < WalkerAppService.MinRate || walkerDto.Amount > WalkerAppService.MaxRate))
+                if (paseadorDto != null && paseadorDto.Amount > 0 && (paseadorDto.Amount < ServicioPaseadores.TarifaMinima || paseadorDto.Amount > ServicioPaseadores.TarifaMaxima))
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { "La tarifa por hora tiene que estar entre $" + WalkerAppService.MinRate + " y $" + WalkerAppService.MaxRate.ToString("N0") + "." });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { "La tarifa por hora tiene que estar entre $" + ServicioPaseadores.TarifaMinima + " y $" + ServicioPaseadores.TarifaMaxima.ToString("N0") + "." });
                 }
 
-                HttpResponseMessage response = null;
-                this.walkerAppService.Update(walkerDto);
+                HttpResponseMessage respuesta = null;
+                this.servicioPaseadores.Actualizar(paseadorDto);
 
-                response = request.CreateResponse(HttpStatusCode.OK, walkerDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, paseadorDto);
 
-                return response;
+                return respuesta;
             });
         }
 
         [HttpGet]
         [Route("getAllOrderedByDistance")]
-        public HttpResponseMessage GetAllOrderedByDistance(HttpRequestMessage request, Int64 customerId)
+        public HttpResponseMessage GetAllOrderedByDistance(HttpRequestMessage pedido, Int64 customerId)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                var walkersDto = this.walkerAppService.GetAllOrderedByDistance(customerId);
+                var paseadoresDto = this.servicioPaseadores.ObtenerTodosOrdenadosPorDistancia(customerId);
 
-                return request.CreateResponse(HttpStatusCode.OK, walkersDto);
+                return pedido.CreateResponse(HttpStatusCode.OK, paseadoresDto);
             });
         }
 
         [HttpGet]
         [Route("getDetail")]
-        public HttpResponseMessage GetDetail(HttpRequestMessage request, Int64 id)
+        public HttpResponseMessage GetDetail(HttpRequestMessage pedido, Int64 id)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                var walkerDto = this.walkerAppService.GetDetail(id);
-                if (walkerDto == null)
+                var paseadorDto = this.servicioPaseadores.ObtenerDetalle(id);
+                if (paseadorDto == null)
                 {
-                    return request.CreateResponse(HttpStatusCode.NotFound, "El paseador no existe.");
+                    return pedido.CreateResponse(HttpStatusCode.NotFound, "El paseador no existe.");
                 }
 
-                return request.CreateResponse(HttpStatusCode.OK, walkerDto);
+                return pedido.CreateResponse(HttpStatusCode.OK, paseadorDto);
             });
         }
 
         [HttpGet]
         [Route("getAvailableTimes")]
-        public HttpResponseMessage GetAvailableTimes(HttpRequestMessage request, Int64 walkerId, String date)
+        public HttpResponseMessage GetAvailableTimes(HttpRequestMessage pedido, Int64 walkerId, String date)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                DateTime parsedDate;
+                DateTime fechaLeida;
                 if (!DateTime.TryParseExact(date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture,
-                                            System.Globalization.DateTimeStyles.None, out parsedDate))
+                                            System.Globalization.DateTimeStyles.None, out fechaLeida))
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { "La fecha no es válida." });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { "La fecha no es válida." });
                 }
 
-                var times = this.walkerAppService.GetAvailableTimes(walkerId, parsedDate);
+                var horarios = this.servicioPaseadores.ObtenerHorariosDisponibles(walkerId, fechaLeida);
 
-                return request.CreateResponse(HttpStatusCode.OK, times);
+                return pedido.CreateResponse(HttpStatusCode.OK, horarios);
             });
         }
 
         [HttpGet]
         [Route("getAll")]
-        public HttpResponseMessage GetAll(HttpRequestMessage request)
+        public HttpResponseMessage GetAll(HttpRequestMessage pedido)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
-                var walkersDto = this.walkerAppService.GetAll();
+                var paseadoresDto = this.servicioPaseadores.ObtenerTodos();
 
-                response = request.CreateResponse(HttpStatusCode.OK, walkersDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, paseadoresDto);
 
-                return response;
+                return respuesta;
             });
         }
     }

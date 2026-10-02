@@ -18,87 +18,87 @@ using AutoMapper;
 namespace WalkyDoggy.Web.Controllers
 {
     [RoutePrefix("api/account")]
-    public class AccountController : ApiControllerBase
+    public class AccountController : ControladorApiBase
     {
-        private readonly IEntityBaseRepository<User> usersRepository;
-        private readonly IMembershipService membershipService;
-        private readonly IUserAppService userAppService;
+        private readonly IRepositorioEntidadBase<User> repositorioUsuarios;
+        private readonly IServicioMembresia servicioMembresia;
+        private readonly IServicioUsuarios servicioUsuarios;
 
-        public AccountController(IEntityBaseRepository<User> usersRepository,
-                                 IMembershipService membershipService,
-                                 IUserAppService userAppService,
-                                 IEntityBaseRepository<Error> errorsRepository,
-                                 IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public AccountController(IRepositorioEntidadBase<User> repositorioUsuarios,
+                                 IServicioMembresia servicioMembresia,
+                                 IServicioUsuarios servicioUsuarios,
+                                 IRepositorioEntidadBase<Error> repositorioErrores,
+                                 IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.usersRepository = usersRepository;
-            this.membershipService = membershipService;
-            this.userAppService = userAppService;
+            this.repositorioUsuarios = repositorioUsuarios;
+            this.servicioMembresia = servicioMembresia;
+            this.servicioUsuarios = servicioUsuarios;
         }
 
         [AllowAnonymous]
         [Route("authenticate")]
         [HttpPost]
-        public HttpResponseMessage Login(HttpRequestMessage request, LoginDto user)
+        public HttpResponseMessage Login(HttpRequestMessage pedido, LoginDto user)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
                 if (ModelState.IsValid)
                 {
-                    MembershipContext userContext = membershipService.ValidateUser(user.Email, user.Password);
+                    ContextoMembresia contextoUsuario = servicioMembresia.ValidarUsuario(user.Email, user.Password);
 
-                    if (userContext.User != null)
+                    if (contextoUsuario.User != null)
                     {
-                        response = request.CreateResponse(HttpStatusCode.OK, new
+                        respuesta = pedido.CreateResponse(HttpStatusCode.OK, new
                         {
-                            id = userContext.User.Id,
+                            id = contextoUsuario.User.Id,
                             //En caso de tener mas de un roleId tenemos que implementar dos login, uno para los paseadores y otro para el cliente
-                            roleId = userContext.User.UserRoles.Select(x => x.RoleId).FirstOrDefault(),
-                            email = userContext.User.Email,
+                            roleId = contextoUsuario.User.UserRoles.Select(x => x.RoleId).FirstOrDefault(),
+                            email = contextoUsuario.User.Email,
                             success = true
                         });
                     }
                     else
                     {
-                        response = request.CreateResponse(HttpStatusCode.OK, new { success = false });
+                        respuesta = pedido.CreateResponse(HttpStatusCode.OK, new { success = false });
                     }
                 }
                 else
-                    response = request.CreateResponse(HttpStatusCode.OK, new { success = false });
+                    respuesta = pedido.CreateResponse(HttpStatusCode.OK, new { success = false });
 
-                return response;
+                return respuesta;
             });
         }
 
         [Route("register")]
         [HttpPost]
-        public HttpResponseMessage Register(HttpRequestMessage request, UserDto userDto)
+        public HttpResponseMessage Register(HttpRequestMessage pedido, UserDto usuarioDto)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
                 if (!ModelState.IsValid)
                 {
-                    response = request.CreateResponse(HttpStatusCode.BadRequest, new { success = false });
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest, new { success = false });
                 }
                 else
                 {
-                    var newUser = membershipService.CreateUser(userDto);
+                    var usuarioNuevo = servicioMembresia.CrearUsuario(usuarioDto);
 
-                    if (newUser != null)
+                    if (usuarioNuevo != null)
                     {
-                        response = request.CreateResponse(HttpStatusCode.OK, new { success = true });
+                        respuesta = pedido.CreateResponse(HttpStatusCode.OK, new { success = true });
                     }
                     else
                     {
-                        response = request.CreateResponse(HttpStatusCode.OK, new { success = false });
+                        respuesta = pedido.CreateResponse(HttpStatusCode.OK, new { success = false });
                     }
                 }
 
-                return response;
+                return respuesta;
             });
         }
     }

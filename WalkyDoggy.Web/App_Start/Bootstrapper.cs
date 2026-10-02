@@ -9,12 +9,12 @@ namespace WalkyDoggy.Web.App_Start
 {
     public class Bootstrapper
     {
-        public static void Run()
+        public static void Ejecutar()
         {
             // Configure Autofac
-            AutofacWebapiConfig.Initialize(GlobalConfiguration.Configuration);
+            AutofacWebapiConfig.Inicializar(GlobalConfiguration.Configuration);
             //Configure AutoMapper
-            AutoMapperConfiguration.Configure();
+            AutoMapperConfiguration.Configurar();
         }
     }
 }

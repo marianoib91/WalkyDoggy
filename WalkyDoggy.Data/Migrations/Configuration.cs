@@ -8,7 +8,7 @@ namespace WalkyDoggy.Data.Migrations
 
     //Enable-Migrations 
     //Add-Migration
-    //Update-Database or Update-Database –Verbose
+    //Update-Database or Update-Database ï¿½Verbose
     //Re-iniciar: Update-Database -TargetMigration:0 -force
 
     internal sealed class Configuration : DbMigrationsConfiguration<WalkyDoggyContext>
@@ -18,7 +18,7 @@ namespace WalkyDoggy.Data.Migrations
             AutomaticMigrationsEnabled = false;
         }
 
-        protected override void Seed(WalkyDoggyContext context)
+        protected override void Seed(WalkyDoggyContext contexto)
         {
 
 

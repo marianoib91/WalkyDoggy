@@ -9,19 +9,19 @@ namespace WalkyDoggy.Web.Infrastructure.Core
 {
     public class UploadMultipartFormProvider : MultipartFormDataStreamProvider
     {
-        public UploadMultipartFormProvider(string rootPath) : base(rootPath) { }
+        public UploadMultipartFormProvider(string rutaRaiz) : base(rutaRaiz) { }
 
-        public override string GetLocalFileName(HttpContentHeaders headers)
+        public override string GetLocalFileName(HttpContentHeaders encabezados)
         {
-            if (headers != null &&
-                headers.ContentDisposition != null)
+            if (encabezados != null &&
+                encabezados.ContentDisposition != null)
             {
-                return headers
+                return encabezados
                     .ContentDisposition
                     .FileName.TrimEnd('"').TrimStart('"');
             }
 
-            return base.GetLocalFileName(headers);
+            return base.GetLocalFileName(encabezados);
         }
     }
 }

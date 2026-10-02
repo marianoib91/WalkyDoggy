@@ -21,30 +21,30 @@ namespace WalkyDoggy.Entities.Entities
         // Usar deepCopy en true cuando los items del detalle existen mas alla del item principal. Ejemplo: usuarios con roles.
         // Usar deepCopy en false cuando los items se crean junto con el item principal. Ejemplo: pedido y sus renglones.
         // Revisar el metodo UpdateEntityColllections de RepositoryBase para actualizar los items del detalle.
-        public void CopyTo(EntityBase entityBase, Boolean deepCopy)
+        public void CopiarA(EntityBase entidadBase, Boolean copiaProfunda)
         {
-            foreach (PropertyInfo pi in this.GetType().GetProperties())
+            foreach (PropertyInfo propiedad in this.GetType().GetProperties())
             {
-                if (deepCopy ||
-                    (!deepCopy && !IsIEnumerable(pi)))
+                if (copiaProfunda ||
+                    (!copiaProfunda && !EsIEnumerable(propiedad)))
                 {
-                    object valueToCopy = pi.GetValue(this, null);
+                    object valorACopiar = propiedad.GetValue(this, null);
 
-                    MethodInfo setMethod = pi.GetSetMethod();
+                    MethodInfo metodoAsignador = propiedad.GetSetMethod();
 
-                    if (setMethod != null)
+                    if (metodoAsignador != null)
                     {
-                        pi.SetValue(entityBase, valueToCopy, null);
+                        propiedad.SetValue(entidadBase, valorACopiar, null);
                     }
                 }
             }
         }
 
-        private Boolean IsIEnumerable(PropertyInfo pi)
+        private Boolean EsIEnumerable(PropertyInfo propiedad)
         {
-            return (pi.PropertyType != typeof(string) &&
-                   pi.PropertyType.GetInterface(typeof(IEnumerable).Name) != null &&
-                   pi.PropertyType.GetInterface(typeof(IEnumerable<>).Name) != null);
+            return (propiedad.PropertyType != typeof(string) &&
+                   propiedad.PropertyType.GetInterface(typeof(IEnumerable).Name) != null &&
+                   propiedad.PropertyType.GetInterface(typeof(IEnumerable<>).Name) != null);
         }
 
         public EntityBase()

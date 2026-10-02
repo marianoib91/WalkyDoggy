@@ -13,63 +13,63 @@ namespace WalkyDoggy.Web.Controllers
 {
     //Valoraciones de los paseadores. Verlas es publico; valorar exige haber iniciado sesion como el cliente de la reserva.
     [RoutePrefix("api/ratings")]
-    public class RatingsController : ApiControllerBase
+    public class RatingsController : ControladorApiBase
     {
-        private readonly IRatingAppService ratingAppService;
-        private readonly IEntityBaseRepository<Customer> customersRepository;
+        private readonly IServicioValoraciones servicioValoraciones;
+        private readonly IRepositorioEntidadBase<Customer> repositorioClientes;
 
-        public RatingsController(IRatingAppService ratingAppService,
-                                 IEntityBaseRepository<Customer> customersRepository,
-                                 IEntityBaseRepository<Error> errorsRepository,
-                                 IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public RatingsController(IServicioValoraciones servicioValoraciones,
+                                 IRepositorioEntidadBase<Customer> repositorioClientes,
+                                 IRepositorioEntidadBase<Error> repositorioErrores,
+                                 IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.ratingAppService = ratingAppService;
-            this.customersRepository = customersRepository;
+            this.servicioValoraciones = servicioValoraciones;
+            this.repositorioClientes = repositorioClientes;
         }
 
         //Promedio, cantidad y desglose por estrellas
         [HttpGet]
         [Route("summary")]
-        public HttpResponseMessage Summary(HttpRequestMessage request, Int64 walkerId)
+        public HttpResponseMessage Summary(HttpRequestMessage pedido, Int64 walkerId)
         {
-            return CreateHttpResponse(request, () => request.CreateResponse(HttpStatusCode.OK, ratingAppService.GetSummary(walkerId)));
+            return CrearRespuestaHttp(pedido, () => pedido.CreateResponse(HttpStatusCode.OK, servicioValoraciones.ObtenerResumen(walkerId)));
         }
 
         //Valoraciones de a paginas. sort: recent (por defecto), best o worst. stars: solo las de esa cantidad de estrellas.
         [HttpGet]
         [Route("list")]
-        public HttpResponseMessage List(HttpRequestMessage request, Int64 walkerId, String sort = null, Int32? stars = null, Int32 page = 1, Int32 pageSize = 10)
+        public HttpResponseMessage List(HttpRequestMessage pedido, Int64 walkerId, String sort = null, Int32? stars = null, Int32 page = 1, Int32 pageSize = 10)
         {
-            return CreateHttpResponse(request, () => request.CreateResponse(HttpStatusCode.OK, ratingAppService.GetRatings(walkerId, sort, stars, page, pageSize)));
+            return CrearRespuestaHttp(pedido, () => pedido.CreateResponse(HttpStatusCode.OK, servicioValoraciones.ObtenerValoraciones(walkerId, sort, stars, page, pageSize)));
         }
 
         [HttpPost]
         [Route("rate")]
-        public HttpResponseMessage Rate(HttpRequestMessage request, RateRequestDto rate)
+        public HttpResponseMessage Rate(HttpRequestMessage pedido, RateRequestDto rate)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
                 if (rate == null)
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { "Faltan datos de la valoración." });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { "Faltan datos de la valoración." });
                 }
-                if (!ActorIdentity.IsAuthenticated(User))
+                if (!IdentidadDelActor.EstaAutenticado(User))
                 {
-                    return request.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
+                    return pedido.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
                 }
-                if (!ActorIdentity.IsCustomer(User, customersRepository, rate.CustomerId))
+                if (!IdentidadDelActor.EsCliente(User, repositorioClientes, rate.CustomerId))
                 {
-                    return request.CreateResponse(HttpStatusCode.Forbidden, new[] { "No podés valorar un paseo de otro cliente." });
+                    return pedido.CreateResponse(HttpStatusCode.Forbidden, new[] { "No podés valorar un paseo de otro cliente." });
                 }
 
                 String error;
-                if (!ratingAppService.Rate(rate, out error))
+                if (!servicioValoraciones.Valorar(rate, out error))
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
                 }
 
-                return request.CreateResponse(HttpStatusCode.OK, true);
+                return pedido.CreateResponse(HttpStatusCode.OK, true);
             });
         }
     }

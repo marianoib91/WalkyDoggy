@@ -8,7 +8,7 @@ namespace WalkyDoggy.Web.Mappings
 {
     public class AutoMapperConfiguration
     {
-        public static void Configure()
+        public static void Configurar()
         {
             Mapper.Initialize(x =>
             {

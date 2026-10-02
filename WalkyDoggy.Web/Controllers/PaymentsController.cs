@@ -16,19 +16,19 @@ namespace WalkyDoggy.Web.Controllers
     //directo a la cuenta de Mercado Pago del paseador. Las acciones sobre una reserva exigen que quien llama haya iniciado
     //sesion como el cliente dueño de la reserva.
     [RoutePrefix("api/payments")]
-    public class PaymentsController : ApiControllerBase
+    public class PaymentsController : ControladorApiBase
     {
-        private readonly IPaymentAppService paymentAppService;
-        private readonly IEntityBaseRepository<Customer> customersRepository;
+        private readonly IServicioPagos servicioPagos;
+        private readonly IRepositorioEntidadBase<Customer> repositorioClientes;
 
-        public PaymentsController(IPaymentAppService paymentAppService,
-                                  IEntityBaseRepository<Customer> customersRepository,
-                                  IEntityBaseRepository<Error> errorsRepository,
-                                  IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public PaymentsController(IServicioPagos servicioPagos,
+                                  IRepositorioEntidadBase<Customer> repositorioClientes,
+                                  IRepositorioEntidadBase<Error> repositorioErrores,
+                                  IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.paymentAppService = paymentAppService;
-            this.customersRepository = customersRepository;
+            this.servicioPagos = servicioPagos;
+            this.repositorioClientes = repositorioClientes;
         }
 
         public class PaymentActionRequest
@@ -41,26 +41,26 @@ namespace WalkyDoggy.Web.Controllers
         //Crea el pago en Mercado Pago y devuelve la direccion adonde mandar al cliente para que pague
         [HttpPost]
         [Route("checkout")]
-        public HttpResponseMessage Checkout(HttpRequestMessage request, PaymentActionRequest action)
+        public HttpResponseMessage Checkout(HttpRequestMessage pedido, PaymentActionRequest accion)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage denied;
-                if (!CheckCustomer(request, action, out denied))
+                HttpResponseMessage denegado;
+                if (!VerificarCliente(pedido, accion, out denegado))
                 {
-                    return denied;
+                    return denegado;
                 }
 
-                var returnUrl = request.RequestUri.GetLeftPart(UriPartial.Authority) + VirtualPathUtility.ToAbsolute("~/") + "api/payments/return";
+                var urlDeRetorno = pedido.RequestUri.GetLeftPart(UriPartial.Authority) + VirtualPathUtility.ToAbsolute("~/") + "api/payments/return";
 
                 String error;
-                var url = paymentAppService.CreateCheckout(action.BookingKey, action.CustomerId, returnUrl, out error);
+                var url = servicioPagos.CrearCheckout(accion.BookingKey, accion.CustomerId, urlDeRetorno, out error);
                 if (url == null)
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
                 }
 
-                return request.CreateResponse(HttpStatusCode.OK, new { url });
+                return pedido.CreateResponse(HttpStatusCode.OK, new { url });
             });
         }
 
@@ -68,77 +68,77 @@ namespace WalkyDoggy.Web.Controllers
         //no trae la sesion: nada de lo que viene en la direccion se da por cierto, el pago se verifica contra Mercado Pago.
         [HttpGet]
         [Route("return")]
-        public HttpResponseMessage Return(HttpRequestMessage request)
+        public HttpResponseMessage Return(HttpRequestMessage pedido)
         {
-            var query = request.GetQueryNameValuePairs().ToLookup(x => x.Key, x => x.Value);
-            var bookingKey = query["external_reference"].FirstOrDefault();
-            var paymentId = query["payment_id"].FirstOrDefault() ?? query["collection_id"].FirstOrDefault();
-            if (paymentId == "null")
+            var consulta = pedido.GetQueryNameValuePairs().ToLookup(x => x.Key, x => x.Value);
+            var claveReserva = consulta["external_reference"].FirstOrDefault();
+            var idPago = consulta["payment_id"].FirstOrDefault() ?? consulta["collection_id"].FirstOrDefault();
+            if (idPago == "null")
             {
-                paymentId = null;
+                idPago = null;
             }
 
-            var result = "error";
+            var resultado = "error";
             try
             {
                 String error;
-                result = paymentAppService.ConfirmPayment(bookingKey, paymentId, out error) ?? "error";
+                resultado = servicioPagos.ConfirmarPago(claveReserva, idPago, out error) ?? "error";
                 if (error != null)
                 {
-                    LogError(new InvalidOperationException("Pago de la reserva " + bookingKey + ": " + error));
+                    RegistrarError(new InvalidOperationException("Pago de la reserva " + claveReserva + ": " + error));
                 }
             }
             catch (Exception ex)
             {
-                LogError(ex);
+                RegistrarError(ex);
             }
 
-            var response = request.CreateResponse(HttpStatusCode.Redirect);
-            response.Headers.Location = new Uri(request.RequestUri, VirtualPathUtility.ToAbsolute("~/") + "#/walks/requested?payment=" + result);
-            return response;
+            var respuesta = pedido.CreateResponse(HttpStatusCode.Redirect);
+            respuesta.Headers.Location = new Uri(pedido.RequestUri, VirtualPathUtility.ToAbsolute("~/") + "#/walks/requested?payment=" + resultado);
+            return respuesta;
         }
 
         //El cliente ya pago pero la app no se entero (por ejemplo, no volvio a la app despues de pagar): se vuelve a verificar
         [HttpPost]
         [Route("sync")]
-        public HttpResponseMessage Sync(HttpRequestMessage request, PaymentActionRequest action)
+        public HttpResponseMessage Sync(HttpRequestMessage pedido, PaymentActionRequest accion)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage denied;
-                if (!CheckCustomer(request, action, out denied))
+                HttpResponseMessage denegado;
+                if (!VerificarCliente(pedido, accion, out denegado))
                 {
-                    return denied;
+                    return denegado;
                 }
 
                 String error;
-                var result = paymentAppService.ConfirmPayment(action.BookingKey, null, out error);
-                if (result == null)
+                var resultado = servicioPagos.ConfirmarPago(accion.BookingKey, null, out error);
+                if (resultado == null)
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
                 }
 
-                return request.CreateResponse(HttpStatusCode.OK, new { result });
+                return pedido.CreateResponse(HttpStatusCode.OK, new { result = resultado });
             });
         }
 
-        private Boolean CheckCustomer(HttpRequestMessage request, PaymentActionRequest action, out HttpResponseMessage denied)
+        private Boolean VerificarCliente(HttpRequestMessage pedido, PaymentActionRequest accion, out HttpResponseMessage denegado)
         {
-            denied = null;
+            denegado = null;
 
-            if (action == null)
+            if (accion == null)
             {
-                denied = request.CreateResponse(HttpStatusCode.BadRequest, new[] { "Faltan datos de la reserva." });
+                denegado = pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { "Faltan datos de la reserva." });
                 return false;
             }
-            if (!ActorIdentity.IsAuthenticated(User))
+            if (!IdentidadDelActor.EstaAutenticado(User))
             {
-                denied = request.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
+                denegado = pedido.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
                 return false;
             }
-            if (!ActorIdentity.IsCustomer(User, customersRepository, action.CustomerId))
+            if (!IdentidadDelActor.EsCliente(User, repositorioClientes, accion.CustomerId))
             {
-                denied = request.CreateResponse(HttpStatusCode.Forbidden, new[] { "No podés operar sobre la reserva de otro cliente." });
+                denegado = pedido.CreateResponse(HttpStatusCode.Forbidden, new[] { "No podés operar sobre la reserva de otro cliente." });
                 return false;
             }
 

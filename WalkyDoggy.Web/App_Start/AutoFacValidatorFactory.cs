@@ -11,19 +11,19 @@ namespace WalkyDoggy.Web.App_Start
     {
         private readonly IComponentContext _context;
 
-        public AutoFacValidatorFactory(IComponentContext context)
+        public AutoFacValidatorFactory(IComponentContext contexto)
         {
-            _context = context;
+            _context = contexto;
         }
 
-        public override IValidator CreateInstance(Type validatorType)
+        public override IValidator CreateInstance(Type tipoValidador)
         {
-            object instance;
+            object instancia;
 
-            if (_context.TryResolve(validatorType, out instance))
+            if (_context.TryResolve(tipoValidador, out instancia))
             {
-                var validator = instance as IValidator;
-                return validator;
+                var validador = instancia as IValidator;
+                return validador;
             }
 
             return null;

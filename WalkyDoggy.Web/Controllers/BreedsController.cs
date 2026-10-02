@@ -15,37 +15,37 @@ using WalkyDoggy.Web.Infrastructure.Core;
 namespace WalkyDoggy.Web.Controllers
 {
     [RoutePrefix("api/breeds")]
-    public class BreedsController : ApiControllerBase
+    public class BreedsController : ControladorApiBase
     {
-        private readonly IEntityBaseRepository<Breed> breedsRepository;
-        private readonly IMembershipService membershipService;
-        private readonly IBreedAppService breedAppService;
+        private readonly IRepositorioEntidadBase<Breed> repositorioRazas;
+        private readonly IServicioMembresia servicioMembresia;
+        private readonly IServicioRazas servicioRazas;
 
-        public BreedsController(IEntityBaseRepository<Breed> breedsRepository,
-                                 IMembershipService membershipService,
-                                 IBreedAppService breedAppService,
-                                 IEntityBaseRepository<Error> errorsRepository,
-                                 IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public BreedsController(IRepositorioEntidadBase<Breed> repositorioRazas,
+                                 IServicioMembresia servicioMembresia,
+                                 IServicioRazas servicioRazas,
+                                 IRepositorioEntidadBase<Error> repositorioErrores,
+                                 IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.breedsRepository = breedsRepository;
-            this.membershipService = membershipService;
-            this.breedAppService = breedAppService;
+            this.repositorioRazas = repositorioRazas;
+            this.servicioMembresia = servicioMembresia;
+            this.servicioRazas = servicioRazas;
         }
 
         [HttpGet]
         [Route("getAll")]
-        public HttpResponseMessage GetAll(HttpRequestMessage request)
+        public HttpResponseMessage GetAll(HttpRequestMessage pedido)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
-                var breedsDto = this.breedAppService.GetAll();
+                HttpResponseMessage respuesta = null;
+                var razasDto = this.servicioRazas.ObtenerTodos();
 
-                response = request.CreateResponse(HttpStatusCode.OK, breedsDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, razasDto);
 
-                return response;
+                return respuesta;
             });
         }
     }

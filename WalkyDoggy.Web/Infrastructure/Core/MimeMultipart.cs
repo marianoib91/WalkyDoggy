@@ -13,9 +13,9 @@ namespace WalkyDoggy.Web.Infrastructure.Core
 {
     public class MimeMultipart : System.Web.Http.Filters.ActionFilterAttribute
     {
-        public override void OnActionExecuting(HttpActionContext actionContext)
+        public override void OnActionExecuting(HttpActionContext contextoAccion)
         {
-            if (!actionContext.Request.Content.IsMimeMultipartContent())
+            if (!contextoAccion.Request.Content.IsMimeMultipartContent())
             {
                 throw new HttpResponseException(
                     new HttpResponseMessage(
@@ -24,7 +24,7 @@ namespace WalkyDoggy.Web.Infrastructure.Core
             }
         }
 
-        public override void OnActionExecuted(HttpActionExecutedContext actionExecutedContext)
+        public override void OnActionExecuted(HttpActionExecutedContext contextoAccionEjecutada)
         {
 
         }

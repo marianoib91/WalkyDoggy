@@ -16,46 +16,46 @@ using WalkyDoggy.Web.Infrastructure.Core;
 namespace WalkyDoggy.Web.Controllers
 {
     [RoutePrefix("api/walks")]
-    public class WalksController : ApiControllerBase
+    public class WalksController : ControladorApiBase
     {
-        private readonly IWalkAppService walkAppService;
-        private readonly IEntityBaseRepository<Customer> customersRepository;
-        private readonly IEntityBaseRepository<Walker> walkersRepository;
+        private readonly IServicioPaseos servicioPaseos;
+        private readonly IRepositorioEntidadBase<Customer> repositorioClientes;
+        private readonly IRepositorioEntidadBase<Walker> repositorioPaseadores;
 
-        public WalksController(IWalkAppService walkAppService,
-                                 IEntityBaseRepository<Customer> customersRepository,
-                                 IEntityBaseRepository<Walker> walkersRepository,
-                                 IEntityBaseRepository<Error> errorsRepository,
-                                 IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public WalksController(IServicioPaseos servicioPaseos,
+                                 IRepositorioEntidadBase<Customer> repositorioClientes,
+                                 IRepositorioEntidadBase<Walker> repositorioPaseadores,
+                                 IRepositorioEntidadBase<Error> repositorioErrores,
+                                 IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.walkAppService = walkAppService;
-            this.customersRepository = customersRepository;
-            this.walkersRepository = walkersRepository;
+            this.servicioPaseos = servicioPaseos;
+            this.repositorioClientes = repositorioClientes;
+            this.repositorioPaseadores = repositorioPaseadores;
         }
 
         //Confirmar o cancelar una reserva (cancelar puede devolver un pago) solo lo puede hacer quien inicio sesion como ese paseador o cliente
-        private Boolean CheckActor(HttpRequestMessage request, BookingActionCriteria action, out HttpResponseMessage denied)
+        private Boolean VerificarActor(HttpRequestMessage pedido, BookingActionCriteria accion, out HttpResponseMessage denegado)
         {
-            denied = null;
+            denegado = null;
 
-            if (action == null)
+            if (accion == null)
             {
-                denied = request.CreateResponse(HttpStatusCode.BadRequest, new[] { "Faltan datos de la reserva." });
+                denegado = pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { "Faltan datos de la reserva." });
                 return false;
             }
-            if (!ActorIdentity.IsAuthenticated(User))
+            if (!IdentidadDelActor.EstaAutenticado(User))
             {
-                denied = request.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
+                denegado = pedido.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
                 return false;
             }
 
-            var allowed = action.Actor == "Walker" ? ActorIdentity.IsWalker(User, walkersRepository, action.ActorId)
-                        : action.Actor == "Customer" ? ActorIdentity.IsCustomer(User, customersRepository, action.ActorId)
+            var permitido = accion.Actor == "Walker" ? IdentidadDelActor.EsPaseador(User, repositorioPaseadores, accion.ActorId)
+                        : accion.Actor == "Customer" ? IdentidadDelActor.EsCliente(User, repositorioClientes, accion.ActorId)
                         : false;
-            if (!allowed)
+            if (!permitido)
             {
-                denied = request.CreateResponse(HttpStatusCode.Forbidden, new[] { "No podés operar sobre la reserva de otra persona." });
+                denegado = pedido.CreateResponse(HttpStatusCode.Forbidden, new[] { "No podés operar sobre la reserva de otra persona." });
                 return false;
             }
 
@@ -64,200 +64,200 @@ namespace WalkyDoggy.Web.Controllers
 
         [HttpGet]
         [Route("getAll")]
-        public HttpResponseMessage GetAll(HttpRequestMessage request)
+        public HttpResponseMessage GetAll(HttpRequestMessage pedido)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
-                var walksDto = this.walkAppService.GetAll();
+                var paseosDto = this.servicioPaseos.ObtenerTodos();
 
-                response = request.CreateResponse(HttpStatusCode.OK, walksDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, paseosDto);
 
-                return response;
+                return respuesta;
             });
         }
 
         [HttpGet]
         [Route("getAllByWalkerId")]
-        public HttpResponseMessage GetAllByWalkerId(HttpRequestMessage request, Int64 walkerId)
+        public HttpResponseMessage GetAllByWalkerId(HttpRequestMessage pedido, Int64 walkerId)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
-                var walksDto = this.walkAppService.GetAllByWalkerId(walkerId);
+                var paseosDto = this.servicioPaseos.ObtenerTodosPorIdPaseador(walkerId);
 
-                response = request.CreateResponse(HttpStatusCode.OK, walksDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, paseosDto);
 
-                return response;
+                return respuesta;
             });
         }
 
         [HttpGet]
         [Route("getAllForCurrentDay")]
-        public HttpResponseMessage GetAllForCurrentDay(HttpRequestMessage request, Int64 walkerId)
+        public HttpResponseMessage GetAllForCurrentDay(HttpRequestMessage pedido, Int64 walkerId)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
-                var walksDto = this.walkAppService.GetAllForCurrentDay(walkerId);
+                var paseosDto = this.servicioPaseos.ObtenerTodosDelDiaActual(walkerId);
 
-                response = request.CreateResponse(HttpStatusCode.OK, walksDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, paseosDto);
 
-                return response;
+                return respuesta;
             });
         }
 
         [HttpGet]
         [Route("getBookingsForWalker")]
-        public HttpResponseMessage GetBookingsForWalker(HttpRequestMessage request, Int64 walkerId)
+        public HttpResponseMessage GetBookingsForWalker(HttpRequestMessage pedido, Int64 walkerId)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                var bookingsDto = this.walkAppService.GetBookingsForWalker(walkerId);
+                var reservasDto = this.servicioPaseos.ObtenerReservasDelPaseador(walkerId);
 
-                return request.CreateResponse(HttpStatusCode.OK, bookingsDto);
+                return pedido.CreateResponse(HttpStatusCode.OK, reservasDto);
             });
         }
 
         [HttpGet]
         [Route("getBookingsForCustomer")]
-        public HttpResponseMessage GetBookingsForCustomer(HttpRequestMessage request, Int64 customerId)
+        public HttpResponseMessage GetBookingsForCustomer(HttpRequestMessage pedido, Int64 customerId)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                var bookingsDto = this.walkAppService.GetBookingsForCustomer(customerId);
+                var reservasDto = this.servicioPaseos.ObtenerReservasDelCliente(customerId);
 
-                return request.CreateResponse(HttpStatusCode.OK, bookingsDto);
+                return pedido.CreateResponse(HttpStatusCode.OK, reservasDto);
             });
         }
 
         [HttpPost]
         [Route("confirm")]
-        public HttpResponseMessage Confirm(HttpRequestMessage request, BookingActionCriteria bookingActionCriteria)
+        public HttpResponseMessage Confirm(HttpRequestMessage pedido, BookingActionCriteria criterioAccionReserva)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage denied;
-                if (!CheckActor(request, bookingActionCriteria, out denied))
+                HttpResponseMessage denegado;
+                if (!VerificarActor(pedido, criterioAccionReserva, out denegado))
                 {
-                    return denied;
+                    return denegado;
                 }
 
                 String error;
-                if (!this.walkAppService.Confirm(bookingActionCriteria, out error))
+                if (!this.servicioPaseos.Confirmar(criterioAccionReserva, out error))
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
                 }
 
-                return request.CreateResponse(HttpStatusCode.OK, true);
+                return pedido.CreateResponse(HttpStatusCode.OK, true);
             });
         }
 
         //El paseador da por finalizado el paseo (ya devolvio a la mascota): desde ahi el cliente puede pagarlo
         [HttpPost]
         [Route("finish")]
-        public HttpResponseMessage Finish(HttpRequestMessage request, BookingActionCriteria bookingActionCriteria)
+        public HttpResponseMessage Finish(HttpRequestMessage pedido, BookingActionCriteria criterioAccionReserva)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage denied;
-                if (!CheckActor(request, bookingActionCriteria, out denied))
+                HttpResponseMessage denegado;
+                if (!VerificarActor(pedido, criterioAccionReserva, out denegado))
                 {
-                    return denied;
+                    return denegado;
                 }
 
                 String error = null;
-                if (bookingActionCriteria.Actor != "Walker" || !this.walkAppService.Finish(bookingActionCriteria, out error))
+                if (criterioAccionReserva.Actor != "Walker" || !this.servicioPaseos.Finalizar(criterioAccionReserva, out error))
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { bookingActionCriteria.Actor != "Walker" ? "Solo el paseador puede dar el paseo por finalizado." : error });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { criterioAccionReserva.Actor != "Walker" ? "Solo el paseador puede dar el paseo por finalizado." : error });
                 }
 
-                return request.CreateResponse(HttpStatusCode.OK, true);
+                return pedido.CreateResponse(HttpStatusCode.OK, true);
             });
         }
 
         //El paseador confirma que recibio el pago (en efectivo o con Mercado Pago) y la reserva queda cerrada
         [HttpPost]
         [Route("receive")]
-        public HttpResponseMessage Receive(HttpRequestMessage request, BookingActionCriteria bookingActionCriteria)
+        public HttpResponseMessage Receive(HttpRequestMessage pedido, BookingActionCriteria criterioAccionReserva)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage denied;
-                if (!CheckActor(request, bookingActionCriteria, out denied))
+                HttpResponseMessage denegado;
+                if (!VerificarActor(pedido, criterioAccionReserva, out denegado))
                 {
-                    return denied;
+                    return denegado;
                 }
 
                 String error = null;
-                if (bookingActionCriteria.Actor != "Walker" || !this.walkAppService.ConfirmReceived(bookingActionCriteria, out error))
+                if (criterioAccionReserva.Actor != "Walker" || !this.servicioPaseos.ConfirmarRecibido(criterioAccionReserva, out error))
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { bookingActionCriteria.Actor != "Walker" ? "Solo el paseador puede confirmar que recibió el pago." : error });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { criterioAccionReserva.Actor != "Walker" ? "Solo el paseador puede confirmar que recibió el pago." : error });
                 }
 
-                return request.CreateResponse(HttpStatusCode.OK, true);
+                return pedido.CreateResponse(HttpStatusCode.OK, true);
             });
         }
 
         [HttpPost]
         [Route("cancel")]
-        public HttpResponseMessage Cancel(HttpRequestMessage request, BookingActionCriteria bookingActionCriteria)
+        public HttpResponseMessage Cancel(HttpRequestMessage pedido, BookingActionCriteria criterioAccionReserva)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage denied;
-                if (!CheckActor(request, bookingActionCriteria, out denied))
+                HttpResponseMessage denegado;
+                if (!VerificarActor(pedido, criterioAccionReserva, out denegado))
                 {
-                    return denied;
+                    return denegado;
                 }
 
                 String error;
-                if (!this.walkAppService.Cancel(bookingActionCriteria, out error))
+                if (!this.servicioPaseos.Cancelar(criterioAccionReserva, out error))
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
                 }
 
-                return request.CreateResponse(HttpStatusCode.OK, true);
+                return pedido.CreateResponse(HttpStatusCode.OK, true);
             });
         }
 
         [HttpPost]
         [Route("register")]
-        public HttpResponseMessage Register(HttpRequestMessage request, WalkRequestCriteria walkRequestCriteria)
+        public HttpResponseMessage Register(HttpRequestMessage pedido, WalkRequestCriteria criterioSolicitudPaseo)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
                 String error;
-                var walksDto = this.walkAppService.Register(walkRequestCriteria, out error);
-                if (walksDto == null)
+                var paseosDto = this.servicioPaseos.Registrar(criterioSolicitudPaseo, out error);
+                if (paseosDto == null)
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
                 }
 
-                return request.CreateResponse(HttpStatusCode.OK, walksDto);
+                return pedido.CreateResponse(HttpStatusCode.OK, paseosDto);
             });
         }
 
         [HttpPost]
         [Route("validatePetsInWalks")]
-        public HttpResponseMessage ValidatePetsInWalks(HttpRequestMessage request, AvailableWalkersCriteria availableWalkersCriteria)
+        public HttpResponseMessage ValidatePetsInWalks(HttpRequestMessage pedido, AvailableWalkersCriteria criterioPaseadoresDisponibles)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
-                var walkDto = this.walkAppService.ValidatePetsInWalks(availableWalkersCriteria);
+                var paseoDto = this.servicioPaseos.ValidarMascotasEnPaseos(criterioPaseadoresDisponibles);
 
-                response = request.CreateResponse(HttpStatusCode.OK, walkDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, paseoDto);
 
-                return response;
+                return respuesta;
             });
         }
     }

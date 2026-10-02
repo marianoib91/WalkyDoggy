@@ -14,7 +14,7 @@ namespace WalkyDoggy.Data
             Database.SetInitializer<WalkyDoggyContext>(null);
         }
 
-        #region Entity Sets
+        #region Conjuntos de entidades
         public IDbSet<User> Users { get; set; }
         public IDbSet<Walker> Walkers { get; set; }
         public IDbSet<Customer> Customers { get; set; }
@@ -32,7 +32,7 @@ namespace WalkyDoggy.Data
         public IDbSet<Error> Errors { get; set; }
         #endregion
 
-        public virtual void Commit()
+        public virtual void GuardarCambios()
         {
             base.SaveChanges();
         }

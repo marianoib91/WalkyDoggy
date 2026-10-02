@@ -9,11 +9,11 @@ namespace WalkyDoggy.Web
 {
     public class RouteConfig
     {
-        public static void RegisterRoutes(RouteCollection routes)
+        public static void RegisterRoutes(RouteCollection rutas)
         {
-            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+            rutas.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
-            routes.MapRoute(
+            rutas.MapRoute(
                 name: "Default",
                 url: "{*url}",
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }

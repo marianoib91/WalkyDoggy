@@ -26,17 +26,17 @@ namespace WalkyDoggy.Web.App_Start
     public class AutofacWebapiConfig
     {
         public static IContainer Container;
-        public static void Initialize(HttpConfiguration config)
+        public static void Inicializar(HttpConfiguration config)
         {
-            Initialize(config, RegisterServices(new ContainerBuilder()));
+            Inicializar(config, RegistrarServicios(new ContainerBuilder()));
         }
 
-        public static void Initialize(HttpConfiguration config, IContainer container)
+        public static void Inicializar(HttpConfiguration config, IContainer container)
         {
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
         }
 
-        private static IContainer RegisterServices(ContainerBuilder builder)
+        private static IContainer RegistrarServicios(ContainerBuilder builder)
         {
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
 
@@ -45,108 +45,108 @@ namespace WalkyDoggy.Web.App_Start
                    .As<DbContext>()
                    .InstancePerRequest();
 
-            builder.RegisterType<DbFactory>()
-                .As<IDbFactory>()
+            builder.RegisterType<FabricaDb>()
+                .As<IFabricaDb>()
                 .InstancePerRequest();
 
-            builder.RegisterType<UnitOfWork>()
-                .As<IUnitOfWork>()
+            builder.RegisterType<UnidadDeTrabajo>()
+                .As<IUnidadDeTrabajo>()
                 .InstancePerRequest();
 
-            builder.RegisterGeneric(typeof(EntityBaseRepository<>))
-                   .As(typeof(IEntityBaseRepository<>))
+            builder.RegisterGeneric(typeof(RepositorioEntidadBase<>))
+                   .As(typeof(IRepositorioEntidadBase<>))
                    .InstancePerRequest();
 
             // Services
-            builder.RegisterType<EncryptionService>()
-                .As<IEncryptionService>()
+            builder.RegisterType<ServicioEncriptacion>()
+                .As<IServicioEncriptacion>()
                 .InstancePerRequest();
 
-            builder.RegisterType<MembershipService>()
-                .As<IMembershipService>()
+            builder.RegisterType<ServicioMembresia>()
+                .As<IServicioMembresia>()
                 .InstancePerRequest();
 
-            builder.RegisterType<UserAppService>()
-                .As<IUserAppService>()
+            builder.RegisterType<ServicioUsuarios>()
+                .As<IServicioUsuarios>()
                 .InstancePerRequest();
 
-            builder.RegisterType<CustomerAppService>()
-               .As<ICustomerAppService>()
+            builder.RegisterType<ServicioClientes>()
+               .As<IServicioClientes>()
                .InstancePerRequest();
 
-            builder.RegisterType<WalkerAppService>()
-               .As<IWalkerAppService>()
+            builder.RegisterType<ServicioPaseadores>()
+               .As<IServicioPaseadores>()
                .InstancePerRequest();
 
-            builder.RegisterType<PetAppService>()
-             .As<IPetAppService>()
+            builder.RegisterType<ServicioMascotas>()
+             .As<IServicioMascotas>()
              .InstancePerRequest();
 
-            builder.RegisterType<BreedAppService>()
-             .As<IBreedAppService>()
+            builder.RegisterType<ServicioRazas>()
+             .As<IServicioRazas>()
              .InstancePerRequest();
 
-            builder.RegisterType<SizeAppService>()
-             .As<ISizeAppService>()
+            builder.RegisterType<ServicioTamanos>()
+             .As<IServicioTamanos>()
              .InstancePerRequest();
 
-            builder.RegisterType<ProvinceAppService>()
-            .As<IProvinceAppService>()
+            builder.RegisterType<ServicioProvincias>()
+            .As<IServicioProvincias>()
             .InstancePerRequest();
 
-            builder.RegisterType<CityAppService>()
-            .As<ICityAppService>()
+            builder.RegisterType<ServicioCiudades>()
+            .As<IServicioCiudades>()
             .InstancePerRequest();
 
-            builder.RegisterType<WalkAppService>()
-            .As<IWalkAppService>()
+            builder.RegisterType<ServicioPaseos>()
+            .As<IServicioPaseos>()
             .InstancePerRequest();
 
-            builder.RegisterType<SmtpEmailSender>()
-            .As<IEmailSender>()
+            builder.RegisterType<EnviadorCorreosSmtp>()
+            .As<IEnviadorCorreos>()
             .InstancePerRequest();
 
-            builder.RegisterType<NotificationAppService>()
-            .As<INotificationAppService>()
+            builder.RegisterType<ServicioNotificaciones>()
+            .As<IServicioNotificaciones>()
             .InstancePerRequest();
 
-            builder.RegisterType<MercadoPagoPaymentGateway>()
-            .As<IPaymentGateway>()
+            builder.RegisterType<PasarelaDePagoMercadoPago>()
+            .As<IPasarelaDePago>()
             .InstancePerRequest();
 
-            builder.RegisterType<SellerTokenProvider>()
-            .As<ISellerTokenProvider>()
+            builder.RegisterType<ProveedorTokensVendedor>()
+            .As<IProveedorTokensVendedor>()
             .InstancePerRequest();
 
-            builder.RegisterType<PaymentAppService>()
-            .As<IPaymentAppService>()
+            builder.RegisterType<ServicioPagos>()
+            .As<IServicioPagos>()
             .InstancePerRequest();
 
-            builder.RegisterType<RatingAppService>()
-            .As<IRatingAppService>()
+            builder.RegisterType<ServicioValoraciones>()
+            .As<IServicioValoraciones>()
             .InstancePerRequest();
 
-            builder.RegisterType<PriceAppService>()
-            .As<IPriceAppService>()
+            builder.RegisterType<ServicioPrecios>()
+            .As<IServicioPrecios>()
             .InstancePerRequest();
 
-            builder.RegisterType<WorkDayAppService>()
-            .As<IWorkDayAppService>()
+            builder.RegisterType<ServicioJornadas>()
+            .As<IServicioJornadas>()
             .InstancePerRequest();
 
-            builder.RegisterType<DistanceMatrixAppService>()
-          .As<IDistanceMatrixAppService>()
+            builder.RegisterType<ServicioMatrizDistancias>()
+          .As<IServicioMatrizDistancias>()
           .InstancePerRequest();
 
-            builder.RegisterType<TimeAppService>()
-             .As<ITimeAppService>()
+            builder.RegisterType<ServicioHorarios>()
+             .As<IServicioHorarios>()
               .InstancePerRequest();
 
             // Generic Data Repository Factory
-            builder.RegisterType<DataRepositoryFactory>()
-                .As<IDataRepositoryFactory>().InstancePerRequest();
+            builder.RegisterType<FabricaRepositorios>()
+                .As<IFabricaRepositorios>().InstancePerRequest();
 
-            #region Validation     
+            #region Validacion     
             builder.RegisterType<AutoFacValidatorFactory>()
                 .As<IValidatorFactory>()
                 .InstancePerLifetimeScope();

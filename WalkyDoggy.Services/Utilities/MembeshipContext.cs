@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace WalkyDoggy.Services.Utilities
 {
-    public class MembershipContext
+    public class ContextoMembresia
     {
         public IPrincipal Principal { get; set; }
         public User User { get; set; }
-        public bool IsValid()
+        public bool EsValido()
         {
             return Principal != null;
         }

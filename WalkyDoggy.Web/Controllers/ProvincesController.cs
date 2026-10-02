@@ -15,37 +15,37 @@ using WalkyDoggy.Web.Infrastructure.Core;
 namespace WalkyDoggy.Web.Controllers
 {
     [RoutePrefix("api/provinces")]
-    public class ProvincesController : ApiControllerBase
+    public class ProvincesController : ControladorApiBase
     {
-        private readonly IEntityBaseRepository<Province> provincesRepository;
-        private readonly IMembershipService membershipService;
-        private readonly IProvinceAppService provinceAppService;
+        private readonly IRepositorioEntidadBase<Province> repositorioProvincias;
+        private readonly IServicioMembresia servicioMembresia;
+        private readonly IServicioProvincias servicioProvincias;
 
-        public ProvincesController(IEntityBaseRepository<Province> provincesRepository,
-                                 IMembershipService membershipService,
-                                 IProvinceAppService provinceAppService,
-                                 IEntityBaseRepository<Error> errorsRepository,
-                                 IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public ProvincesController(IRepositorioEntidadBase<Province> repositorioProvincias,
+                                 IServicioMembresia servicioMembresia,
+                                 IServicioProvincias servicioProvincias,
+                                 IRepositorioEntidadBase<Error> repositorioErrores,
+                                 IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.provincesRepository = provincesRepository;
-            this.membershipService = membershipService;
-            this.provinceAppService = provinceAppService;
+            this.repositorioProvincias = repositorioProvincias;
+            this.servicioMembresia = servicioMembresia;
+            this.servicioProvincias = servicioProvincias;
         }
 
         [HttpGet]
         [Route("getAll")]
-        public HttpResponseMessage GetAll(HttpRequestMessage request)
+        public HttpResponseMessage GetAll(HttpRequestMessage pedido)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
-                var provincesDto = this.provinceAppService.GetAll();
+                HttpResponseMessage respuesta = null;
+                var provinciasDto = this.servicioProvincias.ObtenerTodos();
 
-                response = request.CreateResponse(HttpStatusCode.OK, provincesDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, provinciasDto);
 
-                return response;
+                return respuesta;
             });
         }
     }

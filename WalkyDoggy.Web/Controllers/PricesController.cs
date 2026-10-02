@@ -15,37 +15,37 @@ using WalkyDoggy.Web.Infrastructure.Core;
 namespace WalkyDoggy.Web.Controllers
 {
     [RoutePrefix("api/prices")]
-    public class PricesController : ApiControllerBase
+    public class PricesController : ControladorApiBase
     {
-        private readonly IEntityBaseRepository<Price> pricesRepository;
-        private readonly IMembershipService membershipService;
-        private readonly IPriceAppService priceAppService;
+        private readonly IRepositorioEntidadBase<Price> repositorioPrecios;
+        private readonly IServicioMembresia servicioMembresia;
+        private readonly IServicioPrecios servicioPrecios;
 
-        public PricesController(IEntityBaseRepository<Price> pricesRepository,
-                                 IMembershipService membershipService,
-                                 IPriceAppService priceAppService,
-                                 IEntityBaseRepository<Error> errorsRepository,
-                                 IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public PricesController(IRepositorioEntidadBase<Price> repositorioPrecios,
+                                 IServicioMembresia servicioMembresia,
+                                 IServicioPrecios servicioPrecios,
+                                 IRepositorioEntidadBase<Error> repositorioErrores,
+                                 IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.pricesRepository = pricesRepository;
-            this.membershipService = membershipService;
-            this.priceAppService = priceAppService;
+            this.repositorioPrecios = repositorioPrecios;
+            this.servicioMembresia = servicioMembresia;
+            this.servicioPrecios = servicioPrecios;
         }
 
         [HttpGet]
         [Route("getAll")]
-        public HttpResponseMessage GetAll(HttpRequestMessage request)
+        public HttpResponseMessage GetAll(HttpRequestMessage pedido)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
-                var pricesDto = this.priceAppService.GetAll();
+                HttpResponseMessage respuesta = null;
+                var preciosDto = this.servicioPrecios.ObtenerTodos();
 
-                response = request.CreateResponse(HttpStatusCode.OK, pricesDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, preciosDto);
 
-                return response;
+                return respuesta;
             });
         }
     }

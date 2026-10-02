@@ -21,7 +21,7 @@ namespace WalkyDoggy.Web
 
             AreaRegistration.RegisterAllAreas();
             WebApiConfig.Register(config);
-            Bootstrapper.Run();
+            Bootstrapper.Ejecutar();
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             GlobalConfiguration.Configuration.EnsureInitialized();
             BundleConfig.RegisterBundles(BundleTable.Bundles);
@@ -29,8 +29,8 @@ namespace WalkyDoggy.Web
             var json = GlobalConfiguration.Configuration.Formatters.JsonFormatter;
             json.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
-            var formatters = GlobalConfiguration.Configuration.Formatters;
-            formatters.Remove(formatters.XmlFormatter);
+            var formateadores = GlobalConfiguration.Configuration.Formatters;
+            formateadores.Remove(formateadores.XmlFormatter);
         }
     }
 }

@@ -16,16 +16,16 @@ using WalkyDoggy.Services.Dtos;
 namespace WalkyDoggy.Web.Controllers
 {
     [RoutePrefix("api/users")]
-    public class UsersController : ApiControllerBase
+    public class UsersController : ControladorApiBase
     {
-        private readonly IEntityBaseRepository<User> usersRepository;
+        private readonly IRepositorioEntidadBase<User> repositorioUsuarios;
 
-        public UsersController(IEntityBaseRepository<User> usersRepository,
-                               IEntityBaseRepository<Error> errorsRepository,
-                               IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public UsersController(IRepositorioEntidadBase<User> repositorioUsuarios,
+                               IRepositorioEntidadBase<Error> repositorioErrores,
+                               IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.usersRepository = usersRepository;
+            this.repositorioUsuarios = repositorioUsuarios;
         }
 
         /*[HttpGet]
@@ -70,23 +70,23 @@ namespace WalkyDoggy.Web.Controllers
 
         [HttpGet]
         [Route("getByEmail")]
-        public HttpResponseMessage GetByEmail(HttpRequestMessage request, String email)
+        public HttpResponseMessage GetByEmail(HttpRequestMessage pedido, String email)
         {
             email = email.ToLower().Trim();
 
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
                 //TODO: Pasar esto al Service
                 //var user = usersRepository.GetAll().Where(x => x.Email == email).FirstOrDefault();
-                var user = this.usersRepository.GetSingleByEmail(email);
+                var usuario = this.repositorioUsuarios.ObtenerUnoPorEmail(email);
 
-                var userDto = Mapper.Map<User, UserDto>(user);
+                var usuarioDto = Mapper.Map<User, UserDto>(usuario);
 
-                response = request.CreateResponse<UserDto>(HttpStatusCode.OK, userDto);
+                respuesta = pedido.CreateResponse<UserDto>(HttpStatusCode.OK, usuarioDto);
 
-                return response;
+                return respuesta;
             });
         }
 
@@ -134,32 +134,32 @@ namespace WalkyDoggy.Web.Controllers
          */
         [HttpPost]
         [Route("update")]
-        public HttpResponseMessage Update(HttpRequestMessage request, UserDto userDto)
+        public HttpResponseMessage Update(HttpRequestMessage pedido, UserDto usuarioDto)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
                 if (!ModelState.IsValid)
                 {
-                    response = request.CreateResponse(HttpStatusCode.BadRequest,
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         ModelState.Keys.SelectMany(k => ModelState[k].Errors)
                               .Select(m => m.ErrorMessage).ToArray());
                 }
                 else
                 {
-                    //TODO: hacer esto en el UserAppService 
-                    User user = usersRepository.GetSingleByEmail(userDto.Email);
-                    user.Email = userDto.Email;
+                    //TODO: hacer esto en el ServicioUsuarios 
+                    User usuario = repositorioUsuarios.ObtenerUnoPorEmail(usuarioDto.Email);
+                    usuario.Email = usuarioDto.Email;
 
-                    usersRepository.Edit(user);
+                    repositorioUsuarios.Editar(usuario);
 
-                    _unitOfWork.Commit();
+                    _unidadDeTrabajo.GuardarCambios();
 
-                    response = request.CreateResponse(HttpStatusCode.OK);
+                    respuesta = pedido.CreateResponse(HttpStatusCode.OK);
                 }
 
-                return response;
+                return respuesta;
             });
         }
 

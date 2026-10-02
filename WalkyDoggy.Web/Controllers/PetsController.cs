@@ -16,116 +16,116 @@ using WalkyDoggy.Web.Infrastructure.Core;
 namespace WalkyDoggy.Web.Controllers
 {
     [RoutePrefix("api/pets")]
-    public class PetsController : ApiControllerBase
+    public class PetsController : ControladorApiBase
     {
-        private readonly IEntityBaseRepository<Pet> petsRepository;
-        private readonly IMembershipService membershipService;
-        private readonly IPetAppService petAppService;
+        private readonly IRepositorioEntidadBase<Pet> repositorioMascotas;
+        private readonly IServicioMembresia servicioMembresia;
+        private readonly IServicioMascotas servicioMascotas;
 
-        public PetsController(IEntityBaseRepository<Pet> petsRepository,
-                                 IMembershipService membershipService,
-                                 IPetAppService petAppService,
-                                 IEntityBaseRepository<Error> errorsRepository,
-                                 IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public PetsController(IRepositorioEntidadBase<Pet> repositorioMascotas,
+                                 IServicioMembresia servicioMembresia,
+                                 IServicioMascotas servicioMascotas,
+                                 IRepositorioEntidadBase<Error> repositorioErrores,
+                                 IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.petsRepository = petsRepository;
-            this.membershipService = membershipService;
-            this.petAppService = petAppService;
+            this.repositorioMascotas = repositorioMascotas;
+            this.servicioMembresia = servicioMembresia;
+            this.servicioMascotas = servicioMascotas;
         }
 
         [HttpPost]
         [Route("register")]
-        public HttpResponseMessage Register(HttpRequestMessage request, PetDto petDto)
+        public HttpResponseMessage Register(HttpRequestMessage pedido, PetDto mascotaDto)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
                 if (!ModelState.IsValid)
                 {
-                    response = request.CreateResponse(HttpStatusCode.BadRequest,
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         ModelState.Keys.SelectMany(k => ModelState[k].Errors)
                               .Select(m => m.ErrorMessage).ToArray());
                 }
                 else
                 {
-                    var pet = this.petAppService.Register(petDto);
-                    response = request.CreateResponse<Pet>(HttpStatusCode.OK, pet);
+                    var mascota = this.servicioMascotas.Registrar(mascotaDto);
+                    respuesta = pedido.CreateResponse<Pet>(HttpStatusCode.OK, mascota);
 
                 }
 
-                return response;
+                return respuesta;
             });
         }
         [HttpPost]
         [Route("update")]
-        public HttpResponseMessage Update(HttpRequestMessage request, PetDto petDto)
+        public HttpResponseMessage Update(HttpRequestMessage pedido, PetDto mascotaDto)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
+                HttpResponseMessage respuesta = null;
 
                 if (!ModelState.IsValid)
                 {
-                    response = request.CreateResponse(HttpStatusCode.BadRequest,
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         ModelState.Keys.SelectMany(k => ModelState[k].Errors)
                               .Select(m => m.ErrorMessage).ToArray());
                 }
                 else
                 {
-                    var pet = this.petAppService.Update(petDto);
-                    response = request.CreateResponse<Pet>(HttpStatusCode.OK, pet);
+                    var mascota = this.servicioMascotas.Actualizar(mascotaDto);
+                    respuesta = pedido.CreateResponse<Pet>(HttpStatusCode.OK, mascota);
 
                 }
 
-                return response;
+                return respuesta;
             });
         }
 
         [HttpGet]
         [Route("getById")]
-        public HttpResponseMessage GetById(HttpRequestMessage request, Int64 id)
+        public HttpResponseMessage GetById(HttpRequestMessage pedido, Int64 id)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
-                var petDto = this.petAppService.GetById(id);
+                HttpResponseMessage respuesta = null;
+                var mascotaDto = this.servicioMascotas.ObtenerPorId(id);
 
-                response = request.CreateResponse(HttpStatusCode.OK, petDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, mascotaDto);
 
-                return response;
+                return respuesta;
             });
         }
 
 
         [HttpGet]
         [Route("getAllByCustomerId")]
-        public HttpResponseMessage GetAllByCustomerId(HttpRequestMessage request, Int64 customerId)
+        public HttpResponseMessage GetAllByCustomerId(HttpRequestMessage pedido, Int64 customerId)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
-                var petsDto = this.petAppService.GetAllByCustomerId(customerId);
+                HttpResponseMessage respuesta = null;
+                var mascotasDto = this.servicioMascotas.ObtenerTodosPorIdCliente(customerId);
 
-                response = request.CreateResponse(HttpStatusCode.OK, petsDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, mascotasDto);
 
-                return response;
+                return respuesta;
             });
         }
 
-        public HttpResponseMessage Delete(HttpRequestMessage request, Int64 id)
+        public HttpResponseMessage Delete(HttpRequestMessage pedido, Int64 id)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
-                var pet = petsRepository.GetSingle(id);
-                petsRepository.Delete(pet);
-                _unitOfWork.Commit();
-                response = request.CreateResponse(HttpStatusCode.OK, pet);
-                return response;
+                HttpResponseMessage respuesta = null;
+                var mascota = repositorioMascotas.ObtenerUno(id);
+                repositorioMascotas.Eliminar(mascota);
+                _unidadDeTrabajo.GuardarCambios();
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, mascota);
+                return respuesta;
             });
         }
     }

@@ -311,23 +311,23 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Infrastructure\Core\ApiControllerBaseExtended.cs" />
-    <Compile Include="Infrastructure\Core\ApiControllerBase.cs" />
-    <Compile Include="Infrastructure\Core\ActorIdentity.cs" />
-    <Compile Include="Infrastructure\Core\SecretProtector.cs" />
-    <Compile Include="Infrastructure\MercadoPago\MercadoPagoOAuthClient.cs" />
-    <Compile Include="Infrastructure\MercadoPago\MercadoPagoPaymentGateway.cs" />
-    <Compile Include="Infrastructure\MercadoPago\MercadoPagoSettings.cs" />
-    <Compile Include="Infrastructure\MercadoPago\SellerTokenProvider.cs" />
-    <Compile Include="Infrastructure\Core\DataRepositoryFactory.cs" />
+    <Compile Include="Infrastructure\Core\ControladorApiBaseExtendido.cs" />
+    <Compile Include="Infrastructure\Core\ControladorApiBase.cs" />
+    <Compile Include="Infrastructure\Core\IdentidadDelActor.cs" />
+    <Compile Include="Infrastructure\Core\ProtectorDeSecretos.cs" />
+    <Compile Include="Infrastructure\MercadoPago\ClienteOAuthMercadoPago.cs" />
+    <Compile Include="Infrastructure\MercadoPago\PasarelaDePagoMercadoPago.cs" />
+    <Compile Include="Infrastructure\MercadoPago\ConfiguracionMercadoPago.cs" />
+    <Compile Include="Infrastructure\MercadoPago\ProveedorTokensVendedor.cs" />
+    <Compile Include="Infrastructure\Core\FabricaRepositorios.cs" />
     <Compile Include="Infrastructure\Core\FileUploadResult.cs" />
     <Compile Include="Infrastructure\Core\MimeMultipart.cs" />
     <Compile Include="Infrastructure\Core\PaginationSet.cs" />
     <Compile Include="Infrastructure\Core\UploadMultipartFormProvider.cs" />
-    <Compile Include="Infrastructure\Email\SmtpEmailSender.cs" />
+    <Compile Include="Infrastructure\Email\EnviadorCorreosSmtp.cs" />
     <Compile Include="Infrastructure\Extensions\EntitiesExtensions.cs" />
     <Compile Include="Infrastructure\Extensions\RequestMessageExtensions.cs" />
-    <Compile Include="Infrastructure\MessageHandlers\WalkyDoggyAuthHandler.cs" />
+    <Compile Include="Infrastructure\MessageHandlers\ManejadorAutenticacionWalkyDoggy.cs" />
     <Compile Include="Infrastructure\Validators\CustomerDtoValidator.cs" />
     <Compile Include="Infrastructure\Validators\LoginDtoValidator.cs" />
     <Compile Include="Infrastructure\Validators\RegistrationDtoValidator.cs" />

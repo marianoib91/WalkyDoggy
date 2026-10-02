@@ -11,7 +11,7 @@ namespace WalkyDoggy.Web
         public static void Register(HttpConfiguration config)
         {
             // Configuracion y servicios de Web API
-            config.MessageHandlers.Add(new WalkyDoggyAuthHandler());
+            config.MessageHandlers.Add(new ManejadorAutenticacionWalkyDoggy());
 
             // Rutas de Web API
             config.MapHttpAttributeRoutes();

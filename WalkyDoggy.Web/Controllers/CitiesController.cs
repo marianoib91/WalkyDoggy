@@ -16,69 +16,69 @@ using WalkyDoggy.Web.Infrastructure.Core;
 namespace WalkyDoggy.Web.Controllers
 {
     [RoutePrefix("api/cities")]
-    public class CitiesController : ApiControllerBase
+    public class CitiesController : ControladorApiBase
     {
-        private readonly IEntityBaseRepository<City> citiesRepository;
-        private readonly IMembershipService membershipService;
-        private readonly ICityAppService cityAppService;
+        private readonly IRepositorioEntidadBase<City> repositorioCiudades;
+        private readonly IServicioMembresia servicioMembresia;
+        private readonly IServicioCiudades servicioCiudades;
 
-        public CitiesController(IEntityBaseRepository<City> citiesRepository,
-                                 IMembershipService membershipService,
-                                 ICityAppService cityAppService,
-                                 IEntityBaseRepository<Error> errorsRepository,
-                                 IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public CitiesController(IRepositorioEntidadBase<City> repositorioCiudades,
+                                 IServicioMembresia servicioMembresia,
+                                 IServicioCiudades servicioCiudades,
+                                 IRepositorioEntidadBase<Error> repositorioErrores,
+                                 IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.citiesRepository = citiesRepository;
-            this.membershipService = membershipService;
-            this.cityAppService = cityAppService;
+            this.repositorioCiudades = repositorioCiudades;
+            this.servicioMembresia = servicioMembresia;
+            this.servicioCiudades = servicioCiudades;
         }
 
         [HttpGet]
         [Route("getAll")]
-        public HttpResponseMessage GetAll(HttpRequestMessage request)
+        public HttpResponseMessage GetAll(HttpRequestMessage pedido)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
-                var citiesDto = this.cityAppService.GetAll();
+                HttpResponseMessage respuesta = null;
+                var ciudadesDto = this.servicioCiudades.ObtenerTodos();
 
-                response = request.CreateResponse(HttpStatusCode.OK, citiesDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, ciudadesDto);
 
-                return response;
+                return respuesta;
             });
         }
 
         [HttpPost]
         [Route("resolve")]
-        public HttpResponseMessage Resolve(HttpRequestMessage request, CityResolveCriteria cityResolveCriteria)
+        public HttpResponseMessage Resolve(HttpRequestMessage pedido, CityResolveCriteria criterioResolverCiudad)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                var cityDto = this.cityAppService.Resolve(cityResolveCriteria);
-                if (cityDto == null)
+                var ciudadDto = this.servicioCiudades.Resolver(criterioResolverCiudad);
+                if (ciudadDto == null)
                 {
-                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { "No se pudo reconocer la ciudad o la provincia de la dirección." });
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { "No se pudo reconocer la ciudad o la provincia de la dirección." });
                 }
 
-                return request.CreateResponse(HttpStatusCode.OK, cityDto);
+                return pedido.CreateResponse(HttpStatusCode.OK, ciudadDto);
             });
         }
 
         [HttpGet]
         [Route("getAllByProvinceId")]
-        public HttpResponseMessage GetAllByProvinceId(HttpRequestMessage request, Int64 provinceId)
+        public HttpResponseMessage GetAllByProvinceId(HttpRequestMessage pedido, Int64 provinceId)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
 
-                HttpResponseMessage response = null;
-                var citiesDto = this.cityAppService.GetAllByProvinceId(provinceId);
+                HttpResponseMessage respuesta = null;
+                var ciudadesDto = this.servicioCiudades.ObtenerTodosPorIdProvincia(provinceId);
 
-                response = request.CreateResponse(HttpStatusCode.OK, citiesDto);
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, ciudadesDto);
 
-                return response;
+                return respuesta;
             });
         }
     }

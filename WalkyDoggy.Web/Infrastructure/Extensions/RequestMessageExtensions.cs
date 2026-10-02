@@ -12,22 +12,22 @@ namespace WalkyDoggy.Web.Infrastructure.Extensions
 {
     public static class RequestMessageExtensions
     {
-        internal static IMembershipService GetMembershipService(this HttpRequestMessage request)
+        internal static IServicioMembresia ObtenerServicioMembresia(this HttpRequestMessage pedido)
         {
-            return request.GetService<IMembershipService>();
+            return pedido.ObtenerServicio<IServicioMembresia>();
         }
 
-        internal static IEntityBaseRepository<T> GetDataRepository<T>(this HttpRequestMessage request) where T : class, IEntityBase, new()
+        internal static IRepositorioEntidadBase<T> ObtenerRepositorioDeDatos<T>(this HttpRequestMessage pedido) where T : class, IEntityBase, new()
         {
-            return request.GetService<IEntityBaseRepository<T>>();
+            return pedido.ObtenerServicio<IRepositorioEntidadBase<T>>();
         }
 
-        private static TService GetService<TService>(this HttpRequestMessage request)
+        private static TService ObtenerServicio<TService>(this HttpRequestMessage pedido)
         {
-            IDependencyScope dependencyScope = request.GetDependencyScope();
-            TService service = (TService)dependencyScope.GetService(typeof(TService));
+            IDependencyScope ambitoDeDependencias = pedido.GetDependencyScope();
+            TService servicio = (TService)ambitoDeDependencias.GetService(typeof(TService));
 
-            return service;
+            return servicio;
         }
     }
 }

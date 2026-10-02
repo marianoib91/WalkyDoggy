@@ -15,43 +15,43 @@ namespace WalkyDoggy.Web.Controllers
 {
     //TODO: Ver porque no anda este controller
     [RoutePrefix("api/times")]
-    public class TimeContoller : ApiControllerBase
+    public class TimeContoller : ControladorApiBase
     {
-        private readonly ITimeAppService timeAppService;
+        private readonly IServicioHorarios servicioHorarios;
 
-        public TimeContoller(ITimeAppService timeAppService,
-                             IEntityBaseRepository<Error> errorsRepository,
-                             IUnitOfWork unitOfWork)
-            : base(errorsRepository, unitOfWork)
+        public TimeContoller(IServicioHorarios servicioHorarios,
+                             IRepositorioEntidadBase<Error> repositorioErrores,
+                             IUnidadDeTrabajo unidadDeTrabajo)
+            : base(repositorioErrores, unidadDeTrabajo)
         {
-            this.timeAppService = timeAppService;
+            this.servicioHorarios = servicioHorarios;
         }
 
         [HttpGet]
         [Route("getAvailableWalkTimes")]
-        public HttpResponseMessage GetAvailableWalkTimes(HttpRequestMessage request)
+        public HttpResponseMessage ObtenerHorariosDePaseoDisponibles(HttpRequestMessage pedido)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
-                var timesDto = this.timeAppService.GetAvailableWalkTimes();
-                response = request.CreateResponse(HttpStatusCode.OK, timesDto);
+                HttpResponseMessage respuesta = null;
+                var horariosDto = this.servicioHorarios.ObtenerHorariosDePaseoDisponibles();
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, horariosDto);
 
-                return response;
+                return respuesta;
             });
         }
 
         [HttpGet]
         [Route("getAllWalkTimes")]
-        public HttpResponseMessage GetAllWalkTimes(HttpRequestMessage request)
+        public HttpResponseMessage ObtenerTodosLosHorariosDePaseo(HttpRequestMessage pedido)
         {
-            return CreateHttpResponse(request, () =>
+            return CrearRespuestaHttp(pedido, () =>
             {
-                HttpResponseMessage response = null;
-                var timesDto = this.timeAppService.GetAllWalkTimes();
-                response = request.CreateResponse(HttpStatusCode.OK, timesDto);
+                HttpResponseMessage respuesta = null;
+                var horariosDto = this.servicioHorarios.ObtenerTodosLosHorariosDePaseo();
+                respuesta = pedido.CreateResponse(HttpStatusCode.OK, horariosDto);
 
-                return response;
+                return respuesta;
             });
         }
     }

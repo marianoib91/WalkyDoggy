@@ -8,19 +8,19 @@ namespace WalkyDoggy.Data.Extensions
     public static class UserExtensions
     {
 
-        public static bool UserExists(this IEntityBaseRepository<User> usersRepository, string email)
+        public static bool ExisteUsuario(this IRepositorioEntidadBase<User> repositorioUsuarios, string email)
         {
-            bool userExists = false;
+            bool existeUsuario = false;
 
-            userExists = usersRepository.GetAll()
+            existeUsuario = repositorioUsuarios.ObtenerTodos()
                 .Any(c => c.Email.ToLower() == email);
 
-            return userExists;
+            return existeUsuario;
         }
 
-        public static User GetSingleByEmail(this IEntityBaseRepository<User> userRepository, String email)
+        public static User ObtenerUnoPorEmail(this IRepositorioEntidadBase<User> repositorioUsuarios, String email)
         {
-            return userRepository.GetAll().FirstOrDefault(x => x.Email == email);
+            return repositorioUsuarios.ObtenerTodos().FirstOrDefault(x => x.Email == email);
         }
 
         /* public static string GetUserFullName(this IEntityBaseRepository<User> usersRepository, int userId)
