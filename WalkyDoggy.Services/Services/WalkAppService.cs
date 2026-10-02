@@ -25,6 +25,7 @@ namespace WalkyDoggy.Services.Services
         private readonly IEntityBaseRepository<Customer> customersRepository;
         private readonly IEntityBaseRepository<City> citiesRepository;
         private readonly IWalkerAppService walkerAppService;
+        private readonly IPaymentAppService paymentAppService;
         #endregion
 
         public WalkAppService(IEntityBaseRepository<Error> errorsRepository,
@@ -34,7 +35,8 @@ namespace WalkyDoggy.Services.Services
                                 IEntityBaseRepository<Pet> petsRepository,
                                 IEntityBaseRepository<Customer> customersRepository,
                                 IEntityBaseRepository<City> citiesRepository,
-                                IWalkerAppService walkerAppService) :
+                                IWalkerAppService walkerAppService,
+                                IPaymentAppService paymentAppService) :
             base(errorsRepository, unitOfWork, walksRepository)
         {
             this.walksRepository = walksRepository;
@@ -43,6 +45,7 @@ namespace WalkyDoggy.Services.Services
             this.customersRepository = customersRepository;
             this.citiesRepository = citiesRepository;
             this.walkerAppService = walkerAppService;
+            this.paymentAppService = paymentAppService;
         }
 
         public List<WalkDto> Register(WalkRequestCriteria walkRequestCriteria, out String error)
@@ -95,12 +98,7 @@ namespace WalkyDoggy.Services.Services
             }
 
             var paymentMethod = String.IsNullOrWhiteSpace(walkRequestCriteria.PaymentMethod) ? PaymentMethods.Cash : walkRequestCriteria.PaymentMethod;
-            if (paymentMethod == PaymentMethods.MercadoPago)
-            {
-                error = "El pago con Mercado Pago todavía no está disponible para este paseador.";
-                return null;
-            }
-            if (paymentMethod != PaymentMethods.Cash)
+            if (paymentMethod != PaymentMethods.Cash && paymentMethod != PaymentMethods.MercadoPago)
             {
                 error = "El método de pago no es válido.";
                 return null;
@@ -310,32 +308,45 @@ namespace WalkyDoggy.Services.Services
                 return false;
             }
 
+            //Si el cliente ya habia pagado con Mercado Pago, el dinero retenido se le devuelve antes de cancelar
+            if (!this.paymentAppService.Refund(walks, out error))
+            {
+                error = "No se pudo devolver el pago, por eso el paseo no se canceló. " + error;
+                return false;
+            }
+
             walks.Where(x => x.Status != WalkStatus.Cancelled).ToList().ForEach(x => SetStatus(x, WalkStatus.Cancelled, actor));
             this.unitOfWork.Commit();
             return true;
         }
 
-        //Un pedido que el paseador no respondio antes de la hora del paseo se cancela solo
+        //Reglas que dependen de la hora: un pedido que el paseador no respondio antes del paseo se cancela solo,
+        //lo mismo que un paseo confirmado que el cliente no pago a tiempo, y los pagos sin reclamo se liberan.
         private void ExpirePendingWalks()
         {
             var now = DateTime.Now;
-            var pendingWalks = this.walksRepository.GetAll().
-                                                    Where(x => x.Status == WalkStatus.Pending && x.Date <= now.Date).
-                                                    ToList();
+            var openWalks = this.walksRepository.GetAll().
+                                                 Where(x => x.Date <= now.Date &&
+                                                            (x.Status == WalkStatus.Pending ||
+                                                             (x.Status == WalkStatus.Confirmed &&
+                                                              x.PaymentMethod == PaymentMethods.MercadoPago &&
+                                                              x.PaymentStatus == PaymentStatuses.Pending))).
+                                                 ToList();
 
-            var expired = pendingWalks.Where(x => StartOf(x) <= now).ToList();
-            if (expired.Count == 0)
+            var expired = openWalks.Where(x => StartOf(x) <= now).ToList();
+            if (expired.Count > 0)
             {
-                return;
+                expired.ForEach(x => SetStatus(x, WalkStatus.Cancelled,
+                                               x.Status == WalkStatus.Pending ? WalkCancelledBy.System : WalkCancelledBy.NoPayment));
+                this.unitOfWork.Commit();
             }
 
-            expired.ForEach(x => SetStatus(x, WalkStatus.Cancelled, WalkCancelledBy.System));
-            this.unitOfWork.Commit();
+            this.paymentAppService.ReleaseDuePayments();
         }
 
         private static DateTime StartOf(Walk walk)
         {
-            return walk.Date.Date.AddHours(Convert.ToInt32(walk.TimeFrom.Split(':')[0]));
+            return BookingHelper.StartOf(walk);
         }
 
         private static void SetStatus(Walk walk, String status, String cancelledBy)
@@ -348,32 +359,12 @@ namespace WalkyDoggy.Services.Services
 
         private static String BookingKeyOf(Walk walk)
         {
-            return walk.BookingCode.HasValue ? walk.BookingCode.Value.ToString("N") : "w" + walk.Id;
+            return BookingHelper.KeyOf(walk);
         }
 
         private List<Walk> FindBooking(String bookingKey)
         {
-            var walks = IncludeBookingData();
-
-            if (!String.IsNullOrEmpty(bookingKey) && bookingKey.StartsWith("w"))
-            {
-                Int64 walkId;
-                if (Int64.TryParse(bookingKey.Substring(1), out walkId))
-                {
-                    return walks.Where(x => x.Id == walkId).ToList();
-                }
-            }
-            else
-            {
-                Guid bookingCode;
-                if (Guid.TryParseExact(bookingKey ?? String.Empty, "N", out bookingCode))
-                {
-                    Guid? code = bookingCode;
-                    return walks.Where(x => x.BookingCode == code).ToList();
-                }
-            }
-
-            return new List<Walk>();
+            return BookingHelper.Find(IncludeBookingData(), bookingKey);
         }
 
         private IQueryable<Walk> IncludeBookingData()

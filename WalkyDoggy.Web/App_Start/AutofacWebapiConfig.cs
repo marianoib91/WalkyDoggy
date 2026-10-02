@@ -6,6 +6,7 @@ using WalkyDoggy.Data.Infrastructure;
 using WalkyDoggy.Data.Repositories;
 using WalkyDoggy.Services;
 using WalkyDoggy.Web.Infrastructure.Core;
+using WalkyDoggy.Web.Infrastructure.MercadoPago;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -98,6 +99,14 @@ namespace WalkyDoggy.Web.App_Start
 
             builder.RegisterType<WalkAppService>()
             .As<IWalkAppService>()
+            .InstancePerRequest();
+
+            builder.RegisterType<MercadoPagoPaymentGateway>()
+            .As<IPaymentGateway>()
+            .InstancePerRequest();
+
+            builder.RegisterType<PaymentAppService>()
+            .As<IPaymentAppService>()
             .InstancePerRequest();
 
             builder.RegisterType<PriceAppService>()

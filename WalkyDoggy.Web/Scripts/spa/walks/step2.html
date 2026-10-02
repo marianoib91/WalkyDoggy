@@ -48,15 +48,16 @@
                             <span class="wd-choice-text">Le pagás al paseador en mano cuando termina el paseo.</span>
                         </span>
                     </label>
-                    <label class="wd-choice is-disabled">
-                        <input type="radio" name="paymentMethod" value="MercadoPago" ng-model="payment.method" disabled>
+                    <label class="wd-choice" ng-class="{'is-selected': payment.method == 'MercadoPago', 'is-disabled': !mpEnabled}">
+                        <input type="radio" name="paymentMethod" value="MercadoPago" ng-model="payment.method" ng-disabled="!mpEnabled">
                         <span class="wd-choice-body">
                             <span class="wd-choice-title">Mercado Pago</span>
-                            <span class="wd-choice-text">Todavía no está disponible: se habilita cuando el paseador vincule su cuenta de Mercado Pago.</span>
+                            <span class="wd-choice-text" ng-if="mpEnabled">Pagás online cuando el paseador confirme. WalkyDoggy retiene el pago y se lo libera al paseador cuando el paseo se hace; si no se hace, se te devuelve.</span>
+                            <span class="wd-choice-text" ng-if="!mpEnabled">Todavía no está disponible en este sistema.</span>
                         </span>
                     </label>
                 </div>
-                <p class="wd-field-hint">Tu solicitud queda pendiente hasta que el paseador la confirme. Vas a ver el estado en "Paseos solicitados".</p>
+                <p class="wd-field-hint">Tu solicitud queda pendiente hasta que el paseador la confirme. Vas a ver el estado en "Paseos solicitados"{{payment.method == 'MercadoPago' ? ' y desde ahí pagás' : ''}}.</p>
             </section>
 
             <section class="wd-form-section">

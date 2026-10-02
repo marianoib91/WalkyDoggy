@@ -32,6 +32,7 @@
             //Paseador
             if ($scope.roleId == '3') {
                 loadBookings();
+                loadBalance();
             }
         }
 
@@ -52,6 +53,14 @@
             });
         }
 
+        //Lo que WalkyDoggy tiene cobrado con Mercado Pago a nombre del paseador: retenido, a liquidar y en revision
+        function loadBalance() {
+            apiService.get('/api/payments/walkerBalance', { params: { walkerId: $scope.walkerId } }, function (result) {
+                $scope.balance = result.data;
+                $scope.hasBalance = result.data.retained + result.data.toSettle + result.data.inReview > 0;
+            });
+        }
+
         $scope.dateText = function (booking) {
             var date = moment(booking.date);
             return dayNames[date.day()] + ' ' + date.format('DD/MM/YYYY');
@@ -66,8 +75,19 @@
         };
 
         $scope.paymentText = function (booking) {
-            var method = booking.paymentMethod === 'MercadoPago' ? 'Mercado Pago' : 'Efectivo';
-            return method + (booking.paymentStatus === 'Paid' ? ' (pagado)' : '');
+            if (booking.paymentMethod !== 'MercadoPago') {
+                return 'Efectivo';
+            }
+
+            switch (booking.paymentStatus) {
+                case 'Held': return 'Mercado Pago · pagado, WalkyDoggy lo retiene hasta que se haga el paseo';
+                case 'Released': return 'Mercado Pago · pagado, WalkyDoggy te lo liquida';
+                case 'Disputed': return 'Mercado Pago · el cliente reclamó, está en revisión';
+            }
+
+            return booking.status === 'Pending'
+                ? 'Mercado Pago · el cliente paga cuando confirmes'
+                : 'Mercado Pago · esperando el pago del cliente';
         };
 
         $scope.confirm = function (booking) {
@@ -89,7 +109,8 @@
         $scope.cancelConfirmed = function (booking) {
             confirmService.ask({
                 title: '¿Cancelar el paseo confirmado?',
-                text: 'El paseo de ' + $scope.petNames(booking) + ' del ' + $scope.dateText(booking) + ' a las ' + booking.timeFrom + ' se va a cancelar y el cliente lo va a ver como cancelado.',
+                text: 'El paseo de ' + $scope.petNames(booking) + ' del ' + $scope.dateText(booking) + ' a las ' + booking.timeFrom + ' se va a cancelar y el cliente lo va a ver como cancelado.' +
+                      (booking.paymentStatus === 'Held' ? ' Como ya pagó, se le devuelve el dinero.' : ''),
                 confirmLabel: 'Cancelar paseo',
                 cancelLabel: 'Volver',
                 danger: true

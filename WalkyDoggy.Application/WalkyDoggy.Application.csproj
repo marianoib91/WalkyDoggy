@@ -60,6 +60,7 @@
     <Compile Include="Dtos\BreedDto.cs" />
     <Compile Include="Dtos\CityDto.cs" />
     <Compile Include="Dtos\BookingDto.cs" />
+    <Compile Include="Dtos\WalkerBalanceDto.cs" />
     <Compile Include="Dtos\CustomerDto.cs" />
     <Compile Include="Dtos\IDto.cs" />
     <Compile Include="Dtos\LoginDto.cs" />

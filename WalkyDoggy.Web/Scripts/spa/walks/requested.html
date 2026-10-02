@@ -34,9 +34,15 @@
                         <dt>Pago</dt>
                         <dd>{{paymentText(booking)}} · <strong>${{booking.total}}</strong></dd>
                     </dl>
+                    <p class="wd-field-hint" ng-if="canPay(booking)">
+                        Pagá ahora para asegurar el paseo. El dinero lo retiene WalkyDoggy y se le libera al paseador cuando el paseo se hace; si no se hace, se te devuelve.
+                        Si no pagás antes del horario, el paseo se cancela.
+                    </p>
                 </div>
-                <div class="wd-walk-actions" ng-if="canCancel(booking)">
-                    <button type="button" class="btn btn-danger" ng-click="cancel(booking)">Cancelar</button>
+                <div class="wd-walk-actions">
+                    <button type="button" class="btn btn-primary" ng-if="canPay(booking)" ng-disabled="working" ng-click="pay(booking)">Pagar ${{booking.total}}</button>
+                    <button type="button" class="btn btn-default" ng-if="canPay(booking)" ng-disabled="working" ng-click="verifyPayment(booking)">Ya pagué, verificar</button>
+                    <button type="button" class="btn btn-danger" ng-if="canCancel(booking)" ng-click="cancel(booking)">Cancelar</button>
                 </div>
             </article>
         </div>
@@ -57,7 +63,14 @@
                         <dd>{{dateText(booking)}}, {{timeText(booking)}}</dd>
                         <dt>Mascotas</dt>
                         <dd>{{petNames(booking)}}</dd>
+                        <dt ng-if="booking.paymentMethod == 'MercadoPago'">Pago</dt>
+                        <dd ng-if="booking.paymentMethod == 'MercadoPago'">{{paymentText(booking)}} · <strong>${{booking.total}}</strong></dd>
                     </dl>
+                    <p class="wd-field-hint" ng-if="canDispute(booking) && !canRelease(booking)">El paseo ya comenzó. Cuando termine vas a poder confirmar que salió bien o reportar un problema.</p>
+                </div>
+                <div class="wd-walk-actions" ng-if="canRelease(booking)">
+                    <button type="button" class="btn btn-primary" ng-click="release(booking)">Salió todo bien</button>
+                    <button type="button" class="btn btn-danger" ng-click="dispute(booking)">Tuve un problema</button>
                 </div>
             </article>
         </div>

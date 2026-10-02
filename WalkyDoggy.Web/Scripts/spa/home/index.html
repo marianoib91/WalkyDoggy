@@ -43,6 +43,21 @@
         </div>
     </div>
 
+    <section class="wd-payout" ng-if="hasBalance">
+        <h2 class="wd-section-title">Tus cobros con Mercado Pago</h2>
+        <p class="wd-payout-text">
+            Los clientes le pagan a WalkyDoggy, que retiene el dinero hasta que el paseo se hace y después te lo liquida.
+        </p>
+        <dl class="wd-walk-details">
+            <dt>Retenido</dt>
+            <dd><strong>${{balance.retained}}</strong> · pagado por clientes, paseos todavía sin confirmar como realizados</dd>
+            <dt>A liquidar</dt>
+            <dd><strong>${{balance.toSettle}}</strong> · paseos realizados, WalkyDoggy te lo transfiere</dd>
+            <dt ng-if="balance.inReview > 0">En revisión</dt>
+            <dd ng-if="balance.inReview > 0"><strong>${{balance.inReview}}</strong> · el cliente reclamó un problema</dd>
+        </dl>
+    </section>
+
     <section>
         <h2 class="wd-section-title">Solicitudes por confirmar <span class="wd-count" ng-if="pending.length > 0">{{pending.length}}</span></h2>
         <p class="wd-field-hint" ng-if="loadedBookings && pending.length == 0">No tenés solicitudes pendientes.</p>

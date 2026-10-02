@@ -19,13 +19,47 @@ namespace WalkyDoggy.Web.Controllers
     public class WalksController : ApiControllerBase
     {
         private readonly IWalkAppService walkAppService;
+        private readonly IEntityBaseRepository<Customer> customersRepository;
+        private readonly IEntityBaseRepository<Walker> walkersRepository;
 
         public WalksController(IWalkAppService walkAppService,
+                                 IEntityBaseRepository<Customer> customersRepository,
+                                 IEntityBaseRepository<Walker> walkersRepository,
                                  IEntityBaseRepository<Error> errorsRepository,
                                  IUnitOfWork unitOfWork)
             : base(errorsRepository, unitOfWork)
         {
             this.walkAppService = walkAppService;
+            this.customersRepository = customersRepository;
+            this.walkersRepository = walkersRepository;
+        }
+
+        //Confirmar o cancelar una reserva (cancelar puede devolver un pago) solo lo puede hacer quien inicio sesion como ese paseador o cliente
+        private Boolean CheckActor(HttpRequestMessage request, BookingActionCriteria action, out HttpResponseMessage denied)
+        {
+            denied = null;
+
+            if (action == null)
+            {
+                denied = request.CreateResponse(HttpStatusCode.BadRequest, new[] { "Faltan datos de la reserva." });
+                return false;
+            }
+            if (!ActorIdentity.IsAuthenticated(User))
+            {
+                denied = request.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
+                return false;
+            }
+
+            var allowed = action.Actor == "Walker" ? ActorIdentity.IsWalker(User, walkersRepository, action.ActorId)
+                        : action.Actor == "Customer" ? ActorIdentity.IsCustomer(User, customersRepository, action.ActorId)
+                        : false;
+            if (!allowed)
+            {
+                denied = request.CreateResponse(HttpStatusCode.Forbidden, new[] { "No podés operar sobre la reserva de otra persona." });
+                return false;
+            }
+
+            return true;
         }
 
         [HttpGet]
@@ -109,6 +143,12 @@ namespace WalkyDoggy.Web.Controllers
         {
             return CreateHttpResponse(request, () =>
             {
+                HttpResponseMessage denied;
+                if (!CheckActor(request, bookingActionCriteria, out denied))
+                {
+                    return denied;
+                }
+
                 String error;
                 if (!this.walkAppService.Confirm(bookingActionCriteria, out error))
                 {
@@ -125,6 +165,12 @@ namespace WalkyDoggy.Web.Controllers
         {
             return CreateHttpResponse(request, () =>
             {
+                HttpResponseMessage denied;
+                if (!CheckActor(request, bookingActionCriteria, out denied))
+                {
+                    return denied;
+                }
+
                 String error;
                 if (!this.walkAppService.Cancel(bookingActionCriteria, out error))
                 {
