@@ -23,7 +23,7 @@
                     <span class="wd-price-amount">${{paseador.amount | wdMoney}}</span>
                     <span class="wd-price-unit">/ hora</span>
                 </div>
-                <a class="btn btn-primary" ng-if="esCliente" ng-href="#/walks/step-1?idPaseador={{paseador.id}}">Solicitar paseo</a>
+                <a class="btn btn-primary" ng-if="esCliente" ng-href="#/walks/step-1?walkerId={{paseador.id}}">Solicitar paseo</a>
                 <a class="btn btn-default" ng-if="esPerfilPropio" href="#/work-conditions">Editar mis condiciones laborales</a>
             </div>
         </section>

@@ -35,12 +35,12 @@
 
     <div class="wd-walker-list">
         <article class="wd-walker-card" ng-repeat="paseador in paseadoresOrdenados">
-            <a ng-href="#/paseadores/{{paseador.id}}" aria-label="Ver el perfil de {{paseador.firstName}} {{paseador.lastName}}">
+            <a ng-href="#/walkers/{{paseador.id}}" aria-label="Ver el perfil de {{paseador.firstName}} {{paseador.lastName}}">
                 <img class="wd-avatar" ng-src="{{paseador.profileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{paseador.firstName}} {{paseador.lastName}}" />
             </a>
             <div class="wd-walker-info">
                 <div class="wd-walker-name-row">
-                    <h2 class="wd-walker-name"><a class="wd-link-plain" ng-href="#/paseadores/{{paseador.id}}">{{paseador.firstName}} {{paseador.lastName}}</a></h2>
+                    <h2 class="wd-walker-name"><a class="wd-link-plain" ng-href="#/walkers/{{paseador.id}}">{{paseador.firstName}} {{paseador.lastName}}</a></h2>
                     <span class="wd-rating-inline" ng-if="paseador.ratingCount > 0">
                         <wd-stars value="walker.averageRating"></wd-stars>
                         <strong>{{paseador.averageRating.toFixed(1).replace('.', ',')}}</strong>
@@ -60,8 +60,8 @@
                     <span class="wd-price-amount">${{paseador.amount | wdMoney}}</span>
                     <span class="wd-price-unit">/ hora</span>
                 </div>
-                <a class="btn btn-primary" ng-href="#/walks/step-1?idPaseador={{paseador.id}}">Solicitar paseo</a>
-                <a class="wd-link-plain wd-link-sm" ng-href="#/paseadores/{{paseador.id}}">Ver perfil y opiniones</a>
+                <a class="btn btn-primary" ng-href="#/walks/step-1?walkerId={{paseador.id}}">Solicitar paseo</a>
+                <a class="wd-link-plain wd-link-sm" ng-href="#/walkers/{{paseador.id}}">Ver perfil y opiniones</a>
             </div>
         </article>
     </div>
@@ -74,7 +74,7 @@
             <h1 class="wd-page-title">Mis paseos</h1>
             <p class="wd-page-subtitle">Confirmá las solicitudes, dá por finalizados tus paseos y confirmá cuando te pagan.</p>
         </div>
-        <a class="btn btn-default" ng-href="#/paseadores/{{idPaseador}}">Ver mi perfil público</a>
+        <a class="btn btn-default" ng-href="#/walkers/{{idPaseador}}">Ver mi perfil público</a>
     </div>
 
     <div class="wd-notice" ng-if="perfilPaseador && !perfilPaseador.mercadoPagoLinked">
