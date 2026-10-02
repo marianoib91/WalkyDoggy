@@ -51,16 +51,44 @@
 }
 /*end forgot-password*/
 /*Begin public*/
+/* Portada: la foto va difuminada y "blanqueada" con una capa blanca, asi el texto oscuro se lee bien (mismo criterio que la home de Proveeduria Ganadera) */
 .public-section1 {
-    background: url('../images/index-public2.jpg') center;
-    background-size: cover;
-    height: 590px;
+    position: relative;
+    overflow: hidden;
+    min-height: 590px;
+    padding-bottom: 48px;
 }
 
+.public-section1::before,
+.public-section1::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.public-section1::before {
+    background: url('../images/index-public2.jpg') center / cover no-repeat;
+    filter: blur(1px);
+    transform: scale(1.02);
+}
+
+.public-section1::after {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.5) 100%);
+}
+
+.public-section1 > .row {
+    position: relative;
+    z-index: 1;
+}
+
+/* Iconos de las ventajas: lineas simples en el verde del boton principal */
 .public-img-container {
-    width: 33%;
-    height: 33%;
-    margin: 0 auto;
+    width: 120px;
+    height: 120px;
+    margin: 18px auto;
 }
 
 .img-public {
@@ -68,24 +96,10 @@
     width: 100%;
 }
 
-.money-image-container {
-    padding-top: 13px;
-}
-
-.time-image-container {
-    width: 26%;
-    margin-bottom: 16px;
-}
-
-.pet-image-container {
-    width: 28%;
-    margin-top: -6px;
-    margin-bottom: 14px;
-}
-
+/* El halo blanco ayuda a leer el texto sin tener que tapar tanto la foto */
 .public-text {
-    color: floralwhite;
-    text-shadow: black 0.75px 0px 2px;
+    color: #14181F;
+    text-shadow: 0 0 14px rgba(255, 255, 255, 0.9), 0 0 4px rgba(255, 255, 255, 0.8);
 }
 
 .main-title {
@@ -108,6 +122,31 @@
 
 .btn-register-public {
     padding: 16px 32px !important;
+}
+
+/* En celular la portada se acomoda al contenido en vez de recortarlo */
+@media (max-width: 767px) {
+    .main-title {
+        font-size: 28px;
+        line-height: 1.3;
+    }
+
+    .main-title-container {
+        padding-top: 40px;
+    }
+
+    .sub-title-container {
+        padding-top: 20px;
+    }
+
+    .sub-title-container h2 {
+        font-size: 19px;
+        line-height: 1.4;
+    }
+
+    .register-container {
+        padding-top: 32px;
+    }
 }
 
 .navbar-default {

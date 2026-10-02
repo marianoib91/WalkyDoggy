@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" fill="none" stroke="#166A4F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Reloj">
+  <circle cx="60" cy="60" r="54" fill="#166A4F" fill-opacity="0.08" stroke="none"/>
+  <circle cx="60" cy="60" r="32"/>
+  <path d="M60 28 V32 M60 88 V92 M28 60 H32 M88 60 H92"/>
+  <path d="M60 60 V42 M60 60 L74 68"/>
+  <circle cx="60" cy="60" r="2" fill="#166A4F" stroke="none"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" fill="none" stroke="#166A4F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Perro">
+  <circle cx="60" cy="60" r="54" fill="#166A4F" fill-opacity="0.08" stroke="none"/>
+  <path d="M42 44 C42 32 78 32 78 44 V68 C78 82 70 90 60 90 C50 90 42 82 42 68 Z"/>
+  <path d="M42 46 C30 42 24 54 26 68 C27 76 36 77 40 70"/>
+  <path d="M78 46 C90 42 96 54 94 68 C93 76 84 77 80 70"/>
+  <circle cx="53" cy="58" r="2.5" fill="#166A4F" stroke="none"/>
+  <circle cx="67" cy="58" r="2.5" fill="#166A4F" stroke="none"/>
+  <ellipse cx="60" cy="68" rx="5" ry="3.5" fill="#166A4F" stroke="none"/>
+  <path d="M60 72 V76 M54 79 C57 82 63 82 66 79"/>
+</svg>

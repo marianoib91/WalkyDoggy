@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" fill="none" stroke="#166A4F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Dinero">
+  <circle cx="60" cy="60" r="54" fill="#166A4F" fill-opacity="0.08" stroke="none"/>
+  <path d="M30 38 H90"/>
+  <rect x="22" y="46" width="76" height="40" rx="7"/>
+  <circle cx="60" cy="66" r="9"/>
+  <circle cx="34" cy="66" r="2" fill="#166A4F" stroke="none"/>
+  <circle cx="86" cy="66" r="2" fill="#166A4F" stroke="none"/>
+</svg>
