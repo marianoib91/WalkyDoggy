@@ -1,64 +1,64 @@
 ﻿(function (app) {
     'use strict';
 
-    app.controller('rootCtrl', rootCtrl);
+    app.controller('raizCtrl', raizCtrl);
 
-    rootCtrl.$inject = ['$scope', '$location', 'membershipService', '$rootScope', '$modal', 'blockUIConfig'];
-    function rootCtrl($scope, $location, membershipService, $rootScope, $modal, blockUIConfig) {
+    raizCtrl.$inject = ['$scope', '$location', 'servicioMembresia', '$rootScope', '$modal', 'blockUIConfig'];
+    function raizCtrl($scope, $location, servicioMembresia, $rootScope, $modal, blockUIConfig) {
         blockUIConfig.message = "Cargando ..."
 
         $scope.userData = {};
 
-        $scope.userData.displayUserInfo = displayUserInfo;
-        $scope.userData.updateUserInfo = updateUserInfo;
+        $scope.userData.mostrarDatosUsuario = mostrarDatosUsuario;
+        $scope.userData.actualizarDatosUsuario = actualizarDatosUsuario;
 
-        $scope.logout = function () {
-            membershipService.removeCredentials();
-            $scope.userData.displayUserInfo();
+        $scope.cerrarSesion = function () {
+            servicioMembresia.quitarCredenciales();
+            $scope.userData.mostrarDatosUsuario();
             $location.path('/public');
         }
 
-        function displayUserInfo() {
-            $scope.userData.isUserLoggedIn = membershipService.isUserLoggedIn();
+        function mostrarDatosUsuario() {
+            $scope.userData.haySesion = servicioMembresia.haySesion();
 
-            if ($scope.userData.isUserLoggedIn) {
+            if ($scope.userData.haySesion) {
                 $scope.roleId = $rootScope.repository.loggedUser.roleId;
                 $scope.email = $rootScope.repository.loggedUser.email;
                 $scope.name = $rootScope.repository.loggedUser.name;
             }
         }
 
-        function updateUserInfo(userFirstName, userEmail) {
-            $scope.userData.isUserLoggedIn = membershipService.isUserLoggedIn();
-            if ($scope.userData.isUserLoggedIn) {
-                $rootScope.repository.loggedUser.email = userEmail;
-                $rootScope.repository.loggedUser.name = userFirstName;
-                $scope.email = userEmail;
-                $scope.name = userFirstName;
+        function actualizarDatosUsuario(nombreUsuario, emailUsuario) {
+            $scope.userData.haySesion = servicioMembresia.haySesion();
+            if ($scope.userData.haySesion) {
+                $rootScope.repository.loggedUser.email = emailUsuario;
+                $rootScope.repository.loggedUser.name = nombreUsuario;
+                $scope.email = emailUsuario;
+                $scope.name = nombreUsuario;
             }
         }
 
-        $scope.openLoginModal = function () {
+        $scope.abrirModalInicioSesion = function () {
             $modal.open({
                 templateUrl: 'scripts/spa/account/login-modal.html',
-                controller: 'loginModalCtrl',
+                controller: 'inicioSesionModalCtrl',
                 scope: $scope
             }).result.then(function ($scope) {
             }, function () {
             });
         }
 
-        $scope.openRegisterModal = function () {
+        $scope.abrirModalRegistro = function () {
             $modal.open({
                 templateUrl: 'scripts/spa/register/register-modal.html',
-                controller: 'registerModalCtrl',
+                controller: 'registroModalCtrl',
                 scope: $scope
             }).result.then(function ($scope) {
             }, function () {
             });
         }
 
-        $scope.userData.displayUserInfo();
+        $scope.userData.mostrarDatosUsuario();
     }
 
 })(angular.module('walkyDoggy'));

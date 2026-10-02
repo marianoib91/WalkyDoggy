@@ -1,30 +1,30 @@
 ﻿(function (app) {
     'use strict';
 
-    app.controller('loginModalCtrl', loginModalCtrl);
+    app.controller('inicioSesionModalCtrl', inicioSesionModalCtrl);
 
-    loginModalCtrl.$inject = ['$scope', 'membershipService', 'notificationService', '$rootScope', '$location', '$modalInstance'];
+    inicioSesionModalCtrl.$inject = ['$scope', 'servicioMembresia', 'servicioNotificaciones', '$rootScope', '$location', '$modalInstance'];
 
-    function loginModalCtrl($scope, membershipService, notificationService, $rootScope, $location, $modalInstance) {
+    function inicioSesionModalCtrl($scope, servicioMembresia, servicioNotificaciones, $rootScope, $location, $modalInstance) {
 
-        $scope.user = {};
+        $scope.usuario = {};
 
         //TODO:Traer el rol en el login para saber a que vista redireccionarlo
-        $scope.login = function () {
-            membershipService.login($scope.user, loginCompleted);
+        $scope.iniciarSesion = function () {
+            servicioMembresia.iniciarSesion($scope.usuario, alIniciarSesion);
         }
 
-        function loginCompleted(result) {
-            if (result.data.success) {
+        function alIniciarSesion(resultado) {
+            if (resultado.data.success) {
                 $modalInstance.close();
-                result.data.password = $scope.user.password;
-                membershipService.saveCredentials(result.data, result.data.email);               
+                resultado.data.password = $scope.usuario.password;
+                servicioMembresia.guardarCredenciales(resultado.data, resultado.data.email);               
             }
             else {
-                notificationService.displayError('Imposible iniciar sesión. Intente nuevamente.');
+                servicioNotificaciones.mostrarError('Imposible iniciar sesión. Intente nuevamente.');
             }
         }
-        $scope.closeModal = function () {
+        $scope.cerrarModal = function () {
             $modalInstance.close();
         }
     }

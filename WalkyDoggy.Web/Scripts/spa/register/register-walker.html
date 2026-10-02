@@ -1,11 +1,11 @@
 ﻿<div class="row">
-    <form class="form-signin" role="form" novalidate angular-validator name="userRegistrationForm" angular-validator-submit="register()">
+    <form class="form-signin" role="form" novalidate angular-validator name="userRegistrationForm" angular-validator-submit="registrar()">
         <h3 class="form-signin-heading">Paseador - Registrar nueva cuenta</h3>
         <div class="form-group">
             <input type="text"
                    name="inputFirstName"
                    class="form-control"
-                   ng-model="walker.firstName"
+                   ng-model="paseador.firstName"
                    placeholder="Nombre"
                    validate-on="blur"
                    required
@@ -15,7 +15,7 @@
             <input type="text"
                    name="inputLastName"
                    class="form-control"
-                   ng-model="walker.lastName"
+                   ng-model="paseador.lastName"
                    placeholder="Apellido"
                    validate-on="blur"
                    required
@@ -25,7 +25,7 @@
             <input type="text"
                    name="inputEmail"
                    class="form-control"
-                   ng-model="walker.email"
+                   ng-model="paseador.email"
                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"
                    invalid-message="'El email ingresado no es válido'"
                    placeholder="Email"
@@ -37,7 +37,7 @@
             <input type="number"
                    name="inputPhoneNumber"
                    class="form-control"
-                   ng-model="walker.phone"
+                   ng-model="paseador.phone"
                    pattern=".{10,}"
                    invalid-message="'El teléfono ingresado no es válido'"
                    placeholder="Teléfono Celular"
@@ -51,13 +51,13 @@
                       name="inputDescription"
                       class="form-control"
                       placeholder="Ingrese una breve descripción de usted como paseador"
-                      ng-model="walker.description"
+                      ng-model="paseador.description"
                       validate-on="blur"
                       required
                       required-message="'Descripción es requerido.'"></textarea>
         </div>
         <div class="form-group">
-            <wd-address-field address="walker"></wd-address-field>
+            <wd-address-field address="paseador"></wd-address-field>
         </div>
         <div class="form-group">
             <div class="input-group">
@@ -65,7 +65,7 @@
                 <input type="number"
                        name="inputPrice"
                        class="form-control"
-                       ng-model="walker.amount"
+                       ng-model="paseador.amount"
                        min="1"
                        max="1000000"
                        step="1"
@@ -79,7 +79,7 @@
             <input type="password"
                    name="inputPassword"
                    class="form-control"
-                   ng-model="walker.password"
+                   ng-model="paseador.password"
                    pattern=".{6,}"
                    invalid-message="'Debe contener al menos 6 caracteres'"
                    placeholder="Contraseña"
@@ -92,7 +92,7 @@
                    name="inputConfirmPassword"
                    class="form-control"
                    placeholder="Confirmar contraseña"
-                   ng-model="walker.confirmPassword"
+                   ng-model="paseador.confirmPassword"
                    pattern=".{6,}"
                    invalid-message="'Debe contener al menos 6 caracteres'"
                    validate-on="blur"

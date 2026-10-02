@@ -1,87 +1,87 @@
 ﻿(function (app) {
     'use strict';
 
-    app.controller('petsEditCtrl', petsEditCtrl);
+    app.controller('editarMascotaCtrl', editarMascotaCtrl);
 
-    petsEditCtrl.$inject = ['$scope', 'membershipService', 'notificationService', 'apiService', 'fileUploadService', '$rootScope', '$location', '$routeParams'];
+    editarMascotaCtrl.$inject = ['$scope', 'servicioMembresia', 'servicioNotificaciones', 'servicioApi', 'servicioSubidaArchivos', '$rootScope', '$location', '$routeParams'];
 
-    function petsEditCtrl($scope, membershipService, notificationService, apiService, fileUploadService, $rootScope, $location, $routeParams) {
+    function editarMascotaCtrl($scope, servicioMembresia, servicioNotificaciones, servicioApi, servicioSubidaArchivos, $rootScope, $location, $routeParams) {
 
-        $scope.petId = $routeParams.id;
-        $scope.userId = $rootScope.repository.loggedUser.id;
-        $scope.customerId = $rootScope.repository.loggedUser.customerId;
+        $scope.idMascota = $routeParams.id;
+        $scope.idUsuario = $rootScope.repository.loggedUser.id;
+        $scope.idCliente = $rootScope.repository.loggedUser.customerId;
 
-        $scope.pet = {};
-        $scope.breeds = {};
-        $scope.sizes = {};
-        var pendingPhoto = null;
-        init();
+        $scope.mascota = {};
+        $scope.razas = {};
+        $scope.tamanos = {};
+        var fotoPendiente = null;
+        iniciar();
 
-        $scope.previewImage = null;
+        $scope.imagenPrevia = null;
 
-        $scope.onPhotoSelected = function ($files) {
+        $scope.alSeleccionarFoto = function ($files) {
             if (!$files || !$files.length) {
                 return;
             }
 
-            if ($scope.previewImage) {
-                URL.revokeObjectURL($scope.previewImage);
+            if ($scope.imagenPrevia) {
+                URL.revokeObjectURL($scope.imagenPrevia);
             }
-            $scope.previewImage = URL.createObjectURL($files[0]);
+            $scope.imagenPrevia = URL.createObjectURL($files[0]);
 
-            if ($scope.pet.id) {
-                fileUploadService.uploadProfileImage($files, 'pet', $scope.pet.id, function (profileImage) {
-                    $scope.pet.profileImage = profileImage;
+            if ($scope.mascota.id) {
+                servicioSubidaArchivos.subirImagenDePerfil($files, 'pet', $scope.mascota.id, function (profileImage) {
+                    $scope.mascota.profileImage = profileImage;
                 });
             } else {
-                pendingPhoto = $files;
+                fotoPendiente = $files;
             }
         }
 
-        function init() {
+        function iniciar() {
         var config = {
                 params: {
-                    id: $scope.petId
+                    id: $scope.idMascota
                 }
             }
-            apiService.get('/api/pets/getById', config, onLoadPetCompleted);
+            servicioApi.get('/api/pets/getById', config, alCargarMascota);
             //Traer las razas y los tamaños de la BD
-            apiService.get('/api/breeds/getAll', null, onLoadBreedsCompleted);
-            apiService.get('/api/sizes/getAll', null, onLoadSizesCompleted);
+            servicioApi.get('/api/breeds/getAll', null, alCargarRazas);
+            servicioApi.get('/api/sizes/getAll', null, alCargarTamanos);
 
         }
 
-        function onLoadCustomerCompleted(result) {
-            $scope.customerId = result.data.id;
+        function alCargarCliente(resultado) {
+            $scope.idCliente = resultado.data.id;
             
         }
 
-        function onLoadPetCompleted(result) {
-            $scope.pet = result.data;
+        function alCargarMascota(resultado) {
+            $scope.mascota = resultado.data;
         }
 
-        function onLoadBreedsCompleted(result) {
-            $scope.breeds = result.data;
+        function alCargarRazas(resultado) {
+            $scope.razas = resultado.data;
         }
 
-        function onLoadSizesCompleted(result) {
-            $scope.sizes = result.data;
+        function alCargarTamanos(resultado) {
+            $scope.tamanos = resultado.data;
         }
 
-        $scope.updatePet = function () {
-            if ($scope.pet.id) {
-                apiService.post('/api/pets/update', $scope.pet, onUpdatePetCompleted);
+        $scope.actualizarMascota = function () {
+            if ($scope.mascota.id) {
+                servicioApi.post('/api/pets/update', $scope.mascota, alActualizarMascota);
             }
             else {
-                $scope.pet.customerId = $scope.customerId;
-                apiService.post('/api/pets/register', $scope.pet, onRegisterPetCompleted);
+                $scope.mascota.customerId = $scope.idCliente;
+                servicioApi.post('/api/pets/register', $scope.mascota, alRegistrarMascota);
             }
         }
-        function onRegisterPetCompleted(response) {
-            if (response.status = 200) {
-                notificationService.displaySuccess(response.data.name + ' se ha registrado exitosamente.');
-                if (pendingPhoto) {
-                    fileUploadService.uploadProfileImage(pendingPhoto, 'pet', response.data.id, function () {
+        function alRegistrarMascota(respuesta) {
+            if (respuesta.status = 200) {
+                servicioNotificaciones.mostrarExito(respuesta.data.name + ' se ha registrado exitosamente.');
+                if (fotoPendiente) {
+                    servicioSubidaArchivos.subirImagenDePerfil(fotoPendiente, 'pet', respuesta.data.id, function () {
                         $location.path('/pets/list');
                     });
                 } else {
@@ -89,16 +89,16 @@
                 }
             }
             else {
-                notificationService.displayError('No se pudo registrar a tu mascota. Intente nuevamente');
+                servicioNotificaciones.mostrarError('No se pudo registrar a tu mascota. Intente nuevamente');
             }
         }
-        function onUpdatePetCompleted(response) {
-            if (response.status = 200) {
-                notificationService.displaySuccess('Cambios guardados con éxito');
+        function alActualizarMascota(respuesta) {
+            if (respuesta.status = 200) {
+                servicioNotificaciones.mostrarExito('Cambios guardados con éxito');
                 $location.path('/pets/list');
             }
             else {
-                notificationService.displayError('No se pudieron guardar los cambios realizados. Intente nuevamente');
+                servicioNotificaciones.mostrarError('No se pudieron guardar los cambios realizados. Intente nuevamente');
             }
         }
     }

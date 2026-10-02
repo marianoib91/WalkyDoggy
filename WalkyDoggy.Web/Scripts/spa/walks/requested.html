@@ -10,97 +10,97 @@
         </a>
     </div>
 
-    <p class="wd-field-hint" ng-if="loaded && toPay.length == 0 && upcoming.length == 0 && history.length == 0">Todavía no solicitaste ningún paseo. Elegí un paseador para reservar el primero.</p>
+    <p class="wd-field-hint" ng-if="cargado && porPagar.length == 0 && proximos.length == 0 && historial.length == 0">Todavía no solicitaste ningún paseo. Elegí un paseador para reservar el primero.</p>
 
-    <section ng-if="toPay.length > 0">
-        <h2 class="wd-section-title">Para pagar <span class="wd-count">{{toPay.length}}</span></h2>
+    <section ng-if="porPagar.length > 0">
+        <h2 class="wd-section-title">Para pagar <span class="wd-count">{{porPagar.length}}</span></h2>
         <div class="wd-walker-list">
-            <article class="wd-walker-card" ng-repeat="booking in toPay">
-                <img class="wd-avatar" ng-src="{{booking.walkerProfileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{booking.walkerName}}" />
+            <article class="wd-walker-card" ng-repeat="reserva in porPagar">
+                <img class="wd-avatar" ng-src="{{reserva.walkerProfileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{reserva.walkerName}}" />
                 <div class="wd-walker-info">
                     <div class="wd-walker-name-row">
-                        <h3 class="wd-walker-name">{{booking.walkerName}}</h3>
-                        <span class="wd-status" ng-class="statusClass(booking)">{{statusText(booking)}}</span>
+                        <h3 class="wd-walker-name">{{reserva.walkerName}}</h3>
+                        <span class="wd-status" ng-class="claseEstado(reserva)">{{textoEstado(reserva)}}</span>
                     </div>
                     <dl class="wd-walk-details">
                         <dt>Fecha</dt>
-                        <dd>{{dateText(booking)}}, {{timeText(booking)}}</dd>
+                        <dd>{{textoFecha(reserva)}}, {{textoHorario(reserva)}}</dd>
                         <dt>Mascotas</dt>
-                        <dd>{{petNames(booking)}}</dd>
+                        <dd>{{nombresMascotas(reserva)}}</dd>
                         <dt>Pago</dt>
-                        <dd>{{paymentText(booking)}} · <strong>${{booking.total | wdMoney}}</strong></dd>
-                        <dt ng-if="booking.ratingStars">Tu valoración</dt>
-                        <dd ng-if="booking.ratingStars"><wd-stars value="booking.ratingStars"></wd-stars></dd>
+                        <dd>{{textoPago(reserva)}} · <strong>${{reserva.total | wdMoney}}</strong></dd>
+                        <dt ng-if="reserva.ratingStars">Tu valoración</dt>
+                        <dd ng-if="reserva.ratingStars"><wd-stars value="booking.ratingStars"></wd-stars></dd>
                     </dl>
-                    <p class="wd-field-hint" ng-if="isMercadoPago(booking)">
-                        {{booking.walkerName}} ya terminó el paseo. Pagá con Mercado Pago: el dinero va directo a su cuenta.
+                    <p class="wd-field-hint" ng-if="esMercadoPago(reserva)">
+                        {{reserva.walkerName}} ya terminó el paseo. Pagá con Mercado Pago: el dinero va directo a su cuenta.
                     </p>
-                    <p class="wd-field-hint" ng-if="!isMercadoPago(booking)">
-                        {{booking.walkerName}} ya terminó el paseo. Pagale <strong>${{booking.total | wdMoney}}</strong> en efectivo; cuando confirme que lo recibió, el paseo queda cerrado.
+                    <p class="wd-field-hint" ng-if="!esMercadoPago(reserva)">
+                        {{reserva.walkerName}} ya terminó el paseo. Pagale <strong>${{reserva.total | wdMoney}}</strong> en efectivo; cuando confirme que lo recibió, el paseo queda cerrado.
                     </p>
                 </div>
                 <div class="wd-walk-actions">
-                    <button type="button" class="btn btn-primary" ng-if="isMercadoPago(booking)" ng-disabled="working" ng-click="pay(booking)">Pagar ${{booking.total | wdMoney}}</button>
-                    <button type="button" class="btn btn-default" ng-if="isMercadoPago(booking)" ng-disabled="working" ng-click="verifyPayment(booking)">Ya pagué, verificar</button>
-                    <button type="button" class="btn btn-default" ng-if="canRate(booking)" ng-click="rate(booking)"><i class="fa fa-star" aria-hidden="true"></i> Valorar al paseador</button>
+                    <button type="button" class="btn btn-primary" ng-if="esMercadoPago(reserva)" ng-disabled="trabajando" ng-click="pagar(reserva)">Pagar ${{reserva.total | wdMoney}}</button>
+                    <button type="button" class="btn btn-default" ng-if="esMercadoPago(reserva)" ng-disabled="trabajando" ng-click="verificarPago(reserva)">Ya pagué, verificar</button>
+                    <button type="button" class="btn btn-default" ng-if="puedeValorar(reserva)" ng-click="valorar(reserva)"><i class="fa fa-star" aria-hidden="true"></i> Valorar al paseador</button>
                 </div>
             </article>
         </div>
     </section>
 
-    <section ng-if="upcoming.length > 0">
+    <section ng-if="proximos.length > 0">
         <h2 class="wd-section-title">Próximos</h2>
         <div class="wd-walker-list">
-            <article class="wd-walker-card" ng-repeat="booking in upcoming">
-                <img class="wd-avatar" ng-src="{{booking.walkerProfileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{booking.walkerName}}" />
+            <article class="wd-walker-card" ng-repeat="reserva in proximos">
+                <img class="wd-avatar" ng-src="{{reserva.walkerProfileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{reserva.walkerName}}" />
                 <div class="wd-walker-info">
                     <div class="wd-walker-name-row">
-                        <h3 class="wd-walker-name">{{booking.walkerName}}</h3>
-                        <span class="wd-status" ng-class="statusClass(booking)">{{statusText(booking)}}</span>
+                        <h3 class="wd-walker-name">{{reserva.walkerName}}</h3>
+                        <span class="wd-status" ng-class="claseEstado(reserva)">{{textoEstado(reserva)}}</span>
                     </div>
                     <dl class="wd-walk-details">
                         <dt>Fecha</dt>
-                        <dd>{{dateText(booking)}}</dd>
+                        <dd>{{textoFecha(reserva)}}</dd>
                         <dt>Horario</dt>
-                        <dd>{{timeText(booking)}}</dd>
+                        <dd>{{textoHorario(reserva)}}</dd>
                         <dt>Mascotas</dt>
-                        <dd>{{petNames(booking)}}</dd>
+                        <dd>{{nombresMascotas(reserva)}}</dd>
                         <dt>Retiro en</dt>
-                        <dd>{{booking.location}}</dd>
+                        <dd>{{reserva.location}}</dd>
                         <dt>Pago</dt>
-                        <dd>{{paymentText(booking)}} · <strong>${{booking.total | wdMoney}}</strong></dd>
+                        <dd>{{textoPago(reserva)}} · <strong>${{reserva.total | wdMoney}}</strong></dd>
                     </dl>
                 </div>
-                <div class="wd-walk-actions" ng-if="canCancel(booking)">
-                    <button type="button" class="btn btn-danger" ng-click="cancel(booking)">Cancelar</button>
+                <div class="wd-walk-actions" ng-if="puedeCancelar(reserva)">
+                    <button type="button" class="btn btn-danger" ng-click="cancelar(reserva)">Cancelar</button>
                 </div>
             </article>
         </div>
     </section>
 
-    <section ng-if="history.length > 0">
+    <section ng-if="historial.length > 0">
         <h2 class="wd-section-title">Historial</h2>
         <div class="wd-walker-list">
-            <article class="wd-walker-card wd-walk-past" ng-repeat="booking in history">
-                <img class="wd-avatar wd-avatar-sm" ng-src="{{booking.walkerProfileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{booking.walkerName}}" />
+            <article class="wd-walker-card wd-walk-past" ng-repeat="reserva in historial">
+                <img class="wd-avatar wd-avatar-sm" ng-src="{{reserva.walkerProfileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{reserva.walkerName}}" />
                 <div class="wd-walker-info">
                     <div class="wd-walker-name-row">
-                        <h3 class="wd-walker-name">{{booking.walkerName}}</h3>
-                        <span class="wd-status" ng-class="statusClass(booking)">{{statusText(booking)}}</span>
+                        <h3 class="wd-walker-name">{{reserva.walkerName}}</h3>
+                        <span class="wd-status" ng-class="claseEstado(reserva)">{{textoEstado(reserva)}}</span>
                     </div>
                     <dl class="wd-walk-details">
                         <dt>Fecha</dt>
-                        <dd>{{dateText(booking)}}, {{timeText(booking)}}</dd>
+                        <dd>{{textoFecha(reserva)}}, {{textoHorario(reserva)}}</dd>
                         <dt>Mascotas</dt>
-                        <dd>{{petNames(booking)}}</dd>
-                        <dt ng-if="booking.status != 'Cancelled'">Pago</dt>
-                        <dd ng-if="booking.status != 'Cancelled'">{{paymentText(booking)}} · <strong>${{booking.total | wdMoney}}</strong></dd>
-                        <dt ng-if="booking.ratingStars">Tu valoración</dt>
-                        <dd ng-if="booking.ratingStars"><wd-stars value="booking.ratingStars"></wd-stars></dd>
+                        <dd>{{nombresMascotas(reserva)}}</dd>
+                        <dt ng-if="reserva.status != 'Cancelled'">Pago</dt>
+                        <dd ng-if="reserva.status != 'Cancelled'">{{textoPago(reserva)}} · <strong>${{reserva.total | wdMoney}}</strong></dd>
+                        <dt ng-if="reserva.ratingStars">Tu valoración</dt>
+                        <dd ng-if="reserva.ratingStars"><wd-stars value="booking.ratingStars"></wd-stars></dd>
                     </dl>
                 </div>
-                <div class="wd-walk-actions" ng-if="canRate(booking)">
-                    <button type="button" class="btn btn-default" ng-click="rate(booking)"><i class="fa fa-star" aria-hidden="true"></i> Valorar al paseador</button>
+                <div class="wd-walk-actions" ng-if="puedeValorar(reserva)">
+                    <button type="button" class="btn btn-default" ng-click="valorar(reserva)"><i class="fa fa-star" aria-hidden="true"></i> Valorar al paseador</button>
                 </div>
             </article>
         </div>

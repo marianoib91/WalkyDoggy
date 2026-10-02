@@ -1,37 +1,37 @@
 <div class="walker-profile">
-    <p class="wd-field-hint" ng-if="notFound">No encontramos a este paseador. <a href="#/">Volver al inicio</a></p>
+    <p class="wd-field-hint" ng-if="noEncontrado">No encontramos a este paseador. <a href="#/">Volver al inicio</a></p>
 
-    <div ng-if="walker">
+    <div ng-if="paseador">
         <section class="wd-profile-header">
-            <img class="wd-avatar wd-avatar-lg" ng-src="{{walker.profileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{walker.firstName}} {{walker.lastName}}" />
+            <img class="wd-avatar wd-avatar-lg" ng-src="{{paseador.profileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{paseador.firstName}} {{paseador.lastName}}" />
             <div class="wd-profile-main">
-                <h1 class="wd-page-title">{{walker.firstName}} {{walker.lastName}}</h1>
+                <h1 class="wd-page-title">{{paseador.firstName}} {{paseador.lastName}}</h1>
                 <div class="wd-walker-meta">
                     <i class="fa fa-map-marker" aria-hidden="true"></i>
-                    {{walker.cityName}}, {{walker.provinceName}}
+                    {{paseador.cityName}}, {{paseador.provinceName}}
                 </div>
-                <div class="wd-profile-rating" ng-if="walker.ratingCount > 0">
+                <div class="wd-profile-rating" ng-if="paseador.ratingCount > 0">
                     <wd-stars value="walker.averageRating"></wd-stars>
-                    <strong>{{formatAverage(walker.averageRating)}}</strong>
-                    <a href="" ng-click="goToOpinions()">{{countText(walker.ratingCount, 'calificación', 'calificaciones')}}</a>
+                    <strong>{{formatearPromedio(paseador.averageRating)}}</strong>
+                    <a href="" ng-click="irAOpiniones()">{{textoCantidad(paseador.ratingCount, 'calificación', 'calificaciones')}}</a>
                 </div>
-                <div class="wd-profile-rating wd-field-hint" ng-if="walker.ratingCount == 0">Todavía no tiene valoraciones</div>
-                <p class="wd-walker-desc">{{walker.description}}</p>
+                <div class="wd-profile-rating wd-field-hint" ng-if="paseador.ratingCount == 0">Todavía no tiene valoraciones</div>
+                <p class="wd-walker-desc">{{paseador.description}}</p>
             </div>
             <div class="wd-walker-price">
                 <div>
-                    <span class="wd-price-amount">${{walker.amount | wdMoney}}</span>
+                    <span class="wd-price-amount">${{paseador.amount | wdMoney}}</span>
                     <span class="wd-price-unit">/ hora</span>
                 </div>
-                <a class="btn btn-primary" ng-if="isCustomer" ng-href="#/walks/step-1?walkerId={{walker.id}}">Solicitar paseo</a>
-                <a class="btn btn-default" ng-if="isOwnProfile" href="#/work-conditions">Editar mis condiciones laborales</a>
+                <a class="btn btn-primary" ng-if="esCliente" ng-href="#/walks/step-1?idPaseador={{paseador.id}}">Solicitar paseo</a>
+                <a class="btn btn-default" ng-if="esPerfilPropio" href="#/work-conditions">Editar mis condiciones laborales</a>
             </div>
         </section>
 
         <section>
             <h2 class="wd-section-title">Disponibilidad semanal</h2>
             <dl class="wd-availability">
-                <div class="wd-availability-row" ng-repeat="item in availability" ng-class="{'is-off': !item.works}">
+                <div class="wd-availability-row" ng-repeat="item in disponibilidad" ng-class="{'is-off': !item.works}">
                     <dt>{{item.day}}</dt>
                     <dd>{{item.works ? item.text : 'No trabaja'}}</dd>
                 </div>
@@ -41,48 +41,48 @@
         <section id="opiniones">
             <h2 class="wd-section-title">Opiniones del paseador</h2>
 
-            <div class="wd-rating-empty" ng-if="summary && summary.count == 0">
+            <div class="wd-rating-empty" ng-if="resumen && resumen.count == 0">
                 <strong>Todavía nadie lo valoró</strong>
                 Las valoraciones aparecen cuando los clientes califican un paseo terminado.
             </div>
 
-            <div class="wd-rating-layout" ng-if="summary && summary.count > 0">
+            <div class="wd-rating-layout" ng-if="resumen && resumen.count > 0">
                 <aside class="wd-rating-summary">
-                    <div class="wd-rating-average" ng-if="summary.count > 0">
-                        <span class="wd-rating-number">{{formatAverage(summary.average)}}</span>
+                    <div class="wd-rating-average" ng-if="resumen.count > 0">
+                        <span class="wd-rating-number">{{formatearPromedio(resumen.average)}}</span>
                         <div>
                             <wd-stars value="summary.average" size="lg"></wd-stars>
-                            <div class="wd-field-hint">{{countText(summary.count, 'calificación', 'calificaciones')}}</div>
+                            <div class="wd-field-hint">{{textoCantidad(resumen.count, 'calificación', 'calificaciones')}}</div>
                         </div>
                     </div>
-                    <ul class="wd-rating-bars" ng-if="summary.count > 0">
-                        <li ng-repeat="bucket in summary.distribution">
-                            <button type="button" class="wd-rating-bar-row" ng-class="{'is-active': filter.stars == bucket.stars}"
-                                    ng-disabled="bucket.count == 0" ng-click="filter.stars = (filter.stars == bucket.stars ? '' : bucket.stars); refilter()"
-                                    aria-label="Ver las valoraciones de {{bucket.stars}} estrellas ({{bucket.count}})">
-                                <span class="wd-rating-bar-label">{{bucket.stars}} <i class="fa fa-star" aria-hidden="true"></i></span>
-                                <span class="wd-rating-bar"><span class="wd-rating-bar-fill" ng-style="{width: barWidth(bucket) + '%'}"></span></span>
-                                <span class="wd-rating-bar-count">{{bucket.count}}</span>
+                    <ul class="wd-rating-bars" ng-if="resumen.count > 0">
+                        <li ng-repeat="grupo in resumen.distribution">
+                            <button type="button" class="wd-rating-bar-row" ng-class="{'is-active': filter.stars == grupo.stars}"
+                                    ng-disabled="grupo.count == 0" ng-click="filter.stars = (filter.stars == grupo.stars ? '' : grupo.stars); filtrarDeNuevo()"
+                                    aria-label="Ver las valoraciones de {{grupo.stars}} estrellas ({{grupo.count}})">
+                                <span class="wd-rating-bar-label">{{grupo.stars}} <i class="fa fa-star" aria-hidden="true"></i></span>
+                                <span class="wd-rating-bar"><span class="wd-rating-bar-fill" ng-style="{width: anchoBarra(grupo) + '%'}"></span></span>
+                                <span class="wd-rating-bar-count">{{grupo.count}}</span>
                             </button>
                         </li>
                     </ul>
                 </aside>
 
-                <div class="wd-rating-list" ng-if="summary.count > 0">
+                <div class="wd-rating-list" ng-if="resumen.count > 0">
                     <div class="wd-rating-toolbar">
                         <div>
                             <strong>Opiniones</strong>
-                            <span class="wd-field-hint">{{countText(summary.commentCount, 'comentario', 'comentarios')}}</span>
+                            <span class="wd-field-hint">{{textoCantidad(resumen.commentCount, 'comentario', 'comentarios')}}</span>
                         </div>
                         <div class="wd-rating-filters">
                             <label class="sr-only" for="ratingSort">Ordenar</label>
-                            <select id="ratingSort" class="form-control" ng-model="filter.sort" ng-change="refilter()">
+                            <select id="ratingSort" class="form-control" ng-model="filter.sort" ng-change="filtrarDeNuevo()">
                                 <option value="recent">Más recientes</option>
                                 <option value="best">Mejor calificadas</option>
                                 <option value="worst">Peor calificadas</option>
                             </select>
                             <label class="sr-only" for="ratingStars">Calificación</label>
-                            <select id="ratingStars" class="form-control" ng-model="filter.stars" ng-change="refilter()">
+                            <select id="ratingStars" class="form-control" ng-model="filter.stars" ng-change="filtrarDeNuevo()">
                                 <option value="">Todas las calificaciones</option>
                                 <option value="5">5 estrellas</option>
                                 <option value="4">4 estrellas</option>
@@ -93,17 +93,17 @@
                         </div>
                     </div>
 
-                    <p class="wd-field-hint" ng-if="!loadingRatings && ratings.length == 0">No hay valoraciones con ese filtro.</p>
+                    <p class="wd-field-hint" ng-if="!cargandoValoraciones && valoraciones.length == 0">No hay valoraciones con ese filtro.</p>
 
-                    <article class="wd-review" ng-repeat="rating in ratings">
+                    <article class="wd-review" ng-repeat="valoracion in valoraciones">
                         <div class="wd-review-head">
                             <wd-stars value="rating.stars"></wd-stars>
-                            <span class="wd-field-hint">{{rating.authorName}} · {{dateText(rating.date)}}</span>
+                            <span class="wd-field-hint">{{valoracion.authorName}} · {{textoFecha(valoracion.date)}}</span>
                         </div>
-                        <p class="wd-review-text" ng-if="rating.comment">{{rating.comment}}</p>
+                        <p class="wd-review-text" ng-if="valoracion.comment">{{valoracion.comment}}</p>
                     </article>
 
-                    <button type="button" class="btn btn-default" ng-if="hasMore" ng-disabled="loadingRatings" ng-click="loadMore()">Ver más opiniones</button>
+                    <button type="button" class="btn btn-default" ng-if="hayMas" ng-disabled="cargandoValoraciones" ng-click="cargarMas()">Ver más opiniones</button>
                 </div>
             </div>
         </section>

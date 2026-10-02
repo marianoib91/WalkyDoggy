@@ -1,15 +1,15 @@
 ﻿(function (app) {
     'use strict';
 
-    app.controller('forgotPasswordCtrl', forgotPasswordCtrl);
+    app.controller('recuperarContrasenaCtrl', recuperarContrasenaCtrl);
 
-    forgotPasswordCtrl.$inject = ['$scope', 'membershipService', 'notificationService', '$rootScope', '$location'];
+    recuperarContrasenaCtrl.$inject = ['$scope', 'servicioMembresia', 'servicioNotificaciones', '$rootScope', '$location'];
 
-    function forgotPasswordCtrl($scope, membershipService, notificationService, $rootScope, $location) {
-        $scope.user = {};
-        $scope.recoverPassword = recoverPassword;
-        function recoverPassword() {
-            notificationService.displaySuccess("Contraseña recuperada con éxito");
+    function recuperarContrasenaCtrl($scope, servicioMembresia, servicioNotificaciones, $rootScope, $location) {
+        $scope.usuario = {};
+        $scope.recuperarContrasena = recuperarContrasena;
+        function recuperarContrasena() {
+            servicioNotificaciones.mostrarExito("Contraseña recuperada con éxito");
             $location.path('/');
         }
 

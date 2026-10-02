@@ -7,32 +7,32 @@
     </div>
 
     <div class="wd-form-layout">
-        <aside class="wd-side-card" ng-if="walker">
-            <img class="wd-avatar wd-avatar-lg" ng-src="{{walker.profileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{walker.firstName}} {{walker.lastName}}" />
+        <aside class="wd-side-card" ng-if="paseador">
+            <img class="wd-avatar wd-avatar-lg" ng-src="{{paseador.profileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{paseador.firstName}} {{paseador.lastName}}" />
             <div>
-                <div class="wd-side-name">{{walker.firstName}} {{walker.lastName}}</div>
-                <div class="wd-side-role">{{walker.cityName}}, {{walker.provinceName}}</div>
+                <div class="wd-side-name">{{paseador.firstName}} {{paseador.lastName}}</div>
+                <div class="wd-side-role">{{paseador.cityName}}, {{paseador.provinceName}}</div>
             </div>
             <div>
-                <span class="wd-price-amount">${{walker.amount | wdMoney}}</span>
+                <span class="wd-price-amount">${{paseador.amount | wdMoney}}</span>
                 <span class="wd-price-unit">/ hora</span>
             </div>
         </aside>
 
-        <form class="wd-form-card" ng-submit="submit()">
+        <form class="wd-form-card" ng-submit="enviar()">
             <section class="wd-form-section">
                 <h2 class="wd-form-section-title">Resumen del paseo</h2>
                 <dl class="wd-walk-details">
                     <dt>Fecha</dt>
-                    <dd>{{dateText}}</dd>
+                    <dd>{{textoFecha}}</dd>
                     <dt>Horario</dt>
-                    <dd>{{timeText}}</dd>
+                    <dd>{{textoHorario}}</dd>
                     <dt>Mascotas</dt>
-                    <dd>{{petNames}}</dd>
+                    <dd>{{nombresMascotas}}</dd>
                     <dt>Retiro en</dt>
-                    <dd>{{pickupText}} <span class="wd-distance" ng-if="pickupIsHome">(tu domicilio)</span></dd>
+                    <dd>{{textoRetiro}} <span class="wd-distance" ng-if="retiraEnDomicilio">(tu domicilio)</span></dd>
                     <dt>Precio por mascota</dt>
-                    <dd>${{walker.amount | wdMoney}}</dd>
+                    <dd>${{paseador.amount | wdMoney}}</dd>
                     <dt>Total</dt>
                     <dd><strong>${{total() | wdMoney}}</strong></dd>
                 </dl>
@@ -41,19 +41,19 @@
             <section class="wd-form-section">
                 <h2 class="wd-form-section-title">Método de pago</h2>
                 <div class="wd-choice-list" role="radiogroup" aria-label="Método de pago">
-                    <label class="wd-choice" ng-class="{'is-selected': payment.method == 'Cash'}">
-                        <input type="radio" name="paymentMethod" value="Cash" ng-model="payment.method">
+                    <label class="wd-choice" ng-class="{'is-selected': pago.method == 'Cash'}">
+                        <input type="radio" name="paymentMethod" value="Cash" ng-model="pago.method">
                         <span class="wd-choice-body">
                             <span class="wd-choice-title">Efectivo</span>
                             <span class="wd-choice-text">Le pagás al paseador en mano cuando termina el paseo.</span>
                         </span>
                     </label>
-                    <label class="wd-choice" ng-class="{'is-selected': payment.method == 'MercadoPago', 'is-disabled': !mpEnabled}">
-                        <input type="radio" name="paymentMethod" value="MercadoPago" ng-model="payment.method" ng-disabled="!mpEnabled">
+                    <label class="wd-choice" ng-class="{'is-selected': pago.method == 'MercadoPago', 'is-disabled': !mpHabilitado}">
+                        <input type="radio" name="paymentMethod" value="MercadoPago" ng-model="pago.method" ng-disabled="!mpHabilitado">
                         <span class="wd-choice-body">
                             <span class="wd-choice-title">Mercado Pago</span>
-                            <span class="wd-choice-text" ng-if="mpEnabled">Pagás online cuando el paseador termine el paseo. El dinero va directo a la cuenta del paseador.</span>
-                            <span class="wd-choice-text" ng-if="walker && !mpEnabled">No disponible: este paseador todavía no vinculó su cuenta de Mercado Pago.</span>
+                            <span class="wd-choice-text" ng-if="mpHabilitado">Pagás online cuando el paseador termine el paseo. El dinero va directo a la cuenta del paseador.</span>
+                            <span class="wd-choice-text" ng-if="paseador && !mpHabilitado">No disponible: este paseador todavía no vinculó su cuenta de Mercado Pago.</span>
                         </span>
                     </label>
                 </div>
@@ -67,13 +67,13 @@
                               rows="3"
                               class="form-control"
                               placeholder="Por ejemplo: cómo retirar a la mascota, cuidados especiales, etc."
-                              ng-model="details"></textarea>
+                              ng-model="detalles"></textarea>
                 </div>
             </section>
 
             <div class="wd-form-footer">
-                <a class="btn btn-default" ng-href="#/walks/step-1?walkerId={{draft.walkerId}}" style="margin-right:12px">Volver al paso 1</a>
-                <button type="submit" class="btn btn-primary" ng-disabled="saving || !walker">Confirmar paseo</button>
+                <a class="btn btn-default" ng-href="#/walks/step-1?idPaseador={{borrador.walkerId}}" style="margin-right:12px">Volver al paso 1</a>
+                <button type="submit" class="btn btn-primary" ng-disabled="guardando || !paseador">Confirmar paseo</button>
             </div>
         </form>
     </div>

@@ -12,10 +12,10 @@
         </a>
     </div>
     <div class="navbar-container collapse navbar-collapse pull-right">
-        <div class="pull-right" ng-show="!userData.isUserLoggedIn">
+        <div class="pull-right" ng-show="!userData.haySesion">
             <ul class="nav navbar-nav">
                 <li>
-                    <a class="topbar-button" href="" ng-click="openRegisterModal()">
+                    <a class="topbar-button" href="" ng-click="abrirModalRegistro()">
                         Registrarme
                         <div class="topbar-icon">
                             <i class="fa fa-user-plus fa-fw pull-right"></i>
@@ -25,7 +25,7 @@
             </ul>
             <ul class="nav navbar-nav">
                 <li>
-                    <a class="topbar-button" href="" ng-click="openLoginModal()">
+                    <a class="topbar-button" href="" ng-click="abrirModalInicioSesion()">
                         Iniciar sesión
                         <div class="topbar-icon">
                             <i class="fa fa-sign-in fa-fw pull-right">
@@ -35,7 +35,7 @@
                 </li>
             </ul>
         </div>
-        <div ng-show="userData.isUserLoggedIn" class="pull-right">
+        <div ng-show="userData.haySesion" class="pull-right">
             <ul class="nav navbar-nav" ng-show="roleId!=3">
                 <li>
                     <a class="topbar-button" href="#/pets/list">
@@ -98,7 +98,7 @@
                     </a>
                 </li>
             </ul>-->
-            <ul class="nav navbar-nav navbar-right" ng-show="userData.isUserLoggedIn">
+            <ul class="nav navbar-nav navbar-right" ng-show="userData.haySesion">
                 <li class="userinfo dropdown">
                     <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
 
@@ -108,7 +108,7 @@
                     <ul class="dropdown-menu">
                         <li><a href="#/profile">Mi perfil</a></li>
                         <li><a href="">Cambiar contraseña</a></li>
-                        <li><a href="" ng-click="logout()">Cerrar sesión</a></li>
+                        <li><a href="" ng-click="cerrarSesion()">Cerrar sesión</a></li>
                     </ul>
                 </li>
             </ul>

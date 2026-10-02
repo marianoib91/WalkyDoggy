@@ -1,24 +1,24 @@
 ﻿(function (app) {
     'use strict';
 
-    app.controller('registerModalCtrl', registerModalCtrl);
+    app.controller('registroModalCtrl', registroModalCtrl);
 
-    registerModalCtrl.$inject = ['$scope', 'membershipService', 'notificationService', '$rootScope', '$location', '$modalInstance'];
+    registroModalCtrl.$inject = ['$scope', 'servicioMembresia', 'servicioNotificaciones', '$rootScope', '$location', '$modalInstance'];
 
-    function registerModalCtrl($scope, membershipService, notificationService, $rootScope, $location, $modalInstance) {
+    function registroModalCtrl($scope, servicioMembresia, servicioNotificaciones, $rootScope, $location, $modalInstance) {
 
-        $scope.register = function (redirectCode) {
-            if (redirectCode == 1) {
+        $scope.registrar = function (codigoRedireccion) {
+            if (codigoRedireccion == 1) {
                 $modalInstance.close();
                 $location.path('/register/walker');
             }
-            else if (redirectCode == 2) {
+            else if (codigoRedireccion == 2) {
                 $modalInstance.close();
                 $location.path('/register/customer');
             }
         }
 
-        $scope.closeModal = function () {
+        $scope.cerrarModal = function () {
             $modalInstance.close();
         }
     }

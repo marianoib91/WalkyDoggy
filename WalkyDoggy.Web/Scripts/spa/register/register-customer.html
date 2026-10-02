@@ -1,11 +1,11 @@
 ﻿<div class="row">
-    <form class="form-signin" role="form" novalidate angular-validator name="userRegistrationForm" angular-validator-submit="register()">
+    <form class="form-signin" role="form" novalidate angular-validator name="userRegistrationForm" angular-validator-submit="registrar()">
         <h3 class="form-signin-heading">Cliente - Registrar nueva cuenta</h3>
         <div class="form-group">
             <input type="text"
                    name="inputFirstName"
                    class="form-control"
-                   ng-model="customer.firstName"
+                   ng-model="cliente.firstName"
                    placeholder="Nombre"
                    validate-on="blur"
                    required
@@ -15,7 +15,7 @@
             <input type="text"
                    name="inputLastName"
                    class="form-control"
-                   ng-model="customer.lastName"
+                   ng-model="cliente.lastName"
                    placeholder="Apellido"
                    validate-on="blur"
                    required
@@ -27,7 +27,7 @@
                    class="form-control"
                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"
                    invalid-message="'El email ingresado no es válido'"
-                   ng-model="customer.email"
+                   ng-model="cliente.email"
                    placeholder="Email"
                    validate-on="blur"
                    required
@@ -37,7 +37,7 @@
             <input type="number"
                    name="inputPhoneNumber"
                    class="form-control"
-                   ng-model="customer.phone"
+                   ng-model="cliente.phone"
                    pattern=".{10,}"
                    invalid-message="'El teléfono ingresado no es válido'"
                    placeholder="Teléfono Celular"
@@ -46,13 +46,13 @@
                    required-message="'Teléfono Celular es requerido.'">
         </div>
         <div class="form-group">
-            <wd-address-field address="customer"></wd-address-field>
+            <wd-address-field address="cliente"></wd-address-field>
         </div>
         <div class="form-group">
             <input type="password"
                    name="inputPassword"
                    class="form-control"
-                   ng-model="customer.password"
+                   ng-model="cliente.password"
                    placeholder="Contraseña"
                    validate-on="blur"
                    pattern=".{6,}"
@@ -65,7 +65,7 @@
                    name="inputConfirmPassword"
                    class="form-control"
                    placeholder="Confirmar contraseña"
-                   ng-model="customer.confirmPassword"
+                   ng-model="cliente.confirmPassword"
                    validate-on="blur"
                    pattern=".{6,}"
                    invalid-message="'Debe contener al menos 6 caracteres'"

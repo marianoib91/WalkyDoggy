@@ -6,26 +6,26 @@
         </div>
     </div>
 
-    <article class="wd-walker-card wd-booking-walker" ng-if="walker">
-        <img class="wd-avatar" ng-src="{{walker.profileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{walker.firstName}} {{walker.lastName}}" />
+    <article class="wd-walker-card wd-booking-walker" ng-if="paseador">
+        <img class="wd-avatar" ng-src="{{paseador.profileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{paseador.firstName}} {{paseador.lastName}}" />
         <div class="wd-walker-info">
-            <h2 class="wd-walker-name">{{walker.firstName}} {{walker.lastName}}</h2>
+            <h2 class="wd-walker-name">{{paseador.firstName}} {{paseador.lastName}}</h2>
             <div class="wd-walker-meta">
                 <i class="fa fa-map-marker" aria-hidden="true"></i>
-                {{walker.cityName}}, {{walker.provinceName}}
+                {{paseador.cityName}}, {{paseador.provinceName}}
             </div>
-            <p class="wd-walker-desc" ng-if="hasSchedule">Trabaja los días: {{workDaysText}}.</p>
-            <p class="wd-walker-desc" ng-if="!hasSchedule">Este paseador todavía no cargó sus días y horarios de trabajo.</p>
+            <p class="wd-walker-desc" ng-if="tieneHorario">Trabaja los días: {{textoJornadas}}.</p>
+            <p class="wd-walker-desc" ng-if="!tieneHorario">Este paseador todavía no cargó sus días y horarios de trabajo.</p>
         </div>
         <div class="wd-walker-price">
             <div>
-                <span class="wd-price-amount">${{walker.amount | wdMoney}}</span>
+                <span class="wd-price-amount">${{paseador.amount | wdMoney}}</span>
                 <span class="wd-price-unit">/ hora</span>
             </div>
         </div>
     </article>
 
-    <form role="form" novalidate angular-validator name="walkRequest" angular-validator-submit="submit()">
+    <form role="form" novalidate angular-validator name="walkRequest" angular-validator-submit="enviar()">
         <div class="wd-form-card">
             <section class="wd-form-section">
                 <h2 class="wd-form-section-title">Día y horario</h2>
@@ -37,9 +37,9 @@
                                name="txtStartDay"
                                type="text"
                                readonly="readonly"
-                               options="opts"
-                               ng-model="walk.date"
-                               ng-disabled="!hasSchedule"
+                               options="opcionesCalendario"
+                               ng-model="paseo.date"
+                               ng-disabled="!tieneHorario"
                                class="date-picker form-control"
                                validate-on="blur"
                                required
@@ -50,63 +50,63 @@
                         <select name="inputInitTime"
                                 id="inputInitTime"
                                 class="form-control"
-                                ng-model="walk.timeFrom"
-                                ng-options="time for time in times"
-                                ng-disabled="times.length==0"
+                                ng-model="paseo.timeFrom"
+                                ng-options="time for time in horarios"
+                                ng-disabled="horarios.length==0"
                                 validate-on="blur"
                                 required
                                 required-message="'Hora de inicio es requerido.'">
                             <option value="" disabled selected>Seleccione hora de inicio</option>
                         </select>
-                        <p class="wd-field-hint" ng-if="walk.date && !loadingTimes && times.length==0">No quedan horarios disponibles ese día. Probá con otra fecha.</p>
+                        <p class="wd-field-hint" ng-if="paseo.date && !cargandoHorarios && horarios.length==0">No quedan horarios disponibles ese día. Probá con otra fecha.</p>
                     </div>
                 </div>
             </section>
 
             <section class="wd-form-section">
                 <h2 class="wd-form-section-title">Mascotas a pasear</h2>
-                <p class="wd-field-hint" ng-if="pets.length>0">Seleccioná una o más mascotas para el paseo.</p>
+                <p class="wd-field-hint" ng-if="mascotas.length>0">Seleccioná una o más mascotas para el paseo.</p>
                 <div class="wd-select-list">
-                    <div class="wd-select-item" ng-repeat="pet in pets" ng-class="{'is-selected': pet.selectedPet}">
+                    <div class="wd-select-item" ng-repeat="mascota in mascotas" ng-class="{'is-selected': mascota.selectedPet}">
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" ng-model="pet.selectedPet">
+                                <input type="checkbox" ng-model="mascota.selectedPet">
                                 <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-                                <img class="wd-avatar wd-avatar-sm" ng-src="{{pet.profileImage || '/Content/images/avatar-pet.svg'}}" alt="" />
-                                <span class="wd-select-name">{{pet.name}}</span>
+                                <img class="wd-avatar wd-avatar-sm" ng-src="{{mascota.profileImage || '/Content/images/avatar-pet.svg'}}" alt="" />
+                                <span class="wd-select-name">{{mascota.name}}</span>
                             </label>
                         </div>
                     </div>
                 </div>
-                <p class="wd-field-hint" ng-if="pets.length==0">No tenés mascotas en tu lista de mascotas. Andá a la sección "Mis mascotas" del menú superior para agregarlas.</p>
+                <p class="wd-field-hint" ng-if="mascotas.length==0">No tenés mascotas en tu lista de mascotas. Andá a la sección "Mis mascotas" del menú superior para agregarlas.</p>
             </section>
 
             <section class="wd-form-section">
                 <h2 class="wd-form-section-title">Dónde retiramos a tus mascotas</h2>
                 <div class="wd-choice-list" role="radiogroup" aria-label="Dirección de retiro">
-                    <label class="wd-choice" ng-class="{'is-selected': pickup.mode == 'home'}">
-                        <input type="radio" name="pickupMode" value="home" ng-model="pickup.mode">
+                    <label class="wd-choice" ng-class="{'is-selected': retiro.mode == 'home'}">
+                        <input type="radio" name="pickupMode" value="home" ng-model="retiro.mode">
                         <span class="wd-choice-body">
                             <span class="wd-choice-title">En mi domicilio</span>
-                            <span class="wd-choice-text">{{homeAddress}}</span>
+                            <span class="wd-choice-text">{{domicilio}}</span>
                         </span>
                     </label>
-                    <label class="wd-choice" ng-class="{'is-selected': pickup.mode == 'other'}">
-                        <input type="radio" name="pickupMode" value="other" ng-model="pickup.mode">
+                    <label class="wd-choice" ng-class="{'is-selected': retiro.mode == 'other'}">
+                        <input type="radio" name="pickupMode" value="other" ng-model="retiro.mode">
                         <span class="wd-choice-body">
                             <span class="wd-choice-title">En otra dirección</span>
                             <span class="wd-choice-text">Por ejemplo, si en este momento estás con tus mascotas en otro lugar.</span>
                         </span>
                     </label>
                 </div>
-                <div ng-if="pickup.mode == 'other'">
-                    <wd-address-field address="pickup.other" allow-locate="true"></wd-address-field>
+                <div ng-if="retiro.mode == 'other'">
+                    <wd-address-field address="retiro.other" allow-locate="true"></wd-address-field>
                 </div>
             </section>
 
             <div class="wd-form-footer">
                 <a class="btn btn-default" href="#/" style="margin-right:12px">Cancelar</a>
-                <button type="submit" class="btn btn-primary" ng-disabled="!hasSchedule">Continuar</button>
+                <button type="submit" class="btn btn-primary" ng-disabled="!tieneHorario">Continuar</button>
             </div>
         </div>
     </form>

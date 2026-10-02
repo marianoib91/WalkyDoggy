@@ -4,10 +4,10 @@
             <h1 class="wd-page-title">Condiciones laborales</h1>
             <p class="wd-page-subtitle">Elegí cuándo trabajás, cuánto cobrás por hora y contales a tus clientes sobre vos.</p>
         </div>
-        <a class="btn btn-default" ng-href="#/walkers/{{walker.id}}" ng-if="walker">Ver mi perfil público</a>
+        <a class="btn btn-default" ng-href="#/paseadores/{{paseador.id}}" ng-if="paseador">Ver mi perfil público</a>
     </div>
 
-    <form class="wd-form-card" role="form" novalidate ng-submit="submit()">
+    <form class="wd-form-card" role="form" novalidate ng-submit="enviar()">
         <section class="wd-form-section">
             <h2 class="wd-form-section-title">Horarios en los que trabajás</h2>
             <p class="wd-field-hint">
@@ -17,38 +17,38 @@
             </p>
 
             <div class="wd-week-tools">
-                <button type="button" class="btn btn-default" ng-click="fillAll(true)">Todos los días, las 24 horas</button>
-                <button type="button" class="btn btn-default" ng-click="fillAll(false)">Limpiar todo</button>
-                <span class="wd-field-hint" ng-if="loaded">Trabajás {{workedDays()}} {{workedDays() == 1 ? 'día' : 'días'}} · {{weeklyHours()}} {{weeklyHours() == 1 ? 'hora' : 'horas'}} por semana</span>
+                <button type="button" class="btn btn-default" ng-click="llenarTodo(true)">Todos los días, las 24 horas</button>
+                <button type="button" class="btn btn-default" ng-click="llenarTodo(false)">Limpiar todo</button>
+                <span class="wd-field-hint" ng-if="cargado">Trabajás {{diasTrabajados()}} {{diasTrabajados() == 1 ? 'día' : 'días'}} · {{horasSemanales()}} {{horasSemanales() == 1 ? 'hora' : 'horas'}} por semana</span>
             </div>
 
             <div class="wd-week-scroll">
                 <div class="wd-week" role="group" aria-label="Horarios de trabajo por día">
                     <div class="wd-week-row wd-week-head">
                         <div class="wd-week-day"></div>
-                        <div class="wd-week-hour-label" ng-repeat="hour in hours">{{hour}}</div>
+                        <div class="wd-week-hour-label" ng-repeat="hora in horas">{{hora}}</div>
                     </div>
 
-                    <div class="wd-week-row" ng-repeat="day in days">
+                    <div class="wd-week-row" ng-repeat="dia in dias">
                         <div class="wd-week-day">
-                            <span class="wd-week-day-name">{{day}}</span>
+                            <span class="wd-week-day-name">{{dia}}</span>
                             <span class="wd-week-day-actions">
-                                <a href="" ng-click="fillDay(day, true)" title="Marcar todo el día">Todo</a>
-                                <a href="" ng-click="fillDay(day, false)" title="Desmarcar todo el día">Nada</a>
-                                <a href="" ng-click="copyToAll(day)" title="Copiar este horario a todos los días">Copiar</a>
+                                <a href="" ng-click="llenarDia(dia, true)" title="Marcar todo el día">Todo</a>
+                                <a href="" ng-click="llenarDia(dia, false)" title="Desmarcar todo el día">Nada</a>
+                                <a href="" ng-click="copiarATodos(dia)" title="Copiar este horario a todos los días">Copiar</a>
                             </span>
                         </div>
-                        <button type="button" class="wd-hour" ng-repeat="hour in hours" ng-class="{'is-on': week[day][hour]}"
-                                ng-mousedown="startPaint(day, hour, $event)" ng-mouseenter="paintOver(day, hour)"
-                                aria-pressed="{{week[day][hour]}}" aria-label="{{day}} de {{hour}}:00 a {{hour + 1}}:00"></button>
+                        <button type="button" class="wd-hour" ng-repeat="hora in horas" ng-class="{'is-on': semana[dia][hora]}"
+                                ng-mousedown="empezarAPintar(dia, hora, $event)" ng-mouseenter="pintarAlPasar(dia, hora)"
+                                aria-pressed="{{semana[dia][hora]}}" aria-label="{{dia}} de {{hora}}:00 a {{hora + 1}}:00"></button>
                     </div>
                 </div>
             </div>
 
             <dl class="wd-availability">
-                <div class="wd-availability-row" ng-repeat="day in days" ng-class="{'is-off': summaryOf(day) == 'No trabajás'}">
-                    <dt>{{day}}</dt>
-                    <dd>{{summaryOf(day)}}</dd>
+                <div class="wd-availability-row" ng-repeat="dia in dias" ng-class="{'is-off': resumenDe(dia) == 'No trabajás'}">
+                    <dt>{{dia}}</dt>
+                    <dd>{{resumenDe(dia)}}</dd>
                 </div>
             </dl>
         </section>
@@ -79,7 +79,7 @@
 
         <div class="wd-form-footer">
             <a class="btn btn-default" href="#/" style="margin-right:12px">Cancelar</a>
-            <button type="submit" class="btn btn-primary btn-lg" ng-disabled="saving || !loaded">{{saving ? 'Guardando...' : 'Guardar cambios'}}</button>
+            <button type="submit" class="btn btn-primary btn-lg" ng-disabled="guardando || !cargado">{{guardando ? 'Guardando...' : 'Guardar cambios'}}</button>
         </div>
     </form>
 </div>

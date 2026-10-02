@@ -1,123 +1,123 @@
 (function (app) {
     'use strict';
 
-    app.controller('walkerProfileCtrl', walkerProfileCtrl);
+    app.controller('perfilPaseadorCtrl', perfilPaseadorCtrl);
 
-    walkerProfileCtrl.$inject = ['$scope', 'apiService', 'notificationService', '$routeParams', '$rootScope'];
+    perfilPaseadorCtrl.$inject = ['$scope', 'servicioApi', 'servicioNotificaciones', '$routeParams', '$rootScope'];
 
-    function walkerProfileCtrl($scope, apiService, notificationService, $routeParams, $rootScope) {
-        var pageSize = 8;
-        var days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    function perfilPaseadorCtrl($scope, servicioApi, servicioNotificaciones, $routeParams, $rootScope) {
+        var tamanoPagina = 8;
+        var dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
-        $scope.walkerId = Number($routeParams.id);
+        $scope.idPaseador = Number($routeParams.id);
         $scope.roleId = $rootScope.repository.loggedUser.roleId;
-        $scope.isCustomer = $scope.roleId == 2;
-        $scope.isOwnProfile = $scope.roleId == 3 && $rootScope.repository.loggedUser.walkerId == $scope.walkerId;
+        $scope.esCliente = $scope.roleId == 2;
+        $scope.esPerfilPropio = $scope.roleId == 3 && $rootScope.repository.loggedUser.walkerId == $scope.idPaseador;
 
-        $scope.walker = null;
-        $scope.notFound = false;
-        $scope.availability = [];
-        $scope.summary = null;
-        $scope.ratings = [];
+        $scope.paseador = null;
+        $scope.noEncontrado = false;
+        $scope.disponibilidad = [];
+        $scope.resumen = null;
+        $scope.valoraciones = [];
         $scope.total = 0;
-        $scope.hasMore = false;
-        $scope.loadingRatings = false;
+        $scope.hayMas = false;
+        $scope.cargandoValoraciones = false;
         $scope.filter = { sort: 'recent', stars: '' };
 
-        var page = 1;
+        var pagina = 1;
 
-        init();
+        iniciar();
 
-        function init() {
-            apiService.get('/api/walkers/getDetail', { params: { id: $scope.walkerId } }, function (result) {
-                if (!result.data) {
-                    $scope.notFound = true;
+        function iniciar() {
+            servicioApi.get('/api/walkers/getDetail', { params: { id: $scope.idPaseador } }, function (resultado) {
+                if (!resultado.data) {
+                    $scope.noEncontrado = true;
                     return;
                 }
-                $scope.walker = result.data;
+                $scope.paseador = resultado.data;
             });
 
-            apiService.get('/api/workDays/getAllByWalkerId', { params: { walkerId: $scope.walkerId } }, function (result) {
-                $scope.availability = buildAvailability(result.data);
+            servicioApi.get('/api/workDays/getAllByWalkerId', { params: { walkerId: $scope.idPaseador } }, function (resultado) {
+                $scope.disponibilidad = armarDisponibilidad(resultado.data);
             });
 
-            apiService.get('/api/ratings/summary', { params: { walkerId: $scope.walkerId } }, function (result) {
-                $scope.summary = result.data;
+            servicioApi.get('/api/ratings/summary', { params: { walkerId: $scope.idPaseador } }, function (resultado) {
+                $scope.resumen = resultado.data;
             });
 
-            loadRatings(true);
+            cargarValoraciones(true);
         }
 
         //Un renglon por dia con sus franjas: "08:00 a 14:00 · 16:00 a 20:00" o "Todo el día"
-        function buildAvailability(workDays) {
-            return days.map(function (day) {
-                var ranges = workDays.filter(function (workDay) { return workDay.dayOfWeek === day; })
+        function armarDisponibilidad(jornadas) {
+            return dias.map(function (dia) {
+                var franjas = jornadas.filter(function (jornada) { return jornada.dayOfWeek === dia; })
                                      .sort(function (a, b) { return a.timeFrom < b.timeFrom ? -1 : 1; });
 
-                var text = ranges.map(function (range) {
+                var texto = franjas.map(function (range) {
                     return range.timeFrom === '00:00' && range.timeUntil === '24:00'
                         ? 'Todo el día'
                         : range.timeFrom + ' a ' + range.timeUntil;
                 }).join(' · ');
 
-                return { day: day, works: ranges.length > 0, text: text };
+                return { day: dia, works: franjas.length > 0, text: texto };
             });
         }
 
-        function loadRatings(reset) {
-            if (reset) {
-                page = 1;
+        function cargarValoraciones(reiniciar) {
+            if (reiniciar) {
+                pagina = 1;
             }
 
-            $scope.loadingRatings = true;
-            var params = { walkerId: $scope.walkerId, sort: $scope.filter.sort, page: page, pageSize: pageSize };
+            $scope.cargandoValoraciones = true;
+            var parametros = { walkerId: $scope.idPaseador, sort: $scope.filter.sort, page: pagina, pageSize: tamanoPagina };
             if ($scope.filter.stars) {
-                params.stars = $scope.filter.stars;
+                parametros.stars = $scope.filter.stars;
             }
 
-            apiService.get('/api/ratings/list', { params: params }, function (result) {
-                $scope.ratings = reset ? result.data.items : $scope.ratings.concat(result.data.items);
-                $scope.total = result.data.total;
-                $scope.hasMore = result.data.hasMore;
-                $scope.loadingRatings = false;
+            servicioApi.get('/api/ratings/list', { params: parametros }, function (resultado) {
+                $scope.valoraciones = reiniciar ? resultado.data.items : $scope.valoraciones.concat(resultado.data.items);
+                $scope.total = resultado.data.total;
+                $scope.hayMas = resultado.data.hasMore;
+                $scope.cargandoValoraciones = false;
             }, function () {
-                $scope.loadingRatings = false;
-                notificationService.displayError('No se pudieron cargar las opiniones.');
+                $scope.cargandoValoraciones = false;
+                servicioNotificaciones.mostrarError('No se pudieron cargar las opiniones.');
             });
         }
 
-        $scope.refilter = function () {
-            loadRatings(true);
+        $scope.filtrarDeNuevo = function () {
+            cargarValoraciones(true);
         };
 
         //Lleva a la seccion de opiniones (el enlace "N calificaciones" de la cabecera)
-        $scope.goToOpinions = function () {
-            var section = document.getElementById('opiniones');
-            if (section && section.scrollIntoView) {
-                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        $scope.irAOpiniones = function () {
+            var seccion = document.getElementById('opiniones');
+            if (seccion && seccion.scrollIntoView) {
+                seccion.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         };
 
-        $scope.loadMore = function () {
-            page++;
-            loadRatings(false);
+        $scope.cargarMas = function () {
+            pagina++;
+            cargarValoraciones(false);
         };
 
-        $scope.formatAverage = function (value) {
-            return value === null || value === undefined ? '' : Number(value).toFixed(1).replace('.', ',');
+        $scope.formatearPromedio = function (valor) {
+            return valor === null || valor === undefined ? '' : Number(valor).toFixed(1).replace('.', ',');
         };
 
         //Ancho de la barra de cada cantidad de estrellas, en proporcion al total de valoraciones
-        $scope.barWidth = function (bucket) {
-            return $scope.summary && $scope.summary.count > 0 ? Math.round(bucket.count * 100 / $scope.summary.count) : 0;
+        $scope.anchoBarra = function (grupo) {
+            return $scope.resumen && $scope.resumen.count > 0 ? Math.round(grupo.count * 100 / $scope.resumen.count) : 0;
         };
 
-        $scope.dateText = function (date) {
-            return moment(date).format('DD/MM/YYYY');
+        $scope.textoFecha = function (fecha) {
+            return moment(fecha).format('DD/MM/YYYY');
         };
 
-        $scope.countText = function (count, singular, plural) {
-            return count + ' ' + (count === 1 ? singular : plural);
+        $scope.textoCantidad = function (cantidad, singular, plural) {
+            return cantidad + ' ' + (cantidad === 1 ? singular : plural);
         };
     }
 

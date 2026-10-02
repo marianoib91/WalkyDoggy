@@ -1,11 +1,11 @@
 ﻿(function (app) {
     'use strict';
 
-    app.controller('homePublicCtrl', homePublicCtrl);
+    app.controller('inicioPublicoCtrl', inicioPublicoCtrl);
 
-    homePublicCtrl.$inject = ['$scope', 'apiService', 'notificationService'];
+    inicioPublicoCtrl.$inject = ['$scope', 'servicioApi', 'servicioNotificaciones'];
 
-    function homePublicCtrl($scope, apiService, notificationService) {
+    function inicioPublicoCtrl($scope, servicioApi, servicioNotificaciones) {
 
         //init();
 

@@ -1,58 +1,58 @@
 ﻿(function (app) {
     'use strict';
 
-    app.factory('fileUploadService', fileUploadService);
+    app.factory('servicioSubidaArchivos', servicioSubidaArchivos);
 
-    fileUploadService.$inject = ['$rootScope', '$http', '$timeout', '$upload', 'notificationService'];
+    servicioSubidaArchivos.$inject = ['$rootScope', '$http', '$timeout', '$upload', 'servicioNotificaciones'];
 
-    function fileUploadService($rootScope, $http, $timeout, $upload, notificationService) {
+    function servicioSubidaArchivos($rootScope, $http, $timeout, $upload, servicioNotificaciones) {
 
         $rootScope.upload = [];
 
-        var service = {
+        var servicio = {
             uploadImage: uploadImage,
-            uploadProfileImage: uploadProfileImage
+            subirImagenDePerfil: subirImagenDePerfil
         }
 
-        function uploadProfileImage($files, entityType, entityId, callback) {
+        function subirImagenDePerfil($files, tipoEntidad, idEntidad, alTerminar) {
             var $file = $files[0];
             if (!$file) return;
 
             $upload.upload({
-                url: 'api/images/' + entityType + '/' + entityId,
+                url: 'api/images/' + tipoEntidad + '/' + idEntidad,
                 method: 'POST',
                 file: $file
             }).progress(function (evt) {
             }).success(function (data, status, headers, config) {
-                notificationService.displaySuccess('Imagen actualizada con éxito');
-                callback(data.profileImage);
+                servicioNotificaciones.mostrarExito('Imagen actualizada con éxito');
+                alTerminar(data.profileImage);
             }).error(function (data, status, headers, config) {
-                notificationService.displayError(data || 'No se pudo subir la imagen. Intente nuevamente');
+                servicioNotificaciones.mostrarError(data || 'No se pudo subir la imagen. Intente nuevamente');
             });
         }
 
-        function uploadImage($files, movieId, callback) {
+        function uploadImage($files, movieId, alTerminar) {
             //$files: lista de archivos seleccionados
             for (var i = 0; i < $files.length; i++) {
                 var $file = $files[i];
-                (function (index) {
-                    $rootScope.upload[index] = $upload.upload({
+                (function (indice) {
+                    $rootScope.upload[indice] = $upload.upload({
                         url: "api/movies/images/upload?movieId=" + movieId, // url de la API
                         method: "POST",
                         file: $file
                     }).progress(function (evt) {
                     }).success(function (data, status, headers, config) {
                         // el archivo se subio correctamente
-                        notificationService.displaySuccess(data.FileName + ' uploaded successfully');
-                        callback();
+                        servicioNotificaciones.mostrarExito(data.FileName + ' uploaded successfully');
+                        alTerminar();
                     }).error(function (data, status, headers, config) {
-                        notificationService.displayError(data.Message);
+                        servicioNotificaciones.mostrarError(data.Message);
                     });
                 })(i);
             }
         }
 
-        return service;
+        return servicio;
     }
 
 })(angular.module('common.core'));

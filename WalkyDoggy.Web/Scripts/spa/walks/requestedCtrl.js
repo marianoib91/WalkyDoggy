@@ -1,157 +1,157 @@
 (function (app) {
     'use strict';
 
-    app.controller('requestedCtrl', requestedCtrl);
+    app.controller('paseosSolicitadosCtrl', paseosSolicitadosCtrl);
 
-    requestedCtrl.$inject = ['$scope', 'apiService', 'notificationService', 'confirmService', 'ratingService', '$rootScope', '$location'];
+    paseosSolicitadosCtrl.$inject = ['$scope', 'servicioApi', 'servicioNotificaciones', 'servicioConfirmacion', 'servicioValoraciones', '$rootScope', '$location'];
 
-    function requestedCtrl($scope, apiService, notificationService, confirmService, ratingService, $rootScope, $location) {
-        var dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        var customerId = $rootScope.repository.loggedUser.customerId;
+    function paseosSolicitadosCtrl($scope, servicioApi, servicioNotificaciones, servicioConfirmacion, servicioValoraciones, $rootScope, $location) {
+        var nombresDias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        var idCliente = $rootScope.repository.loggedUser.customerId;
 
-        $scope.loaded = false;
-        $scope.toPay = [];
-        $scope.upcoming = [];
-        $scope.history = [];
-        $scope.working = false;
+        $scope.cargado = false;
+        $scope.porPagar = [];
+        $scope.proximos = [];
+        $scope.historial = [];
+        $scope.trabajando = false;
 
-        init();
-        showPaymentResult();
+        iniciar();
+        mostrarResultadoPago();
 
-        function init() {
-            apiService.get('/api/walks/getBookingsForCustomer', { params: { customerId: customerId } }, function (result) {
-                var toPay = [];
-                var upcoming = [];
-                var history = [];
+        function iniciar() {
+            servicioApi.get('/api/walks/getBookingsForCustomer', { params: { customerId: idCliente } }, function (resultado) {
+                var porPagar = [];
+                var proximos = [];
+                var historial = [];
 
-                angular.forEach(result.data, function (booking) {
-                    booking.start = startOf(booking);
+                angular.forEach(resultado.data, function (reserva) {
+                    reserva.start = inicioDe(reserva);
 
-                    if (booking.status === 'Confirmed' && booking.finishedAt && booking.paymentStatus === 'Pending') {
+                    if (reserva.status === 'Confirmed' && reserva.finishedAt && reserva.paymentStatus === 'Pending') {
                         //El paseador ya termino el paseo y falta pagarlo
-                        toPay.push(booking);
-                    } else if (booking.status !== 'Cancelled' && !booking.finishedAt) {
-                        upcoming.push(booking);
+                        porPagar.push(reserva);
+                    } else if (reserva.status !== 'Cancelled' && !reserva.finishedAt) {
+                        proximos.push(reserva);
                     } else {
-                        history.push(booking);
+                        historial.push(reserva);
                     }
                 });
 
                 //Lo que hay que pagar y lo proximo, del mas cercano al mas lejano; el historial ya viene del mas reciente al mas antiguo
-                $scope.toPay = toPay.sort(function (a, b) { return a.start - b.start; });
-                $scope.upcoming = upcoming.sort(function (a, b) { return a.start - b.start; });
-                $scope.history = history;
-                $scope.loaded = true;
+                $scope.porPagar = porPagar.sort(function (a, b) { return a.start - b.start; });
+                $scope.proximos = proximos.sort(function (a, b) { return a.start - b.start; });
+                $scope.historial = historial;
+                $scope.cargado = true;
             });
         }
 
-        function startOf(booking) {
-            return moment(booking.date).hour(Number(booking.timeFrom.split(':')[0])).minute(0).second(0).toDate();
+        function inicioDe(reserva) {
+            return moment(reserva.date).hour(Number(reserva.timeFrom.split(':')[0])).minute(0).second(0).toDate();
         }
 
-        function errorMessage(error, fallback) {
-            return error.data && error.data[0] ? error.data[0] : fallback;
+        function mensajeDeError(error, porDefecto) {
+            return error.data && error.data[0] ? error.data[0] : porDefecto;
         }
 
         //Mercado Pago devuelve al cliente a "Paseos solicitados?payment=..." cuando termina de pagar
-        function showPaymentResult() {
-            var result = $location.search().payment;
-            if (!result) {
+        function mostrarResultadoPago() {
+            var resultado = $location.search().payment;
+            if (!resultado) {
                 return;
             }
 
-            if (result === 'approved') {
-                notificationService.displaySuccess('¡Pago recibido! El dinero ya está en la cuenta de tu paseador.');
-            } else if (result === 'pending') {
-                notificationService.displayError('Tu pago todavía no se acreditó. Cuando se confirme lo vas a ver acá; si ya pagaste, tocá "Ya pagué, verificar".');
-            } else if (result === 'failed') {
-                notificationService.displayError('El pago no se pudo completar. Podés intentarlo de nuevo con el botón "Pagar".');
+            if (resultado === 'approved') {
+                servicioNotificaciones.mostrarExito('¡Pago recibido! El dinero ya está en la cuenta de tu paseador.');
+            } else if (resultado === 'pending') {
+                servicioNotificaciones.mostrarError('Tu pago todavía no se acreditó. Cuando se confirme lo vas a ver acá; si ya pagaste, tocá "Ya pagué, verificar".');
+            } else if (resultado === 'failed') {
+                servicioNotificaciones.mostrarError('El pago no se pudo completar. Podés intentarlo de nuevo con el botón "Pagar".');
             } else {
-                notificationService.displayError('No pudimos verificar el pago. Si ya pagaste, tocá "Ya pagué, verificar".');
+                servicioNotificaciones.mostrarError('No pudimos verificar el pago. Si ya pagaste, tocá "Ya pagué, verificar".');
             }
 
             $location.search({}).replace();
         }
 
-        $scope.dateText = function (booking) {
-            var date = moment(booking.date);
-            return dayNames[date.day()] + ' ' + date.format('DD/MM/YYYY');
+        $scope.textoFecha = function (reserva) {
+            var fecha = moment(reserva.date);
+            return nombresDias[fecha.day()] + ' ' + fecha.format('DD/MM/YYYY');
         };
 
-        $scope.timeText = function (booking) {
-            return booking.timeFrom + ' a ' + (Number(booking.timeFrom.split(':')[0]) + 1) + ':00';
+        $scope.textoHorario = function (reserva) {
+            return reserva.timeFrom + ' a ' + (Number(reserva.timeFrom.split(':')[0]) + 1) + ':00';
         };
 
-        $scope.petNames = function (booking) {
-            return booking.pets.map(function (pet) { return pet.name; }).join(', ');
+        $scope.nombresMascotas = function (reserva) {
+            return reserva.pets.map(function (mascota) { return mascota.name; }).join(', ');
         };
 
-        $scope.statusText = function (booking) {
-            if (booking.status === 'Pending') {
+        $scope.textoEstado = function (reserva) {
+            if (reserva.status === 'Pending') {
                 return 'Esperando confirmación';
             }
-            if (booking.status === 'Confirmed') {
-                if (booking.paymentStatus === 'Received') {
+            if (reserva.status === 'Confirmed') {
+                if (reserva.paymentStatus === 'Received') {
                     return 'Pagado';
                 }
-                if (booking.finishedAt) {
-                    return booking.paymentStatus === 'Paid' ? 'Pagado, falta que lo confirme el paseador' : 'Para pagar';
+                if (reserva.finishedAt) {
+                    return reserva.paymentStatus === 'Paid' ? 'Pagado, falta que lo confirme el paseador' : 'Para pagar';
                 }
-                return booking.start <= new Date() ? 'En curso' : 'Confirmado';
+                return reserva.start <= new Date() ? 'En curso' : 'Confirmado';
             }
-            if (booking.cancelledBy === 'Walker') {
+            if (reserva.cancelledBy === 'Walker') {
                 return 'Cancelado por el paseador';
             }
-            if (booking.cancelledBy === 'Customer') {
+            if (reserva.cancelledBy === 'Customer') {
                 return 'Cancelado por vos';
             }
             return 'Sin respuesta del paseador';
         };
 
-        $scope.statusClass = function (booking) {
-            if (booking.status === 'Confirmed' && booking.finishedAt && booking.paymentStatus === 'Pending') {
+        $scope.claseEstado = function (reserva) {
+            if (reserva.status === 'Confirmed' && reserva.finishedAt && reserva.paymentStatus === 'Pending') {
                 return 'wd-status-pending';
             }
-            return 'wd-status-' + booking.status.toLowerCase();
+            return 'wd-status-' + reserva.status.toLowerCase();
         };
 
-        $scope.paymentText = function (booking) {
-            if (booking.paymentMethod !== 'MercadoPago') {
-                return booking.paymentStatus === 'Received' ? 'Efectivo · pagado' : 'Efectivo · le pagás en mano al paseador';
+        $scope.textoPago = function (reserva) {
+            if (reserva.paymentMethod !== 'MercadoPago') {
+                return reserva.paymentStatus === 'Received' ? 'Efectivo · pagado' : 'Efectivo · le pagás en mano al paseador';
             }
 
-            if (booking.paymentStatus === 'Received') {
+            if (reserva.paymentStatus === 'Received') {
                 return 'Mercado Pago · pagado';
             }
-            if (booking.paymentStatus === 'Paid') {
+            if (reserva.paymentStatus === 'Paid') {
                 return 'Mercado Pago · pagado';
             }
-            return booking.finishedAt
+            return reserva.finishedAt
                 ? 'Mercado Pago · pendiente de pago'
                 : 'Mercado Pago · pagás online cuando el paseador termine el paseo';
         };
 
         /* ---------- Cancelar ---------- */
 
-        $scope.canCancel = function (booking) {
-            return booking.status !== 'Cancelled' && booking.start > new Date();
+        $scope.puedeCancelar = function (reserva) {
+            return reserva.status !== 'Cancelled' && reserva.start > new Date();
         };
 
-        $scope.cancel = function (booking) {
-            confirmService.ask({
+        $scope.cancelar = function (reserva) {
+            servicioConfirmacion.preguntar({
                 title: '¿Cancelar este paseo?',
-                text: 'El paseo con ' + booking.walkerName + ' del ' + $scope.dateText(booking) + ' a las ' + booking.timeFrom + ' se va a cancelar.',
+                text: 'El paseo con ' + reserva.walkerName + ' del ' + $scope.textoFecha(reserva) + ' a las ' + reserva.timeFrom + ' se va a cancelar.',
                 confirmLabel: 'Cancelar paseo',
                 cancelLabel: 'Volver',
                 danger: true
             }).then(function () {
-                var action = { bookingKey: booking.bookingKey, actor: 'Customer', actorId: customerId };
-                apiService.post('/api/walks/cancel', action, function () {
-                    notificationService.displaySuccess('El paseo se canceló.');
-                    init();
+                var accion = { bookingKey: reserva.bookingKey, actor: 'Customer', actorId: idCliente };
+                servicioApi.post('/api/walks/cancel', accion, function () {
+                    servicioNotificaciones.mostrarExito('El paseo se canceló.');
+                    iniciar();
                 }, function (error) {
-                    notificationService.displayError(errorMessage(error, 'No se pudo cancelar el paseo.'));
-                    init();
+                    servicioNotificaciones.mostrarError(mensajeDeError(error, 'No se pudo cancelar el paseo.'));
+                    iniciar();
                 });
             });
         };
@@ -159,56 +159,56 @@
         /* ---------- Valorar al paseador ---------- */
 
         //Se puede valorar un paseo que el paseador ya dio por finalizado y que todavia no se valoro
-        $scope.canRate = function (booking) {
-            return booking.status === 'Confirmed' && !!booking.finishedAt && !booking.ratingStars;
+        $scope.puedeValorar = function (reserva) {
+            return reserva.status === 'Confirmed' && !!reserva.finishedAt && !reserva.ratingStars;
         };
 
-        $scope.rate = function (booking) {
-            ratingService.ask({ walkerName: booking.walkerName, petNames: $scope.petNames(booking) }).then(function (rating) {
-                var request = { bookingKey: booking.bookingKey, customerId: customerId, stars: rating.stars, comment: rating.comment };
-                apiService.post('/api/ratings/rate', request, function () {
-                    notificationService.displaySuccess('¡Gracias por tu valoración!');
-                    init();
+        $scope.valorar = function (reserva) {
+            servicioValoraciones.preguntar({ walkerName: reserva.walkerName, petNames: $scope.nombresMascotas(reserva) }).then(function (valoracion) {
+                var pedido = { bookingKey: reserva.bookingKey, customerId: idCliente, stars: valoracion.stars, comment: valoracion.comment };
+                servicioApi.post('/api/ratings/rate', pedido, function () {
+                    servicioNotificaciones.mostrarExito('¡Gracias por tu valoración!');
+                    iniciar();
                 }, function (error) {
-                    notificationService.displayError(errorMessage(error, 'No se pudo enviar la valoración.'));
-                    init();
+                    servicioNotificaciones.mostrarError(mensajeDeError(error, 'No se pudo enviar la valoración.'));
+                    iniciar();
                 });
             });
         };
 
         /* ---------- Pago con Mercado Pago ---------- */
 
-        $scope.isMercadoPago = function (booking) {
-            return booking.paymentMethod === 'MercadoPago';
+        $scope.esMercadoPago = function (reserva) {
+            return reserva.paymentMethod === 'MercadoPago';
         };
 
-        $scope.pay = function (booking) {
-            $scope.working = true;
+        $scope.pagar = function (reserva) {
+            $scope.trabajando = true;
 
             //El servidor crea el pago en Mercado Pago (a nombre del paseador) y devuelve su direccion: ahi el cliente paga y despues vuelve a la app
-            apiService.post('/api/payments/checkout', { bookingKey: booking.bookingKey, customerId: customerId }, function (result) {
-                window.location.href = result.data.url;
+            servicioApi.post('/api/payments/checkout', { bookingKey: reserva.bookingKey, customerId: idCliente }, function (resultado) {
+                window.location.href = resultado.data.url;
             }, function (error) {
-                $scope.working = false;
-                notificationService.displayError(errorMessage(error, 'No se pudo iniciar el pago.'));
+                $scope.trabajando = false;
+                servicioNotificaciones.mostrarError(mensajeDeError(error, 'No se pudo iniciar el pago.'));
             });
         };
 
         //Por si el cliente pago pero no volvio a la app despues de pagar
-        $scope.verifyPayment = function (booking) {
-            $scope.working = true;
+        $scope.verificarPago = function (reserva) {
+            $scope.trabajando = true;
 
-            apiService.post('/api/payments/sync', { bookingKey: booking.bookingKey, customerId: customerId }, function (result) {
-                $scope.working = false;
-                if (result.data.result === 'approved') {
-                    notificationService.displaySuccess('Encontramos tu pago. El dinero ya está en la cuenta de tu paseador.');
+            servicioApi.post('/api/payments/sync', { bookingKey: reserva.bookingKey, customerId: idCliente }, function (resultado) {
+                $scope.trabajando = false;
+                if (resultado.data.result === 'approved') {
+                    servicioNotificaciones.mostrarExito('Encontramos tu pago. El dinero ya está en la cuenta de tu paseador.');
                 } else {
-                    notificationService.displayError('Todavía no encontramos un pago aprobado para este paseo.');
+                    servicioNotificaciones.mostrarError('Todavía no encontramos un pago aprobado para este paseo.');
                 }
-                init();
+                iniciar();
             }, function (error) {
-                $scope.working = false;
-                notificationService.displayError(errorMessage(error, 'No se pudo verificar el pago.'));
+                $scope.trabajando = false;
+                servicioNotificaciones.mostrarError(mensajeDeError(error, 'No se pudo verificar el pago.'));
             });
         };
     }

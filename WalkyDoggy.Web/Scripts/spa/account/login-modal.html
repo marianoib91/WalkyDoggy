@@ -4,7 +4,7 @@
     </div>
     <div class="panel-body">
         <div class="row">
-            <form class="form-signin" role="form" novalidate angular-validator name="userLoginForm" angular-validator-submit="login()">
+            <form class="form-signin" role="form" novalidate angular-validator name="userLoginForm" angular-validator-submit="iniciarSesion()">
                 <h3 class="form-signin-heading text-center login-modal-title">Iniciar Sesión</h3>
                 <div class="form-group">
                     <label for="inputEmail" class="sr-only">Email</label>
@@ -12,7 +12,7 @@
                            id="inputEmail"
                            name="inputEmail"
                            class="form-control"
-                           ng-model="user.email"
+                           ng-model="usuario.email"
                            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"
                            invalid-message="'El email ingresado no es válido'"
                            placeholder="Email"
@@ -28,7 +28,7 @@
                            class="form-control"
                            pattern=".{6,}"
                            invalid-message="'Debe contener al menos 6 caracteres'"
-                           ng-model="user.password"
+                           ng-model="usuario.password"
                            placeholder="Contraseña"
                            validate-on="blur"
                            required
@@ -36,14 +36,14 @@
                 </div>
                 <button class="btn btn-lg btn-primary btn-block" type="submit">Iniciar Sesión</button>
                 <div class="pull-right">
-                    <a ng-href="#/forgot-password" ng-click="closeModal()" class="control-label">Olvidé mi contraseña</a>
+                    <a ng-href="#/forgot-password" ng-click="cerrarModal()" class="control-label">Olvidé mi contraseña</a>
                 </div>
             </form>
         </div>
     </div>
     <div class="panel-footer clearfix">
         <div class="pull-right">
-            <button type="button" class="btn btn-danger" ng-click="closeModal()">Cerrar</button>
+            <button type="button" class="btn btn-danger" ng-click="cerrarModal()">Cerrar</button>
         </div>
     </div>
 </div>

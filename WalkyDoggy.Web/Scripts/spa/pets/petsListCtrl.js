@@ -1,37 +1,37 @@
 ﻿(function (app) {
     'use strict';
 
-    app.controller('petsListCtrl', petsListCtrl);
+    app.controller('listaMascotasCtrl', listaMascotasCtrl);
 
-    petsListCtrl.$inject = ['$scope', 'membershipService', 'notificationService', 'apiService', '$rootScope', '$location', 'sweetAlert'];
+    listaMascotasCtrl.$inject = ['$scope', 'servicioMembresia', 'servicioNotificaciones', 'servicioApi', '$rootScope', '$location', 'sweetAlert'];
 
-    function petsListCtrl($scope, membershipService, notificationService, apiService, $rootScope, $location, sweetAlert) {
+    function listaMascotasCtrl($scope, servicioMembresia, servicioNotificaciones, servicioApi, $rootScope, $location, sweetAlert) {
 
         //Se obtiene el id del cliente guardado en el indexCtrl
-        $scope.userId = $rootScope.repository.loggedUser.id;
-        $scope.customerId = $rootScope.repository.loggedUser.customerId;
-        $scope.pets = {};
+        $scope.idUsuario = $rootScope.repository.loggedUser.id;
+        $scope.idCliente = $rootScope.repository.loggedUser.customerId;
+        $scope.mascotas = {};
 
-        init();
+        iniciar();
 
-        function init() {
+        function iniciar() {
             var config = {
                 params: {
-                    customerId: $scope.customerId
+                    customerId: $scope.idCliente
                 }
             }
-            apiService.get('/api/pets/getAllByCustomerId/', config, onLoadPetsCompleted);
+            servicioApi.get('/api/pets/getAllByCustomerId/', config, alCargarMascotas);
         }
 
-        function onLoadPetsCompleted(result) {
-            $scope.pets = result.data;
+        function alCargarMascotas(resultado) {
+            $scope.mascotas = resultado.data;
         }
 
-        $scope.edit = function (id) {
+        $scope.editar = function (id) {
             $location.path('/pets/edit/' + id);
         }
 
-        $scope.delete = function (id) {
+        $scope.eliminar = function (id) {
             sweetAlert.swal({
                 title: "Eliminar mascota",
                 text: "¿Desea eliminar la mascota seleccionada?",
@@ -39,28 +39,28 @@
                 showCancelButton: true,
                 confirmButtonText: "Aceptar",
                 cancelButtonText: "Cancelar"
-            }).then(function (isConfirm) {
-                if (isConfirm) {
+            }).then(function (confirmo) {
+                if (confirmo) {
                     var r = true;
                 }
                 if (r == true) {
-                    apiService.remove('/api/pets/' + id, onDeletePetCompleted);
+                    servicioApi.remove('/api/pets/' + id, alEliminarMascota);
                 }
             });
 
         }
-        function onDeletePetCompleted(response) {
-            if (response.status = 200) {
-                notificationService.displaySuccess('Tu mascota se ha eliminado con éxito');
+        function alEliminarMascota(respuesta) {
+            if (respuesta.status = 200) {
+                servicioNotificaciones.mostrarExito('Tu mascota se ha eliminado con éxito');
                 var config = {
                     params: {
-                        customerId: $scope.customerId
+                        customerId: $scope.idCliente
                     }
                 }
-                apiService.get('/api/pets/getAllByCustomerId/', config, onLoadPetsCompleted);
+                servicioApi.get('/api/pets/getAllByCustomerId/', config, alCargarMascotas);
             }
             else {
-                notificationService.displayError('No se pudo eliminar tu mascota. Intente nuevamente');
+                servicioNotificaciones.mostrarError('No se pudo eliminar tu mascota. Intente nuevamente');
             }
         }
     }

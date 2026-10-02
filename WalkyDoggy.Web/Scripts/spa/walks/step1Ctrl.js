@@ -1,221 +1,221 @@
 (function (app) {
     'use strict';
 
-    app.controller('step1Ctrl', step1Ctrl);
+    app.controller('paso1Ctrl', paso1Ctrl);
 
-    step1Ctrl.$inject = ['$scope', 'apiService', 'notificationService', '$rootScope', '$location', '$routeParams'];
+    paso1Ctrl.$inject = ['$scope', 'servicioApi', 'servicioNotificaciones', '$rootScope', '$location', '$routeParams'];
 
-    function step1Ctrl($scope, apiService, notificationService, $rootScope, $location, $routeParams) {
+    function paso1Ctrl($scope, servicioApi, servicioNotificaciones, $rootScope, $location, $routeParams) {
 
         //Indice de moment().day(): 0 = domingo
-        var dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        var walkerId = $routeParams.walkerId;
-        var draft = $rootScope.walkDraft;
-        var timesRequest = 0;
+        var nombresDias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        var idPaseador = $routeParams.walkerId;
+        var borrador = $rootScope.borradorPaseo;
+        var numeroDePedido = 0;
 
-        $scope.pets = {};
-        $scope.walk = {};
-        $scope.walker = null;
-        $scope.times = [];
-        $scope.workDayNames = [];
-        $scope.workDaysText = '';
-        $scope.hasSchedule = true;
-        $scope.loadingTimes = false;
+        $scope.mascotas = {};
+        $scope.paseo = {};
+        $scope.paseador = null;
+        $scope.horarios = [];
+        $scope.nombresJornadas = [];
+        $scope.textoJornadas = '';
+        $scope.tieneHorario = true;
+        $scope.cargandoHorarios = false;
 
         //Donde se retira a las mascotas: en el domicilio del cliente ('home') o en otra direccion ('other')
-        $scope.pickup = { mode: 'home', other: {} };
-        $scope.homeAddress = '';
+        $scope.retiro = { mode: 'home', other: {} };
+        $scope.domicilio = '';
 
         //El calendario solo habilita los dias en los que el paseador tiene una jornada laboral
-        $scope.opts = {
+        $scope.opcionesCalendario = {
             singleDatePicker: true,
             showDropdowns: true,
             minDate: new Date(),
-            isInvalidDate: function (date) {
-                return $scope.workDayNames.indexOf(dayNames[date.day()]) === -1;
+            isInvalidDate: function (fecha) {
+                return $scope.nombresJornadas.indexOf(nombresDias[fecha.day()]) === -1;
             }
         };
 
-        if (!walkerId) {
-            notificationService.displayError('Elegí un paseador para reservar un paseo.');
+        if (!idPaseador) {
+            servicioNotificaciones.mostrarError('Elegí un paseador para reservar un paseo.');
             $location.search({}).path('/');
             return;
         }
 
         //Si se vuelve del paso 2 se conserva lo que ya se habia elegido
-        if (draft && draft.walkerId == walkerId) {
-            $scope.walk.date = moment(draft.date, 'YYYY-MM-DD');
-            $scope.walk.timeFrom = draft.timeFrom;
+        if (borrador && borrador.walkerId == idPaseador) {
+            $scope.paseo.date = moment(borrador.date, 'YYYY-MM-DD');
+            $scope.paseo.timeFrom = borrador.timeFrom;
 
-            if (draft.pickup && !draft.pickup.isHome) {
-                $scope.pickup.mode = 'other';
-                $scope.pickup.other = angular.copy(draft.pickup);
+            if (borrador.pickup && !borrador.pickup.isHome) {
+                $scope.retiro.mode = 'other';
+                $scope.retiro.other = angular.copy(borrador.pickup);
             }
         }
 
-        init();
+        iniciar();
 
-        function init() {
-            apiService.get('/api/walkers/getDetail', { params: { id: walkerId } }, onLoadWalkerCompleted, onLoadWalkerFailed);
-            apiService.get('/api/workDays/getAllByWalkerId', { params: { walkerId: walkerId } }, onLoadWorkDaysCompleted);
-            apiService.get('/api/customers/getByUserId/', { params: { userId: $rootScope.repository.loggedUser.id } }, onLoadCustomerCompleted);
+        function iniciar() {
+            servicioApi.get('/api/walkers/getDetail', { params: { id: idPaseador } }, alCargarPaseador, alFallarCargaPaseador);
+            servicioApi.get('/api/workDays/getAllByWalkerId', { params: { walkerId: idPaseador } }, alCargarJornadas);
+            servicioApi.get('/api/customers/getByUserId/', { params: { userId: $rootScope.repository.loggedUser.id } }, alCargarCliente);
         }
 
-        function onLoadWalkerCompleted(result) {
-            $scope.walker = result.data;
+        function alCargarPaseador(resultado) {
+            $scope.paseador = resultado.data;
         }
 
-        function onLoadWalkerFailed() {
-            notificationService.displayError('No se encontró al paseador seleccionado.');
+        function alFallarCargaPaseador() {
+            servicioNotificaciones.mostrarError('No se encontró al paseador seleccionado.');
             $location.search({}).path('/');
         }
 
-        function onLoadWorkDaysCompleted(result) {
-            var names = [];
-            angular.forEach(result.data, function (workDay) {
-                if (names.indexOf(workDay.dayOfWeek) === -1) {
-                    names.push(workDay.dayOfWeek);
+        function alCargarJornadas(resultado) {
+            var nombres = [];
+            angular.forEach(resultado.data, function (jornada) {
+                if (nombres.indexOf(jornada.dayOfWeek) === -1) {
+                    nombres.push(jornada.dayOfWeek);
                 }
             });
 
-            $scope.workDayNames = names;
-            $scope.hasSchedule = names.length > 0;
-            $scope.workDaysText = dayNames.filter(function (name) {
-                return names.indexOf(name) !== -1;
+            $scope.nombresJornadas = nombres;
+            $scope.tieneHorario = nombres.length > 0;
+            $scope.textoJornadas = nombresDias.filter(function (name) {
+                return nombres.indexOf(name) !== -1;
             }).join(', ');
 
             //Se propone la primera fecha en la que trabaja, a menos que ya haya una elegida
-            if (!$scope.walk.date && $scope.hasSchedule) {
+            if (!$scope.paseo.date && $scope.tieneHorario) {
                 for (var i = 0; i < 60; i++) {
-                    var candidate = moment().add(i, 'days');
-                    if (names.indexOf(dayNames[candidate.day()]) !== -1) {
-                        $scope.walk.date = candidate;
+                    var candidata = moment().add(i, 'days');
+                    if (nombres.indexOf(nombresDias[candidata.day()]) !== -1) {
+                        $scope.paseo.date = candidata;
                         break;
                     }
                 }
             }
         }
 
-        function onLoadCustomerCompleted(result) {
-            $scope.customer = result.data;
-            $scope.homeAddress = formatAddress($scope.customer);
-            apiService.get('/api/pets/getAllByCustomerId/', { params: { customerId: $scope.customer.id } }, onLoadPetsCompleted);
+        function alCargarCliente(resultado) {
+            $scope.cliente = resultado.data;
+            $scope.domicilio = formatearDireccion($scope.cliente);
+            servicioApi.get('/api/pets/getAllByCustomerId/', { params: { customerId: $scope.cliente.id } }, alCargarMascotas);
         }
 
-        function onLoadPetsCompleted(result) {
-            $scope.pets = result.data;
+        function alCargarMascotas(resultado) {
+            $scope.mascotas = resultado.data;
 
-            if (draft && draft.walkerId == walkerId) {
-                var selectedIds = draft.pets.map(function (pet) { return pet.id; });
-                angular.forEach($scope.pets, function (pet) {
-                    pet.selectedPet = selectedIds.indexOf(pet.id) !== -1;
+            if (borrador && borrador.walkerId == idPaseador) {
+                var idsSeleccionados = borrador.pets.map(function (mascota) { return mascota.id; });
+                angular.forEach($scope.mascotas, function (mascota) {
+                    mascota.selectedPet = idsSeleccionados.indexOf(mascota.id) !== -1;
                 });
             }
         }
 
         //Cada vez que cambia la fecha se traen los horarios libres de ese paseador para ese dia
-        $scope.$watch('walk.date', function (date) {
-            if (!date) {
-                $scope.times = [];
+        $scope.$watch('paseo.date', function (fecha) {
+            if (!fecha) {
+                $scope.horarios = [];
                 return;
             }
 
-            var request = ++timesRequest;
-            $scope.loadingTimes = true;
+            var pedido = ++numeroDePedido;
+            $scope.cargandoHorarios = true;
             var config = {
                 params: {
-                    walkerId: walkerId,
-                    date: moment(date).format('YYYY-MM-DD')
+                    walkerId: idPaseador,
+                    date: moment(fecha).format('YYYY-MM-DD')
                 }
             };
 
-            apiService.get('/api/walkers/getAvailableTimes', config, function (result) {
-                if (request !== timesRequest) {
+            servicioApi.get('/api/walkers/getAvailableTimes', config, function (resultado) {
+                if (pedido !== numeroDePedido) {
                     return;
                 }
-                $scope.times = result.data;
-                $scope.loadingTimes = false;
-                if ($scope.times.indexOf($scope.walk.timeFrom) === -1) {
-                    $scope.walk.timeFrom = null;
+                $scope.horarios = resultado.data;
+                $scope.cargandoHorarios = false;
+                if ($scope.horarios.indexOf($scope.paseo.timeFrom) === -1) {
+                    $scope.paseo.timeFrom = null;
                 }
             }, function () {
-                if (request === timesRequest) {
-                    $scope.loadingTimes = false;
+                if (pedido === numeroDePedido) {
+                    $scope.cargandoHorarios = false;
                 }
             });
         });
 
-        function formatAddress(address) {
-            var line = [address.streetName, address.streetNumber].filter(Boolean).join(' ');
-            return [line, address.cityName, address.provinceName].filter(Boolean).join(', ');
+        function formatearDireccion(direccion) {
+            var linea = [direccion.streetName, direccion.streetNumber].filter(Boolean).join(' ');
+            return [linea, direccion.cityName, direccion.provinceName].filter(Boolean).join(', ');
         }
 
         //Devuelve la direccion de retiro elegida, o null si eligio "otra direccion" y no la completo
-        function buildPickup() {
-            var source = $scope.customer;
-            var isHome = $scope.pickup.mode !== 'other';
+        function armarRetiro() {
+            var origen = $scope.cliente;
+            var esDomicilioPropio = $scope.retiro.mode !== 'other';
 
-            if (!isHome) {
-                source = $scope.pickup.other;
-                if (!source.cityId || !source.streetName || !source.streetNumber) {
+            if (!esDomicilioPropio) {
+                origen = $scope.retiro.other;
+                if (!origen.cityId || !origen.streetName || !origen.streetNumber) {
                     return null;
                 }
             }
 
             return {
-                isHome: isHome,
-                streetName: source.streetName,
-                streetNumber: source.streetNumber,
-                cityId: source.cityId,
-                cityName: source.cityName,
-                provinceName: source.provinceName,
-                latitude: source.latitude,
-                longitude: source.longitude
+                isHome: esDomicilioPropio,
+                streetName: origen.streetName,
+                streetNumber: origen.streetNumber,
+                cityId: origen.cityId,
+                cityName: origen.cityName,
+                provinceName: origen.provinceName,
+                latitude: origen.latitude,
+                longitude: origen.longitude
             };
         }
 
-        $scope.submit = function () {
-            var selectedPets = [];
-            for (var i = 0; i < $scope.pets.length; i++) {
-                if ($scope.pets[i].selectedPet == true) {
-                    selectedPets.push($scope.pets[i]);
+        $scope.enviar = function () {
+            var mascotasSeleccionadas = [];
+            for (var i = 0; i < $scope.mascotas.length; i++) {
+                if ($scope.mascotas[i].selectedPet == true) {
+                    mascotasSeleccionadas.push($scope.mascotas[i]);
                 }
             }
 
-            if (selectedPets.length === 0) {
-                notificationService.displayError('Debe seleccionar una mascota para su paseo.');
+            if (mascotasSeleccionadas.length === 0) {
+                servicioNotificaciones.mostrarError('Debe seleccionar una mascota para su paseo.');
                 return;
             }
 
-            var pickup = buildPickup();
-            if (!pickup) {
-                notificationService.displayError('Elegí la dirección de retiro de la lista de sugerencias.');
+            var retiro = armarRetiro();
+            if (!retiro) {
+                servicioNotificaciones.mostrarError('Elegí la dirección de retiro de la lista de sugerencias.');
                 return;
             }
 
-            var date = moment($scope.walk.date).format('YYYY-MM-DD');
-            var criteria = {
-                date: date,
-                timeFrom: $scope.walk.timeFrom,
-                selectedPets: selectedPets
+            var fecha = moment($scope.paseo.date).format('YYYY-MM-DD');
+            var criterios = {
+                date: fecha,
+                timeFrom: $scope.paseo.timeFrom,
+                selectedPets: mascotasSeleccionadas
             };
 
-            apiService.post('/api/walks/validatePetsInWalks', criteria, function (response) {
-                if (response.data.id == 0) {
+            servicioApi.post('/api/walks/validatePetsInWalks', criterios, function (respuesta) {
+                if (respuesta.data.id == 0) {
                     //Los datos elegidos viajan al paso 2 para confirmar la reserva
-                    $rootScope.walkDraft = {
-                        walkerId: walkerId,
-                        date: date,
-                        timeFrom: $scope.walk.timeFrom,
-                        pickup: pickup,
-                        pets: selectedPets.map(function (pet) {
-                            return { id: pet.id, name: pet.name, profileImage: pet.profileImage };
+                    $rootScope.borradorPaseo = {
+                        walkerId: idPaseador,
+                        date: fecha,
+                        timeFrom: $scope.paseo.timeFrom,
+                        pickup: retiro,
+                        pets: mascotasSeleccionadas.map(function (mascota) {
+                            return { id: mascota.id, name: mascota.name, profileImage: mascota.profileImage };
                         })
                     };
                     $location.search({}).path('/walks/step-2');
                 }
                 else {
-                    notificationService.displayError(response.data.petName + ' ya tiene reservado un paseo a la misma hora y día seleccionados.');
+                    servicioNotificaciones.mostrarError(respuesta.data.petName + ' ya tiene reservado un paseo a la misma hora y día seleccionados.');
                 }
             });
         };

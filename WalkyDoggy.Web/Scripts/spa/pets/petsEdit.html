@@ -1,21 +1,21 @@
 <div class="pets-edit">
     <div class="wd-page-header">
         <div>
-            <h1 class="wd-page-title" ng-if="petId!=0">Editar mascota</h1>
-            <h1 class="wd-page-title" ng-if="petId==0">Agregar nueva mascota</h1>
+            <h1 class="wd-page-title" ng-if="idMascota!=0">Editar mascota</h1>
+            <h1 class="wd-page-title" ng-if="idMascota==0">Agregar nueva mascota</h1>
             <p class="wd-page-subtitle">Esta es la tarjeta de presentación de tu mascota.</p>
         </div>
     </div>
-    <form class="wd-form-layout" role="form" novalidate angular-validator name="userRegistrationForm" angular-validator-submit="updatePet()">
+    <form class="wd-form-layout" role="form" novalidate angular-validator name="userRegistrationForm" angular-validator-submit="actualizarMascota()">
         <aside class="wd-side-card">
-            <img class="wd-avatar wd-avatar-lg" ng-src="{{previewImage || pet.profileImage || '/Content/images/avatar-pet.svg'}}" alt="Foto de la mascota" />
-            <div class="wd-side-name">{{pet.name || 'Nueva mascota'}}</div>
+            <img class="wd-avatar wd-avatar-lg" ng-src="{{imagenPrevia || mascota.profileImage || '/Content/images/avatar-pet.svg'}}" alt="Foto de la mascota" />
+            <div class="wd-side-name">{{mascota.name || 'Nueva mascota'}}</div>
             <div class="file-upload-container">
                 <label class="btn btn-default" for="upload-photo">
                     <i class="fa fa-camera" aria-hidden="true"></i>
                     Cambiar foto
                 </label>
-                <input type="file" name="photo" id="upload-photo" ng-file-select="onPhotoSelected($files)" />
+                <input type="file" name="photo" id="upload-photo" ng-file-select="alSeleccionarFoto($files)" />
             </div>
             <p class="wd-side-hint">JPG, PNG o GIF, hasta 5 MB.</p>
         </aside>
@@ -29,7 +29,7 @@
                                id="inputName"
                                name="inputName"
                                class="form-control"
-                               ng-model="pet.name"
+                               ng-model="mascota.name"
                                placeholder="Nombre"
                                validate-on="blur"
                                required
@@ -41,7 +41,7 @@
                                id="inputAge"
                                name="inputAge"
                                class="form-control"
-                               ng-model="pet.age"
+                               ng-model="mascota.age"
                                placeholder="Edad"
                                validate-on="blur"
                                required
@@ -53,8 +53,8 @@
                                 id="inputBreed"
                                 name="inputBreed"
                                 class="form-control"
-                                ng-model="pet.breedId"
-                                ng-options="breed.id as breed.name for breed in breeds"
+                                ng-model="mascota.breedId"
+                                ng-options="breed.id as breed.name for breed in razas"
                                 validate-on="blur"
                                 required
                                 required-message="'Raza es requerido.'">
@@ -67,8 +67,8 @@
                                 id="inputSize"
                                 name="inputCity"
                                 class="form-control"
-                                ng-model="pet.sizeId"
-                                ng-options="size.id as size.name for size in sizes"
+                                ng-model="mascota.sizeId"
+                                ng-options="size.id as size.name for size in tamanos"
                                 validate-on="blur"
                                 required
                                 required-message="'Tamaño es requerido.'">
@@ -83,7 +83,7 @@
                                   name="inputDescription"
                                   class="form-control"
                                   placeholder="Ingrese una breve descripción de su mascota"
-                                  ng-model="pet.description"
+                                  ng-model="mascota.description"
                                   validate-on="blur"
                                   required
                                   required-message="'Descripción es requerido.'"></textarea>

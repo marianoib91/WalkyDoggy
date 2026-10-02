@@ -15,12 +15,12 @@
                 '</span>',
             link: function (scope) {
                 scope.icons = function () {
-                    var value = Number(scope.value) || 0;
-                    var icons = [];
-                    for (var star = 1; star <= 5; star++) {
-                        icons.push(value >= star - 0.25 ? 'fa-star' : (value >= star - 0.75 ? 'fa-star-half-o' : 'fa-star-o'));
+                    var valor = Number(scope.value) || 0;
+                    var iconos = [];
+                    for (var estrella = 1; estrella <= 5; estrella++) {
+                        iconos.push(valor >= estrella - 0.25 ? 'fa-star' : (valor >= estrella - 0.75 ? 'fa-star-half-o' : 'fa-star-o'));
                     }
-                    return icons;
+                    return iconos;
                 };
 
                 scope.label = function () {

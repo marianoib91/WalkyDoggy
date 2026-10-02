@@ -1,47 +1,47 @@
 ﻿(function (app) {
     'use strict';
 
-    app.controller('profileCtrl', profileCtrl);
+    app.controller('perfilCtrl', perfilCtrl);
 
-    profileCtrl.$inject = ['$scope', 'membershipService', 'notificationService', 'apiService', 'fileUploadService', 'confirmService', '$rootScope', '$location'];
+    perfilCtrl.$inject = ['$scope', 'servicioMembresia', 'servicioNotificaciones', 'servicioApi', 'servicioSubidaArchivos', 'servicioConfirmacion', '$rootScope', '$location'];
 
-    function profileCtrl($scope, membershipService, notificationService, apiService, fileUploadService, confirmService, $rootScope, $location) {
-        var userRoleId = $rootScope.repository.loggedUser.roleId;
-        var walkerId = $rootScope.repository.loggedUser.walkerId;
-        $scope.user = null;
+    function perfilCtrl($scope, servicioMembresia, servicioNotificaciones, servicioApi, servicioSubidaArchivos, servicioConfirmacion, $rootScope, $location) {
+        var idRolUsuario = $rootScope.repository.loggedUser.roleId;
+        var idPaseador = $rootScope.repository.loggedUser.walkerId;
+        $scope.usuario = null;
 
         //Cuenta de Mercado Pago del paseador (solo aplica al perfil de paseador)
-        $scope.isWalker = userRoleId == 3;
+        $scope.esPaseador = idRolUsuario == 3;
         $scope.mp = { loaded: false, configured: false, linked: false, userId: null, working: false };
 
         //2=Customer, 3=Walker
-        var entityType = userRoleId == 2 ? 'customer' : 'walker';
+        var tipoEntidad = idRolUsuario == 2 ? 'customer' : 'walker';
 
-        init();
+        iniciar();
 
-        $scope.onPhotoSelected = function ($files) {
-            fileUploadService.uploadProfileImage($files, entityType, $scope.user.id, function (profileImage) {
-                $scope.user.profileImage = profileImage;
+        $scope.alSeleccionarFoto = function ($files) {
+            servicioSubidaArchivos.subirImagenDePerfil($files, tipoEntidad, $scope.usuario.id, function (profileImage) {
+                $scope.usuario.profileImage = profileImage;
             });
         }
 
-        function init() {
-            var userEmail = $rootScope.repository.loggedUser.email;
-            var userId = $rootScope.repository.loggedUser.id;
+        function iniciar() {
+            var emailUsuario = $rootScope.repository.loggedUser.email;
+            var idUsuario = $rootScope.repository.loggedUser.id;
 
             var config = {
                 params: {
-                    userId: userId
+                    userId: idUsuario
                 }
             }
 
             //2=Customer
-            if (userRoleId == 2) {
-                apiService.get('/api/customers/getByUserId', config, onLoadUserCompleted);
+            if (idRolUsuario == 2) {
+                servicioApi.get('/api/customers/getByUserId', config, alCargarUsuario);
             }
                 //3=Walker
-            else if (userRoleId == 3) {
-                apiService.get('/api/walkers/getByUserId', config, onLoadUserCompleted);
+            else if (idRolUsuario == 3) {
+                servicioApi.get('/api/walkers/getByUserId', config, alCargarUsuario);
                
             }
 
@@ -51,96 +51,96 @@
 
     
 
-        function onLoadUserCompleted(results) {
-            $scope.user = results.data;
-            $scope.user.phone = parseFloat($scope.user.phone, 10);
-            $scope.user.streetNumber = parseFloat($scope.user.streetNumber, 10);
+        function alCargarUsuario(resultados) {
+            $scope.usuario = resultados.data;
+            $scope.usuario.phone = parseFloat($scope.usuario.phone, 10);
+            $scope.usuario.streetNumber = parseFloat($scope.usuario.streetNumber, 10);
 
-            if ($scope.isWalker) {
-                loadMercadoPagoStatus();
-                showMercadoPagoResult();
+            if ($scope.esPaseador) {
+                cargarEstadoMercadoPago();
+                mostrarResultadoMercadoPago();
             }
         }
 
         /* ---------- Cobros con Mercado Pago (paseador) ---------- */
 
-        function loadMercadoPagoStatus() {
-            apiService.get('/api/mercadopago/status', { params: { walkerId: walkerId } }, function (result) {
-                $scope.mp.configured = result.data.configured;
-                $scope.mp.linked = result.data.linked;
-                $scope.mp.userId = result.data.userId;
+        function cargarEstadoMercadoPago() {
+            servicioApi.get('/api/mercadopago/status', { params: { walkerId: idPaseador } }, function (resultado) {
+                $scope.mp.configured = resultado.data.configured;
+                $scope.mp.linked = resultado.data.linked;
+                $scope.mp.userId = resultado.data.userId;
                 $scope.mp.loaded = true;
             });
         }
 
         //Mercado Pago devuelve al paseador a "Mi perfil?mp=linked|denied|error" cuando termina de autorizar
-        function showMercadoPagoResult() {
-            var result = $location.search().mp;
-            if (!result) {
+        function mostrarResultadoMercadoPago() {
+            var resultado = $location.search().mp;
+            if (!resultado) {
                 return;
             }
 
-            if (result === 'linked') {
-                notificationService.displaySuccess('Vinculaste tu cuenta de Mercado Pago. Ya podés recibir pagos online.');
-            } else if (result === 'denied') {
-                notificationService.displayError('No autorizaste la vinculación con Mercado Pago.');
+            if (resultado === 'linked') {
+                servicioNotificaciones.mostrarExito('Vinculaste tu cuenta de Mercado Pago. Ya podés recibir pagos online.');
+            } else if (resultado === 'denied') {
+                servicioNotificaciones.mostrarError('No autorizaste la vinculación con Mercado Pago.');
             } else {
-                notificationService.displayError('No se pudo vincular la cuenta de Mercado Pago. Intentá nuevamente.');
+                servicioNotificaciones.mostrarError('No se pudo vincular la cuenta de Mercado Pago. Intentá nuevamente.');
             }
 
             $location.search({}).replace();
         }
 
-        $scope.linkMercadoPago = function () {
+        $scope.vincularMercadoPago = function () {
             $scope.mp.working = true;
 
             //Se le pide al servidor la direccion de autorizacion (lleva un "state" firmado) y se manda al paseador a Mercado Pago
-            apiService.get('/api/mercadopago/authorizationUrl', { params: { walkerId: walkerId } }, function (result) {
-                window.location.href = result.data.url;
+            servicioApi.get('/api/mercadopago/authorizationUrl', { params: { walkerId: idPaseador } }, function (resultado) {
+                window.location.href = resultado.data.url;
             }, function (error) {
                 $scope.mp.working = false;
-                notificationService.displayError(error.data && error.data[0] ? error.data[0] : 'No se pudo iniciar la vinculación con Mercado Pago.');
+                servicioNotificaciones.mostrarError(error.data && error.data[0] ? error.data[0] : 'No se pudo iniciar la vinculación con Mercado Pago.');
             });
         };
 
-        $scope.unlinkMercadoPago = function () {
-            confirmService.ask({
+        $scope.desvincularMercadoPago = function () {
+            servicioConfirmacion.preguntar({
                 title: '¿Desvincular Mercado Pago?',
                 text: 'Tus clientes van a dejar de poder pagarte online y solo vas a poder cobrar en efectivo. Después podés volver a vincular tu cuenta.',
                 confirmLabel: 'Desvincular',
                 cancelLabel: 'Volver',
                 danger: true
             }).then(function () {
-                apiService.post('/api/mercadopago/unlink', { walkerId: walkerId }, function () {
-                    notificationService.displaySuccess('Desvinculaste tu cuenta de Mercado Pago.');
-                    loadMercadoPagoStatus();
+                servicioApi.post('/api/mercadopago/unlink', { walkerId: idPaseador }, function () {
+                    servicioNotificaciones.mostrarExito('Desvinculaste tu cuenta de Mercado Pago.');
+                    cargarEstadoMercadoPago();
                 }, function (error) {
-                    notificationService.displayError(error.data && error.data[0] ? error.data[0] : 'No se pudo desvincular la cuenta.');
+                    servicioNotificaciones.mostrarError(error.data && error.data[0] ? error.data[0] : 'No se pudo desvincular la cuenta.');
                 });
             });
         };
 
 
-        $scope.updateProfile = function () {
+        $scope.actualizarPerfil = function () {
             //Customer
-            if (userRoleId == 2) {
-                apiService.post('/api/customers/update', $scope.user, onUpdateUserCompleted);
+            if (idRolUsuario == 2) {
+                servicioApi.post('/api/customers/update', $scope.usuario, alActualizarUsuario);
             }
                 //Walker
-            else if (userRoleId == 3) {
-                apiService.post('/api/walkers/update', $scope.user, onUpdateUserCompleted);
+            else if (idRolUsuario == 3) {
+                servicioApi.post('/api/walkers/update', $scope.usuario, alActualizarUsuario);
             }
 
         }
 
-        function onUpdateUserCompleted(response) {
-            if (response.status = 200) {
-                notificationService.displaySuccess('Perfil actualizado con éxito');
+        function alActualizarUsuario(respuesta) {
+            if (respuesta.status = 200) {
+                servicioNotificaciones.mostrarExito('Perfil actualizado con éxito');
                 // $location.path('/');
                 console.log();
             }
             else {
-                notificationService.displayError('No se pudo actualizar el perfil. Intente nuevamente');
+                servicioNotificaciones.mostrarError('No se pudo actualizar el perfil. Intente nuevamente');
             }
         }
     }

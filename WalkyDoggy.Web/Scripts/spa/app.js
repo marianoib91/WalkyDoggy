@@ -10,8 +10,8 @@
         $routeProvider
             .when("/", {
                 templateUrl: "scripts/spa/home/index.html",
-                controller: "indexCtrl",
-                resolve: { isAuthenticated: isAuthenticated }
+                controller: "inicioCtrl",
+                resolve: { isAuthenticated: estaAutenticado }
             })
             .when("/login", {
                 templateUrl: "scripts/spa/account/login.html",
@@ -19,63 +19,63 @@
             })
              .when("/register/customer", {
                  templateUrl: "scripts/spa/register/register-customer.html",
-                 controller: "registerCustomerCtrl"
+                 controller: "registroClienteCtrl"
              })
             .when("/register/walker", {
                 templateUrl: "scripts/spa/register/register-walker.html",
-                controller: "registerWalkerCtrl"
+                controller: "registroPaseadorCtrl"
             })
              .when("/forgot-password", {
                  templateUrl: "scripts/spa/account/forgot-password.html",
-                 controller: "forgotPasswordCtrl"
+                 controller: "recuperarContrasenaCtrl"
              })
              .when("/public", {
                  templateUrl: "scripts/spa/public/homePublic.html",
-                 controller: "homePublicCtrl"
+                 controller: "inicioPublicoCtrl"
              })
          .when("/profile", {
              templateUrl: "scripts/spa/profile/profile.html",
-             controller: "profileCtrl",
-             resolve: { isAuthenticated: isAuthenticated }
+             controller: "perfilCtrl",
+             resolve: { isAuthenticated: estaAutenticado }
          })
         .when("/pets/list", {
             templateUrl: "scripts/spa/pets/petsList.html",
-            controller: "petsListCtrl",
-            resolve: { isAuthenticated: isAuthenticated }
+            controller: "listaMascotasCtrl",
+            resolve: { isAuthenticated: estaAutenticado }
         })
         .when("/pets/edit/:id", {
             templateUrl: "scripts/spa/pets/petsEdit.html",
-            controller: "petsEditCtrl",
-            resolve: { isAuthenticated: isAuthenticated }
+            controller: "editarMascotaCtrl",
+            resolve: { isAuthenticated: estaAutenticado }
         })
       .when("/walks/step-1", {
           templateUrl: "scripts/spa/walks/step1.html",
-          controller: "step1Ctrl",
-          resolve: { isAuthenticated: isAuthenticated }
+          controller: "paso1Ctrl",
+          resolve: { isAuthenticated: estaAutenticado }
       })
       .when("/walks/requested", {
           templateUrl: "scripts/spa/walks/requested.html",
-          controller: "requestedCtrl",
-          resolve: { isAuthenticated: isAuthenticated }
+          controller: "paseosSolicitadosCtrl",
+          resolve: { isAuthenticated: estaAutenticado }
       })
       .when("/walks/step-2", {
           templateUrl: "scripts/spa/walks/step2.html",
-          controller: "step2Ctrl",
-          resolve: { isAuthenticated: isAuthenticated }
+          controller: "paso2Ctrl",
+          resolve: { isAuthenticated: estaAutenticado }
       })
         .when("/work-conditions", {
             templateUrl: "scripts/spa/workConditions/workConditions.html",
-            controller: "workConditionsCtrl",
-            resolve: { isAuthenticated: isAuthenticated }
+            controller: "condicionesLaboralesCtrl",
+            resolve: { isAuthenticated: estaAutenticado }
         })
         .when("/walkers/:id", {
             templateUrl: "scripts/spa/walkers/walkerProfile.html",
-            controller: "walkerProfileCtrl",
-            resolve: { isAuthenticated: isAuthenticated }
+            controller: "perfilPaseadorCtrl",
+            resolve: { isAuthenticated: estaAutenticado }
         })
                .when("/error/404", {
                    templateUrl: "scripts/spa/errors/page404.html",
-                   resolve: { isAuthenticated: isAuthenticated }
+                   resolve: { isAuthenticated: estaAutenticado }
                })
         .otherwise({ redirectTo: "/error/404" });
     }
@@ -109,10 +109,10 @@
         });
     }
 
-    isAuthenticated.$inject = ['membershipService', '$rootScope', '$location'];
+    estaAutenticado.$inject = ['servicioMembresia', '$rootScope', '$location'];
 
-    function isAuthenticated(membershipService, $rootScope, $location) {
-        if (!membershipService.isUserLoggedIn()) {
+    function estaAutenticado(servicioMembresia, $rootScope, $location) {
+        if (!servicioMembresia.haySesion()) {
             $rootScope.previousState = $location.path();
             $location.path('/public');
         }

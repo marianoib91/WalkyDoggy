@@ -1,76 +1,76 @@
 ﻿(function (app) {
     'use strict';
 
-    app.factory('apiService', apiService);
+    app.factory('servicioApi', servicioApi);
 
-    apiService.$inject = ['$http', '$location', 'notificationService', '$rootScope'];
+    servicioApi.$inject = ['$http', '$location', 'servicioNotificaciones', '$rootScope'];
 
-    function apiService($http, $location, notificationService, $rootScope) {
-        var service = {
+    function servicioApi($http, $location, servicioNotificaciones, $rootScope) {
+        var servicio = {
             get: get,
             post: post,
             remove:remove
         };
 
-        function get(url, config, success, failure) {
+        function get(url, config, alExito, alFallar) {
             return $http.get(url, config)
-                    .then(function (result) {
-                        success(result);
+                    .then(function (resultado) {
+                        alExito(resultado);
                     }, function (error) {
                         if (error.status == '401') {
-                            notificationService.displayError('Authentication required.');
+                            servicioNotificaciones.mostrarError('Authentication required.');
                             $rootScope.previousState = $location.path();
                             $location.path('/login');
                         }
-                        else if (failure != null) {
-                            failure(error);
+                        else if (alFallar != null) {
+                            alFallar(error);
                         }
                     });
         }
 
-        function post(url, data, success, failure) {
+        function post(url, data, alExito, alFallar) {
             return $http.post(url, data)
-                    .then(function (result) {
-                        success(result);
+                    .then(function (resultado) {
+                        alExito(resultado);
                     }, function (error) {
                         if (error.status == '401') {
-                            notificationService.displayError('Authentication required.');
+                            servicioNotificaciones.mostrarError('Authentication required.');
                             $rootScope.previousState = $location.path();
                             $location.path('/login');
                         }
-                        else if (failure != null) {
-                            failure(error);
+                        else if (alFallar != null) {
+                            alFallar(error);
                         }
                         else if (error.status == '400') {
-                            notificationService.displayError(error.data[0]);
+                            servicioNotificaciones.mostrarError(error.data[0]);
                         }
                     });
         }
-        function remove(url, success, failure) {
+        function remove(url, alExito, alFallar) {
             return $http.delete(url).
-                then(function (result) {
-                    success(result);
+                then(function (resultado) {
+                    alExito(resultado);
                 }, function (error) {
                     if (error.status == '401') {
-                        notificationService.displayError('Debe autenticarse para ingresar a esta opción.');
+                        servicioNotificaciones.mostrarError('Debe autenticarse para ingresar a esta opción.');
                         $rootScope.previousState = $location.path();
                         $location.path('/login');
                     }
-                    else if (failure != null) {
-                        failure(error);
+                    else if (alFallar != null) {
+                        alFallar(error);
                     }
                     else {
                         if (error.data && error.data.length > 0 && error.data[0]) {
-                            notificationService.displayError(error.data);
+                            servicioNotificaciones.mostrarError(error.data);
                         }
                         else {
-                            notificationService.displayError("Se produjo un error inesperado.");
+                            servicioNotificaciones.mostrarError("Se produjo un error inesperado.");
                         }
                     }
                 });
         };
 
-        return service;
+        return servicio;
     }
 
 })(angular.module('common.core'));

@@ -1,71 +1,71 @@
 ﻿(function (app) {
     'use strict';
 
-    app.factory('membershipService', membershipService);
+    app.factory('servicioMembresia', servicioMembresia);
 
-    membershipService.$inject = ['apiService', 'notificationService', '$http', '$base64', '$cookieStore', '$rootScope', '$location'];
+    servicioMembresia.$inject = ['servicioApi', 'servicioNotificaciones', '$http', '$base64', '$cookieStore', '$rootScope', '$location'];
 
-    function membershipService(apiService, notificationService, $http, $base64, $cookieStore, $rootScope, $location) {
+    function servicioMembresia(servicioApi, servicioNotificaciones, $http, $base64, $cookieStore, $rootScope, $location) {
         var loggedUser = {};
-        var membershipData = null;
+        var datosMembresia = null;
 
-        var service = {
-            login: login,
-            register: register,
-            saveCredentials: saveCredentials,
-            removeCredentials: removeCredentials,
-            isUserLoggedIn: isUserLoggedIn
+        var servicio = {
+            iniciarSesion: iniciarSesion,
+            registrar: registrar,
+            guardarCredenciales: guardarCredenciales,
+            quitarCredenciales: quitarCredenciales,
+            haySesion: haySesion
         }
 
-        function login(user, completed) {
-            apiService.post('/api/account/authenticate', user, completed, loginFailed);
+        function iniciarSesion(usuario, alCompletar) {
+            servicioApi.post('/api/account/authenticate', usuario, alCompletar, falloInicioSesion);
         }
 
-        function register(user, completed) {
-            apiService.post('/api/account/register', user, completed, registrationFailed);
+        function registrar(usuario, alCompletar) {
+            servicioApi.post('/api/account/register', usuario, alCompletar, falloRegistro);
         }
 
-        function saveCredentials(user, email) {
-            loggedUser = user;
-            membershipData = $base64.encode(user.email + ':' + user.password);
-            if (user.id == 0) {
+        function guardarCredenciales(usuario, email) {
+            loggedUser = usuario;
+            datosMembresia = $base64.encode(usuario.email + ':' + usuario.password);
+            if (usuario.id == 0) {
                 var config = {
                     params: {
-                        userId: user.userId
+                        userId: usuario.userId
                     }
                 }
             }
             else {
                 var config = {
                     params: {
-                        userId: user.id
+                        userId: usuario.id
                     }
                 }
             }
            
             //Cliente
-            if (user.roleId == '2') {
-                apiService.get('/api/customers/getByUserId', config, onLoadUserCompleted);
+            if (usuario.roleId == '2') {
+                servicioApi.get('/api/customers/getByUserId', config, alCargarUsuario);
             }
 
             //Paseador
-            if (user.roleId == '3') {
-                apiService.get('/api/walkers/getByUserId', config, onLoadUserCompleted);
+            if (usuario.roleId == '3') {
+                servicioApi.get('/api/walkers/getByUserId', config, alCargarUsuario);
             }
 
         }
-        function onLoadUserCompleted(response) {
+        function alCargarUsuario(respuesta) {
 
 
             if (loggedUser.roleId == '2') {
                 $rootScope.repository = {
                     loggedUser: {
                         roleId: loggedUser.roleId,
-                        id: response.data.userId,//se setea el userId obtenido en la validacion anterior
+                        id: respuesta.data.userId,//se setea el userId obtenido en la validacion anterior
                         email: loggedUser.email,
-                        authdata: membershipData,
+                        authdata: datosMembresia,
                         walkerId: null,
-                        customerId: response.data.id
+                        customerId: respuesta.data.id
                     }
                 };
             }
@@ -73,42 +73,42 @@
                 $rootScope.repository = {
                     loggedUser: {
                         roleId: loggedUser.roleId,
-                        id: response.data.userId,//se setea el userId obtenido en la validacion anterior
+                        id: respuesta.data.userId,//se setea el userId obtenido en la validacion anterior
                         email: loggedUser.email,
-                        authdata: membershipData,
-                        walkerId: response.data.id,
+                        authdata: datosMembresia,
+                        walkerId: respuesta.data.id,
                         customerId: null
                     }
                 };
             }
 
 
-            $http.defaults.headers.common['Authorization'] = 'Basic ' + membershipData;
+            $http.defaults.headers.common['Authorization'] = 'Basic ' + datosMembresia;
             $cookieStore.put('repository', $rootScope.repository);           
-            notificationService.displaySuccess('Bienvenido ' + response.data.email);
+            servicioNotificaciones.mostrarExito('Bienvenido ' + respuesta.data.email);
             $location.path('/');
         }
 
-        function removeCredentials() {
+        function quitarCredenciales() {
             $rootScope.repository = {};
             $cookieStore.remove('repository');
             $http.defaults.headers.common.Authorization = '';
         };
 
-        function loginFailed(response) {
-            notificationService.displayError(response.data);
+        function falloInicioSesion(respuesta) {
+            servicioNotificaciones.mostrarError(respuesta.data);
         }
 
-        function registrationFailed(response) {
+        function falloRegistro(respuesta) {
 
-            notificationService.displayError('Imposible registrarse. Intente nuevamente');
+            servicioNotificaciones.mostrarError('Imposible registrarse. Intente nuevamente');
         }
 
-        function isUserLoggedIn() {
+        function haySesion() {
             return $rootScope.repository.loggedUser != null;
         }
 
-        return service;
+        return servicio;
     }
 
 

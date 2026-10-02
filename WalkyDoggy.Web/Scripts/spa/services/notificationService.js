@@ -1,9 +1,9 @@
 ﻿(function (app) {
     'use strict';
 
-    app.factory('notificationService', notificationService);
+    app.factory('servicioNotificaciones', servicioNotificaciones);
 
-    function notificationService() {
+    function servicioNotificaciones() {
 
         toastr.options = {
             "debug": false,
@@ -15,20 +15,20 @@
             "extendedTimeOut": 1000
         };
 
-        var service = {
-            displaySuccess: displaySuccess,
-            displayError: displayError,
-            displayWarning: displayWarning,
-            displayInfo: displayInfo
+        var servicio = {
+            mostrarExito: mostrarExito,
+            mostrarError: mostrarError,
+            mostrarAdvertencia: mostrarAdvertencia,
+            mostrarInfo: mostrarInfo
         };
 
-        return service;
+        return servicio;
 
-        function displaySuccess(message) {
-            toastr.success(message);
+        function mostrarExito(mensaje) {
+            toastr.success(mensaje);
         }
 
-        function displayError(error) {
+        function mostrarError(error) {
             if (Array.isArray(error)) {
                 error.forEach(function (err) {
                     toastr.error(err);
@@ -38,12 +38,12 @@
             }
         }
 
-        function displayWarning(message) {
-            toastr.warning(message);
+        function mostrarAdvertencia(mensaje) {
+            toastr.warning(mensaje);
         }
 
-        function displayInfo(message) {
-            toastr.info(message);
+        function mostrarInfo(mensaje) {
+            toastr.info(mensaje);
         }
 
     }

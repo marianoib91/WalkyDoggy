@@ -1,34 +1,34 @@
 ﻿(function (app) {
     'use strict';
 
-    app.controller('registerCustomerCtrl', registerCustomerCtrl);
+    app.controller('registroClienteCtrl', registroClienteCtrl);
 
-    registerCustomerCtrl.$inject = ['$scope', 'apiService', 'membershipService', 'notificationService', '$rootScope', '$location'];
+    registroClienteCtrl.$inject = ['$scope', 'servicioApi', 'servicioMembresia', 'servicioNotificaciones', '$rootScope', '$location'];
 
-    function registerCustomerCtrl($scope, apiService, membershipService, notificationService, $rootScope, $location) {
+    function registroClienteCtrl($scope, servicioApi, servicioMembresia, servicioNotificaciones, $rootScope, $location) {
 
-        $scope.customer = {};
-
-
+        $scope.cliente = {};
 
 
 
 
-        $scope.register = function () {
-            if ($scope.customer.password == $scope.customer.confirmPassword) {
-                apiService.post('/api/customers/register', $scope.customer, registerCompleted)
+
+
+        $scope.registrar = function () {
+            if ($scope.cliente.password == $scope.cliente.confirmPassword) {
+                servicioApi.post('/api/customers/register', $scope.cliente, alRegistrar)
             }
             else {
-                notificationService.displayError('Las contraseñas no coinciden');
+                servicioNotificaciones.mostrarError('Las contraseñas no coinciden');
             }
         }
 
-        function registerCompleted(result) {
-            if (result.status == 200) {
-                membershipService.saveCredentials(result.data, $scope.customer.firstName);
+        function alRegistrar(resultado) {
+            if (resultado.status == 200) {
+                servicioMembresia.guardarCredenciales(resultado.data, $scope.cliente.firstName);
             }
             else {
-                notificationService.displayError('No es posible completar la registración. Intente nuevamente.');
+                servicioNotificaciones.mostrarError('No es posible completar la registración. Intente nuevamente.');
             }
         }
 
