@@ -84,6 +84,43 @@
                 <h2 class="wd-form-section-title">Domicilio</h2>
                 <wd-address-field address="user"></wd-address-field>
             </section>
+            <section class="wd-form-section" ng-if="isWalker">
+                <h2 class="wd-form-section-title">Datos para cobrar</h2>
+                <p class="wd-payout-text">
+                    Los clientes que pagan con Mercado Pago le pagan a WalkyDoggy, que retiene el dinero hasta que el paseo se hace y después te lo transfiere.
+                    Indicá a qué cuenta.
+                </p>
+                <div class="wd-form-grid">
+                    <div class="form-group">
+                        <label for="inputPayoutAccount">Alias o CBU/CVU</label>
+                        <input type="text"
+                               id="inputPayoutAccount"
+                               name="inputPayoutAccount"
+                               class="form-control"
+                               ng-model="payout.account"
+                               maxlength="30"
+                               autocomplete="off"
+                               placeholder="mi.alias.mp o los 22 dígitos">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputPayoutHolder">Titular de la cuenta</label>
+                        <input type="text"
+                               id="inputPayoutHolder"
+                               name="inputPayoutHolder"
+                               class="form-control"
+                               ng-model="payout.holder"
+                               maxlength="100"
+                               autocomplete="off"
+                               placeholder="Nombre y apellido del titular">
+                    </div>
+                </div>
+                <p class="wd-field-hint">Es el alias de tu cuenta de Mercado Pago o el CBU/CVU de tu banco. Revisalo bien: a esa cuenta se transfieren tus cobros.</p>
+                <div>
+                    <button type="button" class="btn btn-default" ng-click="savePayout()" ng-disabled="payout.saving">
+                        {{payout.saving ? 'Guardando...' : 'Guardar datos de cobro'}}
+                    </button>
+                </div>
+            </section>
             <section class="wd-form-section" ng-if="isWalker && mp.enabled">
                 <h2 class="wd-form-section-title">Cobros con Mercado Pago</h2>
 

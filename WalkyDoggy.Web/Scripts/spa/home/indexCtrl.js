@@ -57,6 +57,7 @@
         function loadBalance() {
             apiService.get('/api/payments/walkerBalance', { params: { walkerId: $scope.walkerId } }, function (result) {
                 $scope.balance = result.data;
+                $scope.balanceLoaded = true;
                 $scope.hasBalance = result.data.retained + result.data.toSettle + result.data.inReview > 0;
             });
         }

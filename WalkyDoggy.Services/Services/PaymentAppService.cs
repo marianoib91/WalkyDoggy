@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using WalkyDoggy.Application.Constants;
 using WalkyDoggy.Application.Dtos;
 using WalkyDoggy.Data.Infrastructure;
@@ -20,13 +21,16 @@ namespace WalkyDoggy.Services.Services
         private readonly IUnitOfWork unitOfWork;
         private readonly IPaymentGateway gateway;
         private readonly INotificationAppService notificationAppService;
+        private readonly IEntityBaseRepository<Walker> walkersRepository;
 
         public PaymentAppService(IEntityBaseRepository<Walk> walksRepository,
+                                 IEntityBaseRepository<Walker> walkersRepository,
                                  IUnitOfWork unitOfWork,
                                  IPaymentGateway gateway,
                                  INotificationAppService notificationAppService)
         {
             this.walksRepository = walksRepository;
+            this.walkersRepository = walkersRepository;
             this.unitOfWork = unitOfWork;
             this.gateway = gateway;
             this.notificationAppService = notificationAppService;
@@ -314,12 +318,74 @@ namespace WalkyDoggy.Services.Services
 
             Func<String, Double> sumOf = status => walks.Where(x => x.PaymentStatus == status).Sum(x => x.Price != null ? x.Price.Amount : 0);
 
+            var walker = this.walkersRepository.GetSingle(walkerId);
+
             return new WalkerBalanceDto
             {
                 Retained = sumOf(PaymentStatuses.Held),
                 ToSettle = sumOf(PaymentStatuses.Released),
-                InReview = sumOf(PaymentStatuses.Disputed)
+                InReview = sumOf(PaymentStatuses.Disputed),
+                PayoutAccount = walker != null ? walker.PayoutAccount : null,
+                PayoutHolder = walker != null ? walker.PayoutHolder : null,
+                HasPayoutAccount = walker != null && !String.IsNullOrEmpty(walker.PayoutAccount)
             };
+        }
+
+        public PayoutAccountDto GetPayoutAccount(Int64 walkerId)
+        {
+            var walker = this.walkersRepository.GetSingle(walkerId);
+
+            return new PayoutAccountDto
+            {
+                Account = walker != null ? walker.PayoutAccount : null,
+                Holder = walker != null ? walker.PayoutHolder : null
+            };
+        }
+
+        public Boolean SavePayoutAccount(Int64 walkerId, String account, String holder, out String error)
+        {
+            error = null;
+
+            var walker = this.walkersRepository.GetSingle(walkerId);
+            if (walker == null)
+            {
+                error = "El paseador no existe.";
+                return false;
+            }
+
+            var normalized = NormalizePayoutAccount(account);
+            if (normalized == null)
+            {
+                error = "Ingresá un alias (de 6 a 20 letras, números, puntos o guiones) o un CBU/CVU de 22 dígitos.";
+                return false;
+            }
+
+            holder = (holder ?? String.Empty).Trim();
+            if (holder.Length == 0 || holder.Length > 100)
+            {
+                error = "Ingresá el nombre del titular de la cuenta (hasta 100 caracteres).";
+                return false;
+            }
+
+            walker.PayoutAccount = normalized;
+            walker.PayoutHolder = holder;
+            this.unitOfWork.Commit();
+            return true;
+        }
+
+        //Un CBU/CVU son 22 digitos (se aceptan espacios o guiones al tipearlo); un alias tiene de 6 a 20 caracteres
+        //entre letras, numeros, puntos y guiones. Devuelve null si no es ninguno de los dos.
+        private static String NormalizePayoutAccount(String account)
+        {
+            var text = (account ?? String.Empty).Trim();
+
+            var digits = text.Replace(" ", String.Empty).Replace("-", String.Empty);
+            if (digits.Length > 0 && digits.All(Char.IsDigit))
+            {
+                return digits.Length == 22 ? digits : null;
+            }
+
+            return Regex.IsMatch(text, "^[A-Za-z0-9.-]{6,20}$") ? text : null;
         }
 
         private IQueryable<Walk> IncludeData()

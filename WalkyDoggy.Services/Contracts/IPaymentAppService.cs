@@ -29,5 +29,11 @@ namespace WalkyDoggy.Services.Contracts
         void ReleaseDuePayments();
 
         WalkerBalanceDto GetWalkerBalance(Int64 walkerId);
+
+        //Cuenta donde el paseador cobra; Account y Holder vienen null si todavia no la cargo
+        PayoutAccountDto GetPayoutAccount(Int64 walkerId);
+
+        //Guarda el alias o CBU/CVU y el titular. Devuelve false con el motivo en error si no son validos.
+        Boolean SavePayoutAccount(Int64 walkerId, String account, String holder, out String error);
     }
 }

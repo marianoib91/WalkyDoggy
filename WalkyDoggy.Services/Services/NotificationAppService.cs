@@ -30,6 +30,8 @@ namespace WalkyDoggy.Services.Services
             public String WalkerName { get; set; }
             public String WalkerFirstName { get; set; }
             public String WalkerEmail { get; set; }
+            public String WalkerPayoutAccount { get; set; }
+            public String WalkerPayoutHolder { get; set; }
             public String CustomerName { get; set; }
             public String CustomerFirstName { get; set; }
             public String CustomerEmail { get; set; }
@@ -126,7 +128,7 @@ namespace WalkyDoggy.Services.Services
                     "Cuando termine, confirmá que salió bien (o reportá un problema) desde: " + Link("#/walks/requested"));
                 SendTo(booking.WalkerEmail, booking.CustomerName + " pagó el paseo",
                     "Hola " + booking.WalkerFirstName + ",\n\n" + booking.CustomerName + " pagó " + booking.Total + " por el paseo de " + booking.Pets +
-                    " el " + booking.When + ".\n\nWalkyDoggy retiene el pago y te lo liquida cuando el paseo se hace.");
+                    " el " + booking.When + ".\n\nWalkyDoggy retiene el pago y te lo liquida cuando el paseo se hace." + PayoutNote(booking));
             });
         }
 
@@ -136,7 +138,8 @@ namespace WalkyDoggy.Services.Services
             {
                 SendTo(booking.WalkerEmail, "Se liberó el pago de un paseo",
                     "Hola " + booking.WalkerFirstName + ",\n\nSe liberó el pago de " + booking.Total + " por el paseo de " + booking.Pets +
-                    " el " + booking.When + " (" + booking.CustomerName + ").\n\nWalkyDoggy te lo liquida a la brevedad. Ver tus cobros: " + Link("#/"));
+                    " el " + booking.When + " (" + booking.CustomerName + ").\n\nWalkyDoggy te lo liquida a la brevedad. Ver tus cobros: " + Link("#/") +
+                    PayoutNote(booking));
             });
         }
 
@@ -205,6 +208,8 @@ namespace WalkyDoggy.Services.Services
                     WalkerName = walker.FirstName + " " + walker.LastName,
                     WalkerFirstName = walker.FirstName,
                     WalkerEmail = walker.User != null ? walker.User.Email : null,
+                    WalkerPayoutAccount = walker.PayoutAccount,
+                    WalkerPayoutHolder = walker.PayoutHolder,
                     CustomerName = customer.FirstName + " " + customer.LastName,
                     CustomerFirstName = customer.FirstName,
                     CustomerEmail = customer.User != null ? customer.User.Email : null,
@@ -227,6 +232,17 @@ namespace WalkyDoggy.Services.Services
             }
 
             this.emailSender.Send(email, subject, body + "\n\n— WalkyDoggy");
+        }
+
+        //Adonde se le va a transferir al paseador, o el pedido de que cargue su cuenta si todavia no lo hizo
+        private String PayoutNote(Booking booking)
+        {
+            if (String.IsNullOrEmpty(booking.WalkerPayoutAccount))
+            {
+                return "\n\nTodavía no cargaste dónde cobrar. Completá tu alias o CBU/CVU en tu perfil para que podamos transferirte: " + Link("#/profile");
+            }
+
+            return "\n\nTe lo transferimos a " + booking.WalkerPayoutAccount + " (titular: " + booking.WalkerPayoutHolder + "). Si no es correcto, corregilo en tu perfil: " + Link("#/profile");
         }
 
         private String Link(String path)

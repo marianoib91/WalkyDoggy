@@ -43,6 +43,15 @@
         </div>
     </div>
 
+    <div class="wd-notice" ng-if="balanceLoaded && !balance.hasPayoutAccount">
+        <i class="fa fa-credit-card" aria-hidden="true"></i>
+        <div>
+            <strong>Cargá dónde cobrar.</strong>
+            Los clientes que pagan con Mercado Pago le pagan a WalkyDoggy, que te transfiere el dinero cuando el paseo se hace.
+            Indicanos tu alias o CBU/CVU en <a href="#/profile">tu perfil</a> para poder liquidarte.
+        </div>
+    </div>
+
     <section class="wd-payout" ng-if="hasBalance">
         <h2 class="wd-section-title">Tus cobros con Mercado Pago</h2>
         <p class="wd-payout-text">
@@ -55,6 +64,8 @@
             <dd><strong>${{balance.toSettle}}</strong> · paseos realizados, WalkyDoggy te lo transfiere</dd>
             <dt ng-if="balance.inReview > 0">En revisión</dt>
             <dd ng-if="balance.inReview > 0"><strong>${{balance.inReview}}</strong> · el cliente reclamó un problema</dd>
+            <dt ng-if="balance.hasPayoutAccount">Cuenta de cobro</dt>
+            <dd ng-if="balance.hasPayoutAccount">{{balance.payoutAccount}} · {{balance.payoutHolder}} (<a href="#/profile">cambiar</a>)</dd>
         </dl>
     </section>
 

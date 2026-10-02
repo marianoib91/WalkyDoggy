@@ -201,6 +201,72 @@ namespace WalkyDoggy.Web.Controllers
             });
         }
 
+        public class PayoutAccountRequest
+        {
+            public Int64 WalkerId { get; set; }
+
+            public String Account { get; set; }
+
+            public String Holder { get; set; }
+        }
+
+        //La cuenta donde el paseador cobra. Solo el propio paseador la ve o la cambia: no sale en los listados publicos.
+        [HttpGet]
+        [Route("payoutAccount")]
+        public HttpResponseMessage GetPayoutAccount(HttpRequestMessage request, Int64 walkerId)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                HttpResponseMessage denied;
+                if (!CheckWalker(request, walkerId, out denied))
+                {
+                    return denied;
+                }
+
+                return request.CreateResponse(HttpStatusCode.OK, paymentAppService.GetPayoutAccount(walkerId));
+            });
+        }
+
+        [HttpPost]
+        [Route("payoutAccount")]
+        public HttpResponseMessage SavePayoutAccount(HttpRequestMessage request, PayoutAccountRequest action)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                HttpResponseMessage denied;
+                if (!CheckWalker(request, action == null ? 0 : action.WalkerId, out denied))
+                {
+                    return denied;
+                }
+
+                String error;
+                if (!paymentAppService.SavePayoutAccount(action.WalkerId, action.Account, action.Holder, out error))
+                {
+                    return request.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                }
+
+                return request.CreateResponse(HttpStatusCode.OK, paymentAppService.GetPayoutAccount(action.WalkerId));
+            });
+        }
+
+        private Boolean CheckWalker(HttpRequestMessage request, Int64 walkerId, out HttpResponseMessage denied)
+        {
+            denied = null;
+
+            if (!ActorIdentity.IsAuthenticated(User))
+            {
+                denied = request.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
+                return false;
+            }
+            if (!ActorIdentity.IsWalker(User, walkersRepository, walkerId))
+            {
+                denied = request.CreateResponse(HttpStatusCode.Forbidden, new[] { "No podés ver ni cambiar los datos de cobro de otro paseador." });
+                return false;
+            }
+
+            return true;
+        }
+
         private Boolean CheckCustomer(HttpRequestMessage request, PaymentActionRequest action, out HttpResponseMessage denied)
         {
             denied = null;

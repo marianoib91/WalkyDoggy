@@ -13,5 +13,20 @@ namespace WalkyDoggy.Application.Dtos
 
         //Pagos que el cliente reclamo y estan en revision
         public Double InReview { get; set; }
+
+        //Adonde se le transfiere: null si todavia no cargo sus datos de cobro
+        public String PayoutAccount { get; set; }
+
+        public String PayoutHolder { get; set; }
+
+        public Boolean HasPayoutAccount { get; set; }
+    }
+
+    //Datos de cobro del paseador (alias o CBU/CVU y titular)
+    public class PayoutAccountDto
+    {
+        public String Account { get; set; }
+
+        public String Holder { get; set; }
     }
 }
