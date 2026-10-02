@@ -17,12 +17,11 @@ namespace WalkyDoggy.Services.Contracts
 
         void Actualizar(WalkerDto paseadorDto);
 
-        List<WalkerDto> ObtenerPaseadoresDisponibles(AvailableWalkersCriteria criterioPaseadoresDisponibles);
-
         List<WalkerDto> ObtenerTodos();
 
-        //Todos los paseadores ordenados por cercania al domicilio del cliente (los que no tienen coordenadas van al final)
-        List<WalkerDto> ObtenerTodosOrdenadosPorDistancia(Int64 idCliente);
+        //Paseadores que trabajan en la direccion de retiro (dentro de su radio), del mas cercano al mas lejano.
+        //Con fecha, solo los que tienen algun horario libre ese dia; con fecha y horario, solo los libres a esa hora.
+        List<WalkerDto> BuscarParaRetiro(Double latitud, Double longitud, DateTime? fecha, String horario);
 
         WalkerDto ObtenerDetalle(Int64 id);
 

@@ -13,9 +13,6 @@
         $scope.idPaseador = $rootScope.repository.loggedUser.walkerId;
         $scope.idCliente = $rootScope.repository.loggedUser.customerId;
 
-        $scope.paseadores = {};
-        $scope.hayDistancias = false;
-        $scope.pagosPendientes = 0;
         $scope.trabajando = false;
 
         //Paseador: sus reservas segun en que punto del circuito estan
@@ -29,19 +26,6 @@
         iniciar();
 
         function iniciar() {
-            //Cliente
-            if ($scope.roleId == '2') {
-                //Los paseadores llegan ordenados por cercania al domicilio del cliente
-                servicioApi.get('/api/walkers/getAllOrderedByDistance', { params: { customerId: $scope.idCliente } }, alCargarPaseadores);
-
-                //Se avisa si hay paseos terminados que todavia no pago
-                servicioApi.get('/api/walks/getBookingsForCustomer', { params: { customerId: $scope.idCliente } }, function (resultado) {
-                    $scope.pagosPendientes = resultado.data.filter(function (reserva) {
-                        return reserva.status === 'Confirmed' && reserva.finishedAt && reserva.paymentStatus === 'Pending';
-                    }).length;
-                });
-            }
-
             //Paseador
             if ($scope.roleId == '3') {
                 cargarReservas();
@@ -53,46 +37,6 @@
                 });
             }
         }
-
-        function alCargarPaseadores(resultado) {
-            $scope.paseadores = resultado.data;
-            $scope.hayDistancias = resultado.data.some(function (paseador) {
-                return paseador.distanceKm !== null && paseador.distanceKm !== undefined;
-            });
-
-            //Por defecto, los mas cercanos; si el cliente no tiene domicilio ubicado en el mapa, los mejor valorados
-            $scope.establecerOrden($scope.hayDistancias ? 'distance' : 'rating');
-        }
-
-        /* ---------- Cliente: orden de la lista de paseadores ---------- */
-
-        function tieneDistancia(paseador) {
-            return paseador.distanceKm !== null && paseador.distanceKm !== undefined;
-        }
-
-        //distance: de menor a mayor distancia (los que no tienen domicilio ubicado, al final).
-        //rating: de mayor a menor promedio; a igual promedio, el que tiene mas valoraciones; los que no tienen, al final.
-        $scope.establecerOrden = function (ordenarPor) {
-            $scope.ordenarPor = ordenarPor;
-
-            var lista = ($scope.paseadores.slice ? $scope.paseadores.slice() : []);
-            lista.sort(function (a, b) {
-                if (ordenarPor === 'distance') {
-                    if (tieneDistancia(a) !== tieneDistancia(b)) { return tieneDistancia(a) ? -1 : 1; }
-                    return (a.distanceKm || 0) - (b.distanceKm || 0);
-                }
-
-                var valoradoA = a.averageRating !== null && a.averageRating !== undefined;
-                var valoradoB = b.averageRating !== null && b.averageRating !== undefined;
-                if (valoradoA !== valoradoB) { return valoradoA ? -1 : 1; }
-                if (valoradoA && a.averageRating !== b.averageRating) { return b.averageRating - a.averageRating; }
-                if (a.ratingCount !== b.ratingCount) { return b.ratingCount - a.ratingCount; }
-                if (tieneDistancia(a) && tieneDistancia(b)) { return a.distanceKm - b.distanceKm; }
-                return 0;
-            });
-
-            $scope.paseadoresOrdenados = lista;
-        };
 
         /* ---------- Paseador: solicitudes, paseos y cobros ---------- */
 

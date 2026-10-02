@@ -77,6 +77,7 @@ namespace WalkyDoggy.Services.Services
             //Se registra el paseador, con la tarifa por hora que el mismo eligio
             var paseador = Mapper.Map<WalkerDto, Walker>(paseadorDto);
             paseador.UserId = usuarioCreado.Id;
+            paseador.PayoutAccount = String.IsNullOrWhiteSpace(paseadorDto.PayoutAccount) ? null : paseadorDto.PayoutAccount.Trim();
             AplicarTarifa(paseador, paseadorDto.Amount);
             this.repositorioPaseadores.Agregar(paseador);
 
@@ -93,6 +94,10 @@ namespace WalkyDoggy.Services.Services
         //Tarifa por hora que puede fijar un paseador (en pesos)
         public const Double TarifaMinima = 1;
         public const Double TarifaMaxima = 1000000;
+
+        //Radio de trabajo que puede fijar un paseador, en kilometros
+        public const Double RadioMinimoKm = 1;
+        public const Double RadioMaximoKm = 50;
 
         //La tarifa la fija cada paseador. Se reutiliza la tabla de precios: si ya existe un precio con ese monto se usa,
         //y si no se crea. Los paseos ya reservados conservan el precio con el que se pidieron.
@@ -157,7 +162,23 @@ namespace WalkyDoggy.Services.Services
             }
 
             var idPrecioAnterior = paseador.PriceId;
+            var radioAnterior = paseador.ServiceRadiusKm;
+            var cuentaAnterior = paseador.PayoutAccount;
             Mapper.Map(paseadorDto, paseador);
+
+            //Sin radio informado queda el que tenia; sin cuenta informada (null) tambien. Un texto vacio borra la cuenta.
+            if (paseadorDto.ServiceRadiusKm <= 0)
+            {
+                paseador.ServiceRadiusKm = radioAnterior;
+            }
+            if (paseadorDto.PayoutAccount == null)
+            {
+                paseador.PayoutAccount = cuentaAnterior;
+            }
+            else
+            {
+                paseador.PayoutAccount = String.IsNullOrWhiteSpace(paseadorDto.PayoutAccount) ? null : paseadorDto.PayoutAccount.Trim();
+            }
 
             //La tarifa por hora se ajusta con el monto que informa el paseador (si no informa ninguno, queda la que tenia)
             if (paseadorDto.Amount > 0)
@@ -177,56 +198,76 @@ namespace WalkyDoggy.Services.Services
             var paseadores = this.repositorioPaseadores.TodosConIncluidos(x => x.City, x => x.Price, x => x.City.Province).ToList();
             var paseadoresDto = Mapper.Map<List<Walker>, List<WalkerDto>>(paseadores);
             AdjuntarValoraciones(paseadoresDto);
+            paseadoresDto.ForEach(x => x.PayoutAccount = null);
             return paseadoresDto;
         }
 
-        public List<WalkerDto> ObtenerTodosOrdenadosPorDistancia(Int64 idCliente)
+        //Paseadores que trabajan en la direccion de retiro: los que la tienen dentro de su radio de trabajo, del mas cercano al mas lejano.
+        //Si se informa la fecha, solo los que tienen algun horario libre ese dia; si ademas se informa el horario, solo los libres a esa hora.
+        public List<WalkerDto> BuscarParaRetiro(Double latitud, Double longitud, DateTime? fecha, String horario)
         {
             var paseadoresDto = ObtenerTodos();
-
-            var cliente = this.repositorioClientes.ObtenerUno(idCliente);
-            double latitudCliente, longitudCliente;
-            if (cliente == null || !IntentarLeerCoordenadas(cliente.Latitude, cliente.Longitude, out latitudCliente, out longitudCliente))
-            {
-                return paseadoresDto;
-            }
+            var encontrados = new List<WalkerDto>();
 
             foreach (var paseadorDto in paseadoresDto)
             {
-                double latitudPaseador, longitudPaseador;
-                if (IntentarLeerCoordenadas(paseadorDto.Latitude, paseadorDto.Longitude, out latitudPaseador, out longitudPaseador))
+                Double latitudPaseador, longitudPaseador;
+                if (!Geografia.IntentarLeerCoordenadas(paseadorDto.Latitude, paseadorDto.Longitude, out latitudPaseador, out longitudPaseador))
                 {
-                    paseadorDto.DistanceKm = Math.Round(DistanciaEnKilometros(latitudCliente, longitudCliente, latitudPaseador, longitudPaseador), 1);
+                    continue;
+                }
+
+                var distancia = Geografia.DistanciaEnKilometros(latitud, longitud, latitudPaseador, longitudPaseador);
+                if (distancia > paseadorDto.ServiceRadiusKm)
+                {
+                    continue;
+                }
+
+                if (fecha.HasValue)
+                {
+                    var horariosLibres = ObtenerHorariosDisponibles(paseadorDto.Id, fecha.Value);
+                    if (String.IsNullOrWhiteSpace(horario) ? horariosLibres.Count == 0 : !horariosLibres.Contains(horario))
+                    {
+                        continue;
+                    }
+                }
+
+                paseadorDto.DistanceKm = Math.Round(distancia, 1);
+                encontrados.Add(paseadorDto);
+            }
+
+            return encontrados.OrderBy(x => x.DistanceKm).ToList();
+        }
+
+        //Verifica la zona de trabajo y los datos de cobro. Devuelve el mensaje de error, o null si esta todo bien.
+        //Al registrarse (exigirUbicacion) la direccion de referencia con sus coordenadas y el radio son obligatorios;
+        //al actualizar, un radio en 0 significa "sin cambios".
+        public static String ValidarZonaYCobro(WalkerDto paseadorDto, Boolean exigirUbicacion)
+        {
+            Double latitud, longitud;
+            if (exigirUbicacion && !Geografia.IntentarLeerCoordenadas(paseadorDto.Latitude, paseadorDto.Longitude, out latitud, out longitud))
+            {
+                return "Elegí la dirección de referencia de la lista de sugerencias o marcala en el mapa.";
+            }
+
+            var radio = paseadorDto.ServiceRadiusKm;
+            if ((exigirUbicacion || radio != 0) && (radio < RadioMinimoKm || radio > RadioMaximoKm))
+            {
+                return "El radio de trabajo tiene que estar entre " + RadioMinimoKm + " y " + RadioMaximoKm + " km.";
+            }
+
+            if (!String.IsNullOrWhiteSpace(paseadorDto.PayoutAccount))
+            {
+                var cuenta = paseadorDto.PayoutAccount.Trim();
+                var esCbuOCvu = cuenta.Length == 22 && cuenta.All(Char.IsDigit);
+                var esAlias = cuenta.Length >= 6 && cuenta.Length <= 20 && cuenta.All(c => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || Char.IsDigit(c) || c == '.' || c == '-');
+                if (!esCbuOCvu && !esAlias)
+                {
+                    return "El alias debe tener entre 6 y 20 caracteres (letras, números, puntos o guiones), o ser un CBU/CVU de 22 dígitos.";
                 }
             }
 
-            return paseadoresDto.OrderBy(x => x.DistanceKm.HasValue ? 0 : 1).
-                              ThenBy(x => x.DistanceKm).
-                              ToList();
-        }
-
-        private static Boolean IntentarLeerCoordenadas(String latitud, String longitud, out Double latitudLeida, out Double longitudLeida)
-        {
-            latitudLeida = 0;
-            longitudLeida = 0;
-
-            return Double.TryParse(latitud, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out latitudLeida) &&
-                   Double.TryParse(longitud, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out longitudLeida);
-        }
-
-        //Distancia en linea recta entre dos puntos (formula de Haversine)
-        private static Double DistanciaEnKilometros(Double latitud1, Double longitud1, Double latitud2, Double longitud2)
-        {
-            const Double radioTierraKm = 6371;
-            Func<Double, Double> aRadianes = grados => grados * Math.PI / 180;
-
-            var deltaLatitud = aRadianes(latitud2 - latitud1);
-            var deltaLongitud = aRadianes(longitud2 - longitud1);
-            var a = Math.Sin(deltaLatitud / 2) * Math.Sin(deltaLatitud / 2) +
-                    Math.Cos(aRadianes(latitud1)) * Math.Cos(aRadianes(latitud2)) *
-                    Math.Sin(deltaLongitud / 2) * Math.Sin(deltaLongitud / 2);
-
-            return radioTierraKm * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return null;
         }
 
         public WalkerDto ObtenerDetalle(Int64 id)
@@ -241,6 +282,7 @@ namespace WalkyDoggy.Services.Services
 
             var paseadorDto = Mapper.Map<Walker, WalkerDto>(paseador);
             AdjuntarValoraciones(new List<WalkerDto> { paseadorDto });
+            paseadorDto.PayoutAccount = null;
             return paseadorDto;
         }
 
@@ -299,60 +341,6 @@ namespace WalkyDoggy.Services.Services
 
             horarios.Sort();
             return horarios;
-        }
-
-        public List<WalkerDto> ObtenerPaseadoresDisponibles(AvailableWalkersCriteria criterioPaseadoresDisponibles)
-        {
-            var servicioDiaDeLaSemana = new ServicioDiaDeLaSemana();
-            var fecha = DateTime.Parse(criterioPaseadoresDisponibles.Date).Date;
-            var diaDeLaSemana = servicioDiaDeLaSemana.ObtenerDiaDeLaSemana(fecha.DayOfWeek.ToString());
-            var horaDesde = Convert.ToInt64(criterioPaseadoresDisponibles.TimeFrom.Split(':')[0]);
-
-            //Se obtienen las jornadas laborales del dia de la semana seleccionado
-            var jornadas = this.repositorioJornadas.TodosConIncluidos(x => x.Walker.City.Province,
-                                                                x => x.Walker.Price).
-                                                               Where(x => x.DayOfWeek == diaDeLaSemana).
-                                                               ToList();
-
-            //Se obtienen los paseos registrados con ese dia y hora
-            var paseos = this.repositorioPaseos.ObtenerTodos().Where(x => x.Date == fecha &&
-                                                               x.TimeFrom == criterioPaseadoresDisponibles.TimeFrom).
-                                                      ToList();
-
-          
-            //Listado de paseadores disponibles
-            var paseadoresDisponibles = new List<Walker>();
-
-            foreach (var jornada in jornadas)
-            {
-                //Se valida que el horario seleccionado este dentro de las jornadas laborales seleccionadas anteriormente
-                if (Convert.ToInt64(jornada.TimeFrom.Split(':')[0]) <= horaDesde &&
-                    Convert.ToInt64(jornada.TimeUntil.Split(':')[0]) >= horaDesde)
-                {
-                    //Si hay paseos ese dia y a esa hora se hacen las validaciones correspondientes
-                    if (paseos.Count > 0)
-                    {
-                        var paseosDelPaseador = paseos.Where(x => x.WalkerId == jornada.WalkerId);
-
-                        //Puede pasear hasta 5 mascotas a la vez
-                        if (paseosDelPaseador.Count() > 5)
-                        {
-                            //si tiene mas de 5 para ese dia y hora no se muestra el paseador
-                        }
-                        else
-                        {
-                            paseadoresDisponibles.Add(jornada.Walker);
-                        }
-                    }
-                    //Se agrega directamente el paseador disponible en ese dia y hora porque no hay paseos con ese dia y hora
-                    else
-                    {
-                        paseadoresDisponibles.Add(jornada.Walker);
-                    }
-                }
-            }
-            var paseadoresDto = Mapper.Map<List<Walker>, List<WalkerDto>>(paseadoresDisponibles);
-            return paseadoresDto;
         }
     }
 }

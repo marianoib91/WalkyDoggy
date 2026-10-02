@@ -13,6 +13,7 @@ using WalkyDoggy.Entities;
 using WalkyDoggy.Services;
 using WalkyDoggy.Services.Contracts;
 using WalkyDoggy.Services.Services;
+using WalkyDoggy.Services.Utilities;
 using WalkyDoggy.Web.Infrastructure.Core;
 
 namespace WalkyDoggy.Web.Controllers
@@ -56,6 +57,10 @@ namespace WalkyDoggy.Web.Controllers
                     respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         new[] { "Debe ingresar una tarifa por hora válida (entre $" + ServicioPaseadores.TarifaMinima + " y $" + ServicioPaseadores.TarifaMaxima.ToString("N0") + ")." });
                 }
+                else if (ServicioPaseadores.ValidarZonaYCobro(paseadorDto, true) != null)
+                {
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { ServicioPaseadores.ValidarZonaYCobro(paseadorDto, true) });
+                }
                 else
                 {
                     if (servicioMembresia.ExisteUsuario(paseadorDto.Email))
@@ -93,20 +98,6 @@ namespace WalkyDoggy.Web.Controllers
         }
 
         [HttpPost]
-        [Route("getAvailableWalkers")]
-        public HttpResponseMessage GetAvailableWalkers(HttpRequestMessage pedido, AvailableWalkersCriteria criterioPaseadoresDisponibles)
-        {
-            return CrearRespuestaHttp(pedido, () =>
-            {
-
-                HttpResponseMessage respuesta = null;
-                var paseadoresDto = this.servicioPaseadores.ObtenerPaseadoresDisponibles(criterioPaseadoresDisponibles);
-                respuesta = pedido.CreateResponse(HttpStatusCode.OK, paseadoresDto);
-                return respuesta;
-            });
-        }
-
-        [HttpPost]
         [Route("update")]
         public HttpResponseMessage Update(HttpRequestMessage pedido, WalkerDto paseadorDto)
         {
@@ -118,6 +109,12 @@ namespace WalkyDoggy.Web.Controllers
                     return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { "La tarifa por hora tiene que estar entre $" + ServicioPaseadores.TarifaMinima + " y $" + ServicioPaseadores.TarifaMaxima.ToString("N0") + "." });
                 }
 
+                var errorZona = paseadorDto == null ? null : ServicioPaseadores.ValidarZonaYCobro(paseadorDto, false);
+                if (errorZona != null)
+                {
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { errorZona });
+                }
+
                 HttpResponseMessage respuesta = null;
                 this.servicioPaseadores.Actualizar(paseadorDto);
 
@@ -127,13 +124,32 @@ namespace WalkyDoggy.Web.Controllers
             });
         }
 
+        //Paseadores que trabajan en la direccion de retiro (latitude y longitude con punto decimal), del mas cercano al mas lejano.
+        //date (yyyy-MM-dd) y timeFrom (HH:00) son opcionales: filtran por los paseadores con horario libre.
         [HttpGet]
-        [Route("getAllOrderedByDistance")]
-        public HttpResponseMessage GetAllOrderedByDistance(HttpRequestMessage pedido, Int64 customerId)
+        [Route("getForPickup")]
+        public HttpResponseMessage GetForPickup(HttpRequestMessage pedido, String latitude, String longitude, String date = null, String timeFrom = null)
         {
             return CrearRespuestaHttp(pedido, () =>
             {
-                var paseadoresDto = this.servicioPaseadores.ObtenerTodosOrdenadosPorDistancia(customerId);
+                Double latitud, longitud;
+                if (!Geografia.IntentarLeerCoordenadas(latitude, longitude, out latitud, out longitud))
+                {
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { "La dirección de retiro no tiene una ubicación válida." });
+                }
+
+                DateTime? fecha = null;
+                if (!String.IsNullOrWhiteSpace(date))
+                {
+                    DateTime fechaLeida;
+                    if (!DateTime.TryParseExact(date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out fechaLeida))
+                    {
+                        return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { "La fecha no es válida." });
+                    }
+                    fecha = fechaLeida;
+                }
+
+                var paseadoresDto = this.servicioPaseadores.BuscarParaRetiro(latitud, longitud, fecha, timeFrom);
 
                 return pedido.CreateResponse(HttpStatusCode.OK, paseadoresDto);
             });

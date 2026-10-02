@@ -16,6 +16,8 @@ namespace WalkyDoggy.Data.Configurations
             Property(u => u.StreetNumber).IsRequired();
             Property(u => u.UserId).IsRequired();
             Property(u => u.ProfileImage);
+            Property(u => u.ServiceRadiusKm).IsRequired();
+            Property(u => u.PayoutAccount).HasMaxLength(120);
         }
     }
 }

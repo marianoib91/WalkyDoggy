@@ -83,30 +83,30 @@
 
             <section class="wd-form-section">
                 <h2 class="wd-form-section-title">Dónde retiramos a tus mascotas</h2>
-                <div class="wd-choice-list" role="radiogroup" aria-label="Dirección de retiro">
-                    <label class="wd-choice" ng-class="{'is-selected': retiro.mode == 'home'}">
-                        <input type="radio" name="pickupMode" value="home" ng-model="retiro.mode">
-                        <span class="wd-choice-body">
-                            <span class="wd-choice-title">En mi domicilio</span>
-                            <span class="wd-choice-text">{{domicilio}}</span>
-                        </span>
-                    </label>
-                    <label class="wd-choice" ng-class="{'is-selected': retiro.mode == 'other'}">
-                        <input type="radio" name="pickupMode" value="other" ng-model="retiro.mode">
-                        <span class="wd-choice-body">
-                            <span class="wd-choice-title">En otra dirección</span>
-                            <span class="wd-choice-text">Por ejemplo, si en este momento estás con tus mascotas en otro lugar.</span>
-                        </span>
-                    </label>
+                <div class="wd-pickup-summary" ng-if="retiroActual">
+                    <i class="fa fa-map-marker" aria-hidden="true"></i>
+                    <div class="wd-pickup-text">
+                        <strong>{{textoRetiro}}</strong>
+                        <span class="wd-field-hint" ng-if="retiroActual.isHome">Es tu domicilio.</span>
+                    </div>
+                    <a class="wd-link-plain" href="#/">Cambiar</a>
                 </div>
-                <div ng-if="retiro.mode == 'other'">
-                    <wd-address-field address="retiro.other" allow-locate="true"></wd-address-field>
+                <div class="wd-notice wd-notice-warn" ng-if="fueraDeZona" role="alert">
+                    <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                    <div>
+                        <strong>Esta dirección queda fuera de la zona de {{paseador.firstName}}.</strong>
+                        Está a {{distanciaRetiro | wdKm}} km de su dirección de referencia y trabaja hasta {{paseador.serviceRadiusKm | wdKm}} km.
+                        <a href="#/">Elegí otra dirección</a> o buscá a otro paseador.
+                    </div>
                 </div>
+                <p class="wd-field-hint" ng-if="!fueraDeZona && distanciaRetiro !== null">
+                    Queda dentro de la zona de trabajo de {{paseador.firstName}} (a {{distanciaRetiro | wdKm}} km de su dirección de referencia; trabaja hasta {{paseador.serviceRadiusKm | wdKm}} km).
+                </p>
             </section>
 
             <div class="wd-form-footer">
                 <a class="btn btn-default" href="#/" style="margin-right:12px">Cancelar</a>
-                <button type="submit" class="btn btn-primary" ng-disabled="!tieneHorario">Continuar</button>
+                <button type="submit" class="btn btn-primary" ng-disabled="!tieneHorario || fueraDeZona">Continuar</button>
             </div>
         </div>
     </form>

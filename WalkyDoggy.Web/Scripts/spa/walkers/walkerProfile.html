@@ -10,8 +10,12 @@
                     <i class="fa fa-map-marker" aria-hidden="true"></i>
                     {{paseador.cityName}}, {{paseador.provinceName}}
                 </div>
+                <div class="wd-walker-meta" ng-if="paseador.serviceRadiusKm">
+                    <i class="fa fa-bullseye" aria-hidden="true"></i>
+                    Zona de trabajo: hasta {{paseador.serviceRadiusKm | wdKm}} km alrededor de {{paseador.streetName}}
+                </div>
                 <div class="wd-profile-rating" ng-if="paseador.ratingCount > 0">
-                    <wd-stars value="walker.averageRating"></wd-stars>
+                    <wd-stars value="paseador.averageRating"></wd-stars>
                     <strong>{{formatearPromedio(paseador.averageRating)}}</strong>
                     <a href="" ng-click="irAOpiniones()">{{textoCantidad(paseador.ratingCount, 'calificación', 'calificaciones')}}</a>
                 </div>
@@ -51,7 +55,7 @@
                     <div class="wd-rating-average" ng-if="resumen.count > 0">
                         <span class="wd-rating-number">{{formatearPromedio(resumen.average)}}</span>
                         <div>
-                            <wd-stars value="summary.average" size="lg"></wd-stars>
+                            <wd-stars value="resumen.average" size="lg"></wd-stars>
                             <div class="wd-field-hint">{{textoCantidad(resumen.count, 'calificación', 'calificaciones')}}</div>
                         </div>
                     </div>
@@ -97,7 +101,7 @@
 
                     <article class="wd-review" ng-repeat="valoracion in valoraciones">
                         <div class="wd-review-head">
-                            <wd-stars value="rating.stars"></wd-stars>
+                            <wd-stars value="valoracion.stars"></wd-stars>
                             <span class="wd-field-hint">{{valoracion.authorName}} · {{textoFecha(valoracion.date)}}</span>
                         </div>
                         <p class="wd-review-text" ng-if="valoracion.comment">{{valoracion.comment}}</p>

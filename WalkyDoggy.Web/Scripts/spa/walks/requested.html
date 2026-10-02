@@ -30,13 +30,16 @@
                         <dt>Pago</dt>
                         <dd>{{textoPago(reserva)}} · <strong>${{reserva.total | wdMoney}}</strong></dd>
                         <dt ng-if="reserva.ratingStars">Tu valoración</dt>
-                        <dd ng-if="reserva.ratingStars"><wd-stars value="booking.ratingStars"></wd-stars></dd>
+                        <dd ng-if="reserva.ratingStars"><wd-stars value="reserva.ratingStars"></wd-stars></dd>
                     </dl>
                     <p class="wd-field-hint" ng-if="esMercadoPago(reserva)">
                         {{reserva.walkerName}} ya terminó el paseo. Pagá con Mercado Pago: el dinero va directo a su cuenta.
                     </p>
                     <p class="wd-field-hint" ng-if="!esMercadoPago(reserva)">
                         {{reserva.walkerName}} ya terminó el paseo. Pagale <strong>${{reserva.total | wdMoney}}</strong> en efectivo; cuando confirme que lo recibió, el paseo queda cerrado.
+                    </p>
+                    <p class="wd-field-hint" ng-if="!esMercadoPago(reserva) && reserva.walkerPayoutAccount">
+                        También podés transferirle al alias o CBU/CVU <strong>{{reserva.walkerPayoutAccount}}</strong>.
                     </p>
                 </div>
                 <div class="wd-walk-actions">
@@ -96,7 +99,7 @@
                         <dt ng-if="reserva.status != 'Cancelled'">Pago</dt>
                         <dd ng-if="reserva.status != 'Cancelled'">{{textoPago(reserva)}} · <strong>${{reserva.total | wdMoney}}</strong></dd>
                         <dt ng-if="reserva.ratingStars">Tu valoración</dt>
-                        <dd ng-if="reserva.ratingStars"><wd-stars value="booking.ratingStars"></wd-stars></dd>
+                        <dd ng-if="reserva.ratingStars"><wd-stars value="reserva.ratingStars"></wd-stars></dd>
                     </dl>
                 </div>
                 <div class="wd-walk-actions" ng-if="puedeValorar(reserva)">

@@ -7,13 +7,16 @@
 
     //Campo de domicilio con autocompletado y mapa.
     //Uso: <wd-address-field address="usuario"></wd-address-field>
+    //Opcionales: label (titulo del buscador), hint (ayuda bajo el mapa), allow-locate="true" (boton de ubicacion actual) y
+    //radius-km (km): dibuja sobre el mapa un circulo con ese radio alrededor del pin.
+    //allow-no-number="true": acepta lugares sin numero de calle (una plaza); en ese caso el numero queda en 0.
     //Completa en "address": streetName, streetNumber, cityId, provinceId, cityName, provinceName, latitude y longitude.
     function wdAddressField($timeout, servicioGeocodificacion, servicioApi, servicioNotificaciones) {
         var contadorInstancias = 0;
 
         return {
             restrict: 'E',
-            scope: { address: '=', allowLocate: '@' },
+            scope: { address: '=', allowLocate: '@', allowNoNumber: '@', label: '@', hint: '@', radiusKm: '=' },
             templateUrl: '/scripts/spa/directives/addressField.html',
             link: link
         };
@@ -31,6 +34,7 @@
 
             var mapa = null;
             var marcador = null;
+            var circulo = null;
             var temporizadorBusqueda = null;
             var tokenBusqueda = 0;
             var inicializado = false;
@@ -47,6 +51,10 @@
                 }
                 inicializado = true;
                 mostrarDireccionExistente(direccion);
+            });
+
+            scope.$watch('radiusKm', function () {
+                dibujarCirculo(true);
             });
 
             scope.$on('$destroy', function () {
@@ -172,9 +180,12 @@
                 var number = leerNumero(lugar.houseNumber);
 
                 direccion.streetName = truncar(lugar.street, 50);
+                if (number === null && scope.allowNoNumber == 'true') {
+                    number = 0;
+                }
                 direccion.streetNumber = number;
                 scope.state.query = formatearEtiqueta(lugar.street, number, lugar.city, lugar.state);
-                scope.state.message = number === null ? 'Esa calle no tiene el número cargado en el mapa: completalo a mano.' : null;
+                scope.state.message = number === null ? 'Esa calle no tiene el número cargado en el mapa: completalo a mano.' : (number === 0 ? 'Es un lugar sin número de calle: está bien así.' : null);
 
                 colocarPin({ lat: lugar.latitude, lng: lugar.longitude }, true);
                 resolverCiudad(lugar);
@@ -226,7 +237,11 @@
 
                 if (tieneCoordenadas) {
                     colocarPin(tieneCoordenadas, false);
-                    mapa.setView(tieneCoordenadas, zoomPin);
+                    if (circulo) {
+                        mapa.fitBounds(circulo.getBounds(), { padding: [24, 24], maxZoom: zoomPin });
+                    } else {
+                        mapa.setView(tieneCoordenadas, zoomPin);
+                    }
                 } else if (direccion.streetName && direccion.cityName) {
                     //Domicilios cargados antes del mapa: se ubican por su texto para proponer el pin
                     var texto = [direccion.streetName, direccion.streetNumber, direccion.cityName, direccion.provinceName].filter(Boolean).join(' ');
@@ -275,6 +290,11 @@
 
                 if (!marcador) {
                     marcador = L.marker(punto, { draggable: true, icon: iconoPin, keyboard: false, title: 'Arrastrá el pin para ajustar la ubicación' }).addTo(mapa);
+                    marcador.on('drag', function () {
+                        if (circulo) {
+                            circulo.setLatLng(marcador.getLatLng());
+                        }
+                    });
                     marcador.on('dragend', function () {
                         $timeout(function () {
                             var position = marcador.getLatLng();
@@ -288,8 +308,33 @@
 
                 guardarCoordenadas(punto);
 
-                if (centrarMapa) {
+                if (Number(scope.radiusKm) > 0) {
+                    dibujarCirculo(centrarMapa);
+                } else if (centrarMapa) {
                     mapa.setView(punto, zoomPin);
+                }
+            }
+
+            //Circulo con el radio de trabajo alrededor del pin (solo si se informa radius-km)
+            function dibujarCirculo(ajustarVista) {
+                var km = Number(scope.radiusKm);
+
+                if (!mapa || !marcador || !(km > 0)) {
+                    if (circulo) {
+                        mapa.removeLayer(circulo);
+                        circulo = null;
+                    }
+                    return;
+                }
+
+                if (!circulo) {
+                    circulo = L.circle(marcador.getLatLng(), { radius: km * 1000, color: '#166A4F', weight: 2, fillColor: '#166A4F', fillOpacity: 0.1, interactive: false }).addTo(mapa);
+                }
+                circulo.setLatLng(marcador.getLatLng());
+                circulo.setRadius(km * 1000);
+
+                if (ajustarVista) {
+                    mapa.fitBounds(circulo.getBounds(), { padding: [24, 24], maxZoom: zoomPin });
                 }
             }
 

@@ -1,6 +1,6 @@
 <div class="wd-address">
     <div class="form-group wd-address-search">
-        <label for="{{uid}}-search">Buscá tu dirección</label>
+        <label for="{{uid}}-search">{{label || 'Buscá tu dirección'}}</label>
         <div class="wd-address-combobox">
             <input type="text"
                    id="{{uid}}-search"
@@ -37,7 +37,7 @@
     </div>
 
     <div class="wd-address-map" role="application" aria-label="Mapa para ubicar el domicilio"></div>
-    <p class="wd-field-hint">Podés hacer clic en el mapa o arrastrar el pin para ajustar la ubicación.</p>
+    <p class="wd-field-hint">{{hint || 'Podés hacer clic en el mapa o arrastrar el pin para ajustar la ubicación.'}}</p>
 
     <div class="wd-form-grid wd-address-fields">
         <div class="form-group">
@@ -60,10 +60,10 @@
                    name="inputStreetNumber"
                    class="form-control wd-address-number"
                    ng-model="address.streetNumber"
-                   min="1"
-                   placeholder="Número"
+                   ng-attr-min="{{allowNoNumber == 'true' ? 0 : 1}}"
+                   placeholder="{{allowNoNumber == 'true' ? 'Número (si tiene)' : 'Número'}}"
                    validate-on="blur"
-                   required
+                   ng-required="allowNoNumber != 'true'"
                    required-message="'Número de calle es requerido.'">
         </div>
         <div class="form-group wd-span-2">

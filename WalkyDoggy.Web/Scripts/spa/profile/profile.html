@@ -2,7 +2,8 @@
     <div class="wd-page-header">
         <div>
             <h1 class="wd-page-title">Mi perfil</h1>
-            <p class="wd-page-subtitle">Actualizá tus datos personales y tu domicilio.</p>
+            <p class="wd-page-subtitle" ng-if="!esPaseador">Actualizá tus datos personales y tu domicilio.</p>
+            <p class="wd-page-subtitle" ng-if="esPaseador">Actualizá tus datos personales, tu zona de trabajo y cómo cobrás.</p>
         </div>
     </div>
     <form class="wd-form-layout" role="form" novalidate angular-validator name="userRegistrationForm" angular-validator-submit="actualizarPerfil()">
@@ -80,13 +81,41 @@
                     </div>
                 </div>
             </section>
-            <section class="wd-form-section">
+            <section class="wd-form-section" ng-if="!esPaseador">
                 <h2 class="wd-form-section-title">Domicilio</h2>
                 <wd-address-field address="usuario"></wd-address-field>
             </section>
             <section class="wd-form-section" ng-if="esPaseador">
-                <h2 class="wd-form-section-title">Cobros con Mercado Pago</h2>
+                <h2 class="wd-form-section-title">Zona de trabajo</h2>
+                <p class="wd-field-hint wd-lead">
+                    Los dueños solo pueden pedirte paseos si la dirección donde buscás a sus mascotas queda dentro de este radio, medido desde tu dirección de referencia
+                    (por ejemplo, una plaza donde hacés tus paseos).
+                </p>
+                <wd-address-field address="usuario" allow-no-number="true" radius-km="usuario.serviceRadiusKm"
+                                  label="Dirección de referencia"
+                                  hint="Hacé clic en el mapa o arrastrá el pin para mover tu zona. El círculo verde muestra hasta dónde te movés."></wd-address-field>
+                <div class="form-group wd-radius-field">
+                    <label for="inputRadius">Radio de trabajo</label>
+                    <div class="input-group">
+                        <input type="number" id="inputRadius" name="inputRadius" class="form-control" ng-model="usuario.serviceRadiusKm"
+                               min="1" max="50" step="0.5" validate-on="blur" required
+                               required-message="'Ingresá el radio en kilómetros (entre 1 y 50).'">
+                        <span class="input-group-addon">km</span>
+                    </div>
+                    <p class="wd-field-hint">Distancia máxima en línea recta desde tu dirección de referencia. Entre 1 y 50 km.</p>
+                </div>
+            </section>
+            <section class="wd-form-section" ng-if="esPaseador">
+                <h2 class="wd-form-section-title">Cómo cobrás</h2>
 
+                <div class="form-group">
+                    <label for="inputPayout">Alias o CBU/CVU para transferencias (opcional)</label>
+                    <input type="text" id="inputPayout" name="inputPayout" class="form-control" ng-model="usuario.payoutAccount"
+                           maxlength="22" autocomplete="off" placeholder="Por ejemplo, paseos.rosario.mp o los 22 dígitos de tu CBU/CVU">
+                    <p class="wd-field-hint">Tus clientes lo ven en sus paseos para poder transferirte. Con el alias alcanza: entre 6 y 20 caracteres, sin espacios. Dejalo vacío para borrarlo.</p>
+                </div>
+
+                <h3 class="wd-subsection-title">Mercado Pago</h3>
                 <div class="wd-payout" ng-if="mp.loaded && !mp.linked">
                     <p class="wd-payout-text">
                         Vinculá tu cuenta de Mercado Pago para recibir los pagos online de tus clientes directamente en tu cuenta.

@@ -203,6 +203,7 @@
     <Content Include="Scripts\spa\app.js" />
     <Content Include="Scripts\spa\modules\common.ui.js" />
     <Content Include="Scripts\spa\home\indexCtrl.js" />
+    <Content Include="Scripts\spa\home\buscarPaseadoresCtrl.js" />
     <Content Include="Scripts\spa\home\rootCtrl.js" />
     <Content Include="Scripts\spa\directives\stars.directive.js" />
     <Content Include="Scripts\spa\filters\money.filter.js" />

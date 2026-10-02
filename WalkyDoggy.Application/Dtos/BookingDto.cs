@@ -15,6 +15,9 @@ namespace WalkyDoggy.Application.Dtos
 
         public String WalkerProfileImage { get; set; }
 
+        //Alias o CBU/CVU del paseador, para que el cliente pueda transferirle (null si no cargo ninguno)
+        public String WalkerPayoutAccount { get; set; }
+
         public Int64 CustomerId { get; set; }
 
         public String CustomerFullName { get; set; }

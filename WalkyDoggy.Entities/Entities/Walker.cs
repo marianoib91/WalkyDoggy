@@ -32,10 +32,16 @@ namespace WalkyDoggy.Entities
 
         public String ProfileImage { get; set; }
 
-        //Coordenadas del domicilio (decimales con punto, ej: -32.95205)
+        //Direccion de referencia donde el paseador quiere trabajar (por ejemplo, una plaza) y sus coordenadas (decimales con punto, ej: -32.95205)
         public String Latitude { get; set; }
 
         public String Longitude { get; set; }
+
+        //Radio, en kilometros, alrededor de la direccion de referencia en el que el paseador acepta retirar mascotas
+        public Double ServiceRadiusKm { get; set; }
+
+        //Alias o CBU/CVU donde el paseador recibe transferencias (opcional)
+        public String PayoutAccount { get; set; }
 
         //Cuenta de Mercado Pago vinculada por el paseador (OAuth). Los tokens se guardan cifrados y nunca salen del servidor.
         public String MercadoPagoUserId { get; set; }

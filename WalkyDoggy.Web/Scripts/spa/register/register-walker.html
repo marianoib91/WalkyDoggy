@@ -1,104 +1,138 @@
-﻿<div class="row">
-    <form class="form-signin" role="form" novalidate angular-validator name="userRegistrationForm" angular-validator-submit="registrar()">
-        <h3 class="form-signin-heading">Paseador - Registrar nueva cuenta</h3>
-        <div class="form-group">
-            <input type="text"
-                   name="inputFirstName"
-                   class="form-control"
-                   ng-model="paseador.firstName"
-                   placeholder="Nombre"
-                   validate-on="blur"
-                   required
-                   required-message="'Nombre es requerido.'">
+<div class="wd-wizard">
+    <div class="wd-page-header">
+        <div>
+            <h1 class="wd-page-title">Registrate como paseador</h1>
+            <p class="wd-page-subtitle">Son tres pasos y lleva un par de minutos. Después vas a poder cambiar todo desde tu perfil.</p>
         </div>
-        <div class="form-group">
-            <input type="text"
-                   name="inputLastName"
-                   class="form-control"
-                   ng-model="paseador.lastName"
-                   placeholder="Apellido"
-                   validate-on="blur"
-                   required
-                   required-message="'Apellido es requerido.'">
-        </div>
-        <div class="form-group">
-            <input type="text"
-                   name="inputEmail"
-                   class="form-control"
-                   ng-model="paseador.email"
-                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"
-                   invalid-message="'El email ingresado no es válido'"
-                   placeholder="Email"
-                   validate-on="blur"
-                   required
-                   required-message="'Email es requerido.'">
-        </div>
-        <div class="form-group">
-            <input type="number"
-                   name="inputPhoneNumber"
-                   class="form-control"
-                   ng-model="paseador.phone"
-                   pattern=".{10,}"
-                   invalid-message="'El teléfono ingresado no es válido'"
-                   placeholder="Teléfono Celular"
-                   validate-on="blur"
-                   required
-                   required-message="'Teléfono Celular es requerido.'">
-        </div>
-        <div class="form-group">
-            <textarea type="text"
-                      cols="2"
-                      name="inputDescription"
-                      class="form-control"
-                      placeholder="Ingrese una breve descripción de usted como paseador"
-                      ng-model="paseador.description"
-                      validate-on="blur"
-                      required
-                      required-message="'Descripción es requerido.'"></textarea>
-        </div>
-        <div class="form-group">
-            <wd-address-field address="paseador"></wd-address-field>
-        </div>
-        <div class="form-group">
-            <div class="input-group">
-                <span class="input-group-addon">$</span>
-                <input type="number"
-                       name="inputPrice"
-                       class="form-control"
-                       ng-model="paseador.amount"
-                       min="1"
-                       max="1000000"
-                       step="1"
-                       placeholder="Cuánto cobrás por hora (por ejemplo, 3500)"
-                       validate-on="blur"
-                       required
-                       required-message="'La tarifa por hora es requerida.'">
+    </div>
+
+    <ol class="wd-steps" aria-label="Pasos del registro">
+        <li ng-repeat="nombre in nombresPasos" ng-class="{'is-current': paso == $index + 1, 'is-done': paso > $index + 1}" aria-current="{{paso == $index + 1 ? 'step' : undefined}}">
+            <span class="wd-step-number">{{paso > $index + 1 ? '✓' : $index + 1}}</span>
+            <span class="wd-step-name">{{nombre}}</span>
+        </li>
+    </ol>
+
+    <!-- Paso 1: datos personales -->
+    <form class="wd-form-card" role="form" novalidate angular-validator name="paso1Form" ng-if="paso == 1" angular-validator-submit="siguiente()">
+        <section class="wd-form-section">
+            <h2 class="wd-form-section-title">Tus datos</h2>
+            <div class="wd-form-grid">
+                <div class="form-group">
+                    <label for="rwFirstName">Nombre</label>
+                    <input type="text" id="rwFirstName" name="inputFirstName" class="form-control" ng-model="paseador.firstName"
+                           validate-on="blur" required required-message="'Nombre es requerido.'">
+                </div>
+                <div class="form-group">
+                    <label for="rwLastName">Apellido</label>
+                    <input type="text" id="rwLastName" name="inputLastName" class="form-control" ng-model="paseador.lastName"
+                           validate-on="blur" required required-message="'Apellido es requerido.'">
+                </div>
+                <div class="form-group">
+                    <label for="rwEmail">Email</label>
+                    <input type="text" id="rwEmail" name="inputEmail" class="form-control" ng-model="paseador.email"
+                           pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"
+                           invalid-message="'El email ingresado no es válido'"
+                           validate-on="blur" required required-message="'Email es requerido.'">
+                </div>
+                <div class="form-group">
+                    <label for="rwPhone">Teléfono celular</label>
+                    <input type="number" id="rwPhone" name="inputPhoneNumber" class="form-control" ng-model="paseador.phone"
+                           pattern=".{10,}"
+                           invalid-message="'El teléfono ingresado no es válido'"
+                           validate-on="blur" required required-message="'Teléfono Celular es requerido.'">
+                </div>
+                <div class="form-group">
+                    <label for="rwPassword">Contraseña</label>
+                    <input type="password" id="rwPassword" name="inputPassword" class="form-control" ng-model="paseador.password"
+                           pattern=".{6,}"
+                           invalid-message="'Debe contener al menos 6 caracteres'"
+                           validate-on="blur" required required-message="'Contraseña es requerido.'">
+                </div>
+                <div class="form-group">
+                    <label for="rwConfirmPassword">Confirmar contraseña</label>
+                    <input type="password" id="rwConfirmPassword" name="inputConfirmPassword" class="form-control" ng-model="paseador.confirmPassword"
+                           pattern=".{6,}"
+                           invalid-message="'Debe contener al menos 6 caracteres'"
+                           validate-on="blur" required required-message="'Confirma contraseña es requerido.'">
+                </div>
+                <div class="form-group wd-span-2">
+                    <label for="rwDescription">Contanos sobre vos</label>
+                    <textarea id="rwDescription" name="inputDescription" class="form-control" rows="3" maxlength="200"
+                              placeholder="Tu experiencia, qué tipo de perros te gustan, cómo son tus paseos..."
+                              ng-model="paseador.description"
+                              validate-on="blur" required required-message="'Descripción es requerido.'"></textarea>
+                    <p class="wd-field-hint">Es lo primero que ven los dueños en tu perfil ({{(paseador.description || '').length}} / 200).</p>
+                </div>
             </div>
+        </section>
+        <div class="wd-form-footer">
+            <button type="submit" class="btn btn-primary btn-lg">Siguiente</button>
         </div>
-        <div class="form-group">
-            <input type="password"
-                   name="inputPassword"
-                   class="form-control"
-                   ng-model="paseador.password"
-                   pattern=".{6,}"
-                   invalid-message="'Debe contener al menos 6 caracteres'"
-                   placeholder="Contraseña"
-                   validate-on="blur"
-                   required
-                   required-message="'Contraseña es requerido.'">
+    </form>
+
+    <!-- Paso 2: zona de trabajo -->
+    <form class="wd-form-card" role="form" novalidate angular-validator name="paso2Form" ng-if="paso == 2" angular-validator-submit="siguiente()">
+        <section class="wd-form-section">
+            <h2 class="wd-form-section-title">¿Dónde te gustaría trabajar?</h2>
+            <p class="wd-field-hint wd-lead">
+                Ingresá una <strong>dirección de referencia</strong> donde te gustaría trabajar: por ejemplo, una plaza donde harías tus paseos.
+                No hace falta que sea tu casa. Los dueños de las mascotas solo van a poder pedirte paseos si la dirección donde las buscás queda dentro del radio que elijas.
+            </p>
+
+            <wd-address-field address="paseador" allow-locate="true" allow-no-number="true" radius-km="paseador.serviceRadiusKm"
+                              label="Dirección de referencia"
+                              hint="Marcá en el mapa el lugar donde harías tus paseos. El círculo verde muestra hasta dónde te vas a mover."></wd-address-field>
+
+            <div class="form-group wd-radius-field">
+                <label for="rwRadius">¿Hasta cuántos kilómetros te querés mover?</label>
+                <div class="input-group">
+                    <input type="number" id="rwRadius" name="inputRadius" class="form-control" ng-model="paseador.serviceRadiusKm"
+                           min="1" max="50" step="0.5"
+                           validate-on="blur" required required-message="'Ingresá el radio en kilómetros (entre 1 y 50).'">
+                    <span class="input-group-addon">km</span>
+                </div>
+                <p class="wd-field-hint">
+                    Es la distancia máxima, en línea recta, entre tu dirección de referencia y el lugar donde buscarías a las mascotas. Entre 1 y 50 km.
+                    Pensalo según cuánto estás dispuesto a caminar o viajar para ir a buscarlas. Podés cambiarlo cuando quieras desde tu perfil.
+                </p>
+            </div>
+        </section>
+        <div class="wd-form-footer">
+            <button type="button" class="btn btn-default btn-lg" ng-click="volver()" style="margin-right:12px">Atrás</button>
+            <button type="submit" class="btn btn-primary btn-lg">Siguiente</button>
         </div>
-        <div class="form-group">
-            <input type="password"
-                   name="inputConfirmPassword"
-                   class="form-control"
-                   placeholder="Confirmar contraseña"
-                   ng-model="paseador.confirmPassword"
-                   pattern=".{6,}"
-                   invalid-message="'Debe contener al menos 6 caracteres'"
-                   validate-on="blur"
-                   required
-                   required-message="'Confirma contraseña es requerido.'">
+    </form>
+
+    <!-- Paso 3: tarifa y datos de cobro -->
+    <form class="wd-form-card" role="form" novalidate angular-validator name="paso3Form" ng-if="paso == 3" angular-validator-submit="registrar()">
+        <section class="wd-form-section">
+            <h2 class="wd-form-section-title">Tu tarifa y cómo cobrás</h2>
+            <div class="wd-form-grid">
+                <div class="form-group wd-span-2">
+                    <label for="rwAmount">¿Cuánto cobrás por hora de paseo?</label>
+                    <div class="input-group">
+                        <span class="input-group-addon">$</span>
+                        <input type="number" id="rwAmount" name="inputPrice" class="form-control" ng-model="paseador.amount"
+                               min="1" max="1000000" step="1" placeholder="Por ejemplo, 3500"
+                               validate-on="blur" required required-message="'La tarifa por hora es requerida.'">
+                    </div>
+                    <p class="wd-field-hint">Es el precio de una hora de paseo por mascota. Podés ajustarlo cuando quieras desde "Condiciones laborales".</p>
+                </div>
+                <div class="form-group wd-span-2">
+                    <label for="rwPayout">Alias o CBU/CVU (opcional)</label>
+                    <input type="text" id="rwPayout" name="inputPayout" class="form-control" ng-model="paseador.payoutAccount"
+                           maxlength="22" autocomplete="off" placeholder="Por ejemplo, paseos.rosario.mp o los 22 dígitos de tu CBU/CVU">
+                    <p class="wd-field-hint">
+                        Si lo cargás, tus clientes lo ven para poder transferirte el pago. Con el alias alcanza: entre 6 y 20 caracteres, sin espacios.
+                        También vas a poder cobrar con Mercado Pago vinculando tu cuenta desde tu perfil.
+                    </p>
+                </div>
+            </div>
+        </section>
+        <div class="wd-form-footer">
+            <button type="button" class="btn btn-default btn-lg" ng-click="volver()" style="margin-right:12px">Atrás</button>
+            <button type="submit" class="btn btn-primary btn-lg" ng-disabled="guardando">{{guardando ? 'Registrando...' : 'Registrarme'}}</button>
         </div>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Registrarme</button>
     </form>
 </div>

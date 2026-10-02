@@ -11,6 +11,7 @@
         var nombresDias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         var idPaseador = $routeParams.walkerId;
         var borrador = $rootScope.borradorPaseo;
+        var retiroElegido = $rootScope.retiroElegido;
         var numeroDePedido = 0;
 
         $scope.mascotas = {};
@@ -22,9 +23,11 @@
         $scope.tieneHorario = true;
         $scope.cargandoHorarios = false;
 
-        //Donde se retira a las mascotas: en el domicilio del cliente ('home') o en otra direccion ('other')
-        $scope.retiro = { mode: 'home', other: {} };
-        $scope.domicilio = '';
+        //Direccion de retiro: la elegida en la portada (o la del paso 2 si se vuelve de ahi). Si no hay ninguna, el domicilio del cliente.
+        $scope.retiroActual = null;
+        $scope.textoRetiro = '';
+        $scope.fueraDeZona = false;
+        $scope.distanciaRetiro = null;
 
         //El calendario solo habilita los dias en los que el paseador tiene una jornada laboral
         $scope.opcionesCalendario = {
@@ -47,9 +50,18 @@
             $scope.paseo.date = moment(borrador.date, 'YYYY-MM-DD');
             $scope.paseo.timeFrom = borrador.timeFrom;
 
-            if (borrador.pickup && !borrador.pickup.isHome) {
-                $scope.retiro.mode = 'other';
-                $scope.retiro.other = angular.copy(borrador.pickup);
+            if (borrador.pickup) {
+                $scope.retiroActual = angular.copy(borrador.pickup);
+            }
+        } else if (retiroElegido) {
+            if (retiroElegido.pickup) {
+                $scope.retiroActual = angular.copy(retiroElegido.pickup);
+            }
+
+            //Si en la portada se buscó por día y horario, se propone ese día y horario
+            if (retiroElegido.fecha) {
+                $scope.paseo.date = moment(retiroElegido.fecha, 'YYYY-MM-DD');
+                $scope.paseo.timeFrom = retiroElegido.hora;
             }
         }
 
@@ -63,6 +75,7 @@
 
         function alCargarPaseador(resultado) {
             $scope.paseador = resultado.data;
+            calcularZona();
         }
 
         function alFallarCargaPaseador() {
@@ -98,7 +111,22 @@
 
         function alCargarCliente(resultado) {
             $scope.cliente = resultado.data;
-            $scope.domicilio = formatearDireccion($scope.cliente);
+
+            //Sin dirección elegida en la portada (por ejemplo, si se llegó desde el perfil del paseador) se retira en el domicilio del cliente
+            if (!$scope.retiroActual) {
+                $scope.retiroActual = {
+                    isHome: true,
+                    streetName: $scope.cliente.streetName,
+                    streetNumber: $scope.cliente.streetNumber,
+                    cityId: $scope.cliente.cityId,
+                    cityName: $scope.cliente.cityName,
+                    provinceName: $scope.cliente.provinceName,
+                    latitude: $scope.cliente.latitude,
+                    longitude: $scope.cliente.longitude
+                };
+            }
+            calcularZona();
+
             servicioApi.get('/api/pets/getAllByCustomerId/', { params: { customerId: $scope.cliente.id } }, alCargarMascotas);
         }
 
@@ -150,28 +178,40 @@
             return [linea, direccion.cityName, direccion.provinceName].filter(Boolean).join(', ');
         }
 
-        //Devuelve la direccion de retiro elegida, o null si eligio "otra direccion" y no la completo
-        function armarRetiro() {
-            var origen = $scope.cliente;
-            var esDomicilioPropio = $scope.retiro.mode !== 'other';
+        //Controla (en el navegador, para avisar antes de reservar) que el retiro quede dentro de la zona de trabajo del paseador;
+        //el servidor lo vuelve a controlar al reservar.
+        function calcularZona() {
+            var retiro = $scope.retiroActual;
+            var paseador = $scope.paseador;
 
-            if (!esDomicilioPropio) {
-                origen = $scope.retiro.other;
-                if (!origen.cityId || !origen.streetName || !origen.streetNumber) {
-                    return null;
-                }
+            $scope.fueraDeZona = false;
+            $scope.distanciaRetiro = null;
+            if (!retiro || !paseador) {
+                return;
             }
 
-            return {
-                isHome: esDomicilioPropio,
-                streetName: origen.streetName,
-                streetNumber: origen.streetNumber,
-                cityId: origen.cityId,
-                cityName: origen.cityName,
-                provinceName: origen.provinceName,
-                latitude: origen.latitude,
-                longitude: origen.longitude
-            };
+            $scope.textoRetiro = formatearDireccion(retiro);
+
+            var latitudRetiro = parseFloat(retiro.latitude);
+            var longitudRetiro = parseFloat(retiro.longitude);
+            var latitudPaseador = parseFloat(paseador.latitude);
+            var longitudPaseador = parseFloat(paseador.longitude);
+            if ([latitudRetiro, longitudRetiro, latitudPaseador, longitudPaseador].some(isNaN) || !(paseador.serviceRadiusKm > 0)) {
+                return;
+            }
+
+            $scope.distanciaRetiro = Math.round(distanciaEnKilometros(latitudPaseador, longitudPaseador, latitudRetiro, longitudRetiro) * 10) / 10;
+            $scope.fueraDeZona = $scope.distanciaRetiro > paseador.serviceRadiusKm;
+        }
+
+        //Distancia en linea recta entre dos puntos (formula de Haversine)
+        function distanciaEnKilometros(latitud1, longitud1, latitud2, longitud2) {
+            var aRadianes = function (grados) { return grados * Math.PI / 180; };
+            var deltaLatitud = aRadianes(latitud2 - latitud1);
+            var deltaLongitud = aRadianes(longitud2 - longitud1);
+            var a = Math.sin(deltaLatitud / 2) * Math.sin(deltaLatitud / 2) +
+                    Math.cos(aRadianes(latitud1)) * Math.cos(aRadianes(latitud2)) * Math.sin(deltaLongitud / 2) * Math.sin(deltaLongitud / 2);
+            return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
         $scope.enviar = function () {
@@ -187,9 +227,13 @@
                 return;
             }
 
-            var retiro = armarRetiro();
+            var retiro = $scope.retiroActual;
             if (!retiro) {
-                servicioNotificaciones.mostrarError('Elegí la dirección de retiro de la lista de sugerencias.');
+                servicioNotificaciones.mostrarError('Elegí la dirección de retiro desde la portada.');
+                return;
+            }
+            if ($scope.fueraDeZona) {
+                servicioNotificaciones.mostrarError('La dirección de retiro queda fuera de la zona de trabajo de ' + $scope.paseador.firstName + '. Elegí otra dirección o a otro paseador.');
                 return;
             }
 

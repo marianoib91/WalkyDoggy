@@ -2,6 +2,7 @@
     'use strict';
 
     app.filter('wdMoney', wdMoney);
+    app.filter('wdKm', wdKm);
 
     //Montos en pesos al estilo argentino: 4321.5 -> "4.321,50"; 3800 -> "3.800"
     //Uso: ${{walker.amount | wdMoney}}
@@ -13,6 +14,19 @@
 
             var monto = Number(valor);
             return monto.toLocaleString('es-AR', { minimumFractionDigits: monto % 1 ? 2 : 0, maximumFractionDigits: 2 });
+        };
+    }
+
+
+    //Kilometros con coma decimal: 2.5 -> "2,5"; 6 -> "6"
+    //Uso: {{paseador.serviceRadiusKm | wdKm}} km
+    function wdKm() {
+        return function (valor) {
+            if (valor === null || valor === undefined || valor === '') {
+                return '';
+            }
+
+            return Number(valor).toLocaleString('es-AR', { maximumFractionDigits: 1 });
         };
     }
 

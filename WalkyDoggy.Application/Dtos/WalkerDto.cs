@@ -49,7 +49,13 @@ namespace WalkyDoggy.Application.Dtos
 
         public Double Amount { get; set; }
 
-        //Distancia en km al domicilio del cliente (solo cuando se consulta con un cliente que tiene coordenadas)
+        //Radio de trabajo, en km, alrededor de la direccion de referencia (StreetName, StreetNumber, Latitude, Longitude)
+        public Double ServiceRadiusKm { get; set; }
+
+        //Alias o CBU/CVU para recibir transferencias (opcional)
+        public String PayoutAccount { get; set; }
+
+        //Distancia en km a la direccion de retiro (solo cuando se busca paseadores para una direccion)
         public Double? DistanceKm { get; set; }
 
         //Indica si el paseador vinculo su cuenta de Mercado Pago (los tokens nunca viajan al navegador)

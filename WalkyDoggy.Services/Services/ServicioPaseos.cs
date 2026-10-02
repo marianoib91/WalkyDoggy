@@ -103,6 +103,21 @@ namespace WalkyDoggy.Services.Services
                 return null;
             }
 
+            //El retiro tiene que quedar dentro de la zona de trabajo del paseador (se controla si se conocen las coordenadas de ambos)
+            Double latitudPaseador, longitudPaseador, latitudRetiro, longitudRetiro;
+            if (paseador.ServiceRadiusKm > 0 &&
+                Geografia.IntentarLeerCoordenadas(paseador.Latitude, paseador.Longitude, out latitudPaseador, out longitudPaseador) &&
+                Geografia.IntentarLeerCoordenadas(retiro.Latitude, retiro.Longitude, out latitudRetiro, out longitudRetiro))
+            {
+                var distancia = Geografia.DistanciaEnKilometros(latitudPaseador, longitudPaseador, latitudRetiro, longitudRetiro);
+                if (distancia > paseador.ServiceRadiusKm)
+                {
+                    error = "La dirección de retiro queda a " + Math.Round(distancia, 1).ToString("0.#", CultureInfo.GetCultureInfo("es-AR")) + " km, fuera de la zona de trabajo de " + paseador.FirstName +
+                            " (hasta " + paseador.ServiceRadiusKm.ToString("0.#", CultureInfo.GetCultureInfo("es-AR")) + " km de su dirección de referencia).";
+                    return null;
+                }
+            }
+
             var metodoPago = String.IsNullOrWhiteSpace(criterioSolicitudPaseo.PaymentMethod) ? PaymentMethods.Cash : criterioSolicitudPaseo.PaymentMethod;
             if (metodoPago != PaymentMethods.Cash && metodoPago != PaymentMethods.MercadoPago)
             {
@@ -499,6 +514,7 @@ namespace WalkyDoggy.Services.Services
                     WalkerId = primero.WalkerId,
                     WalkerName = primero.Walker != null ? primero.Walker.FirstName + " " + primero.Walker.LastName : null,
                     WalkerProfileImage = primero.Walker != null ? primero.Walker.ProfileImage : null,
+                    WalkerPayoutAccount = primero.Walker != null ? primero.Walker.PayoutAccount : null,
                     CustomerId = cliente.Id,
                     CustomerFullName = cliente.FirstName + " " + cliente.LastName,
                     Date = primero.Date,

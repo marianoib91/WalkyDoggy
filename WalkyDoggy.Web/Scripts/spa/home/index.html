@@ -1,26 +1,9 @@
 <!--Begin customer-->
-<div class="customer-index" ng-show="roleId!=3">
+<div class="customer-index" ng-if="roleId!=3" ng-controller="buscarPaseadoresCtrl">
     <div class="wd-page-header">
         <div>
-            <h1 class="wd-page-title" ng-if="paseadores.length>0">Paseadores recomendados</h1>
-            <h1 class="wd-page-title" ng-if="paseadores.length==0">No se encontraron paseadores</h1>
-            <p class="wd-page-subtitle" ng-if="paseadores.length>0 && hayDistancias">Ordenados por cercanía a tu domicilio. Elegí a la persona que va a pasear a tu mascota.</p>
-            <p class="wd-page-subtitle" ng-if="paseadores.length>0 && !hayDistancias">Elegí a la persona que va a pasear a tu mascota. Ubicá tu domicilio en el mapa desde <a href="#/profile">tu perfil</a> para verlos ordenados por cercanía.</p>
-        </div>
-    </div>
-
-    <div class="wd-sort" ng-if="paseadores.length > 1">
-        <span class="wd-sort-label">Ordenar por</span>
-        <div class="wd-segmented" role="group" aria-label="Ordenar paseadores">
-            <button type="button" ng-class="{'is-active': ordenarPor == 'distance'}" ng-disabled="!hayDistancias"
-                    ng-click="establecerOrden('distance')" aria-pressed="{{ordenarPor == 'distance'}}"
-                    title="{{hayDistancias ? '' : 'Ubicá tu domicilio en el mapa desde tu perfil para ordenar por cercanía'}}">
-                <i class="fa fa-map-marker" aria-hidden="true"></i> Más cercanos
-            </button>
-            <button type="button" ng-class="{'is-active': ordenarPor == 'rating'}"
-                    ng-click="establecerOrden('rating')" aria-pressed="{{ordenarPor == 'rating'}}">
-                <i class="fa fa-star" aria-hidden="true"></i> Mejor valorados
-            </button>
+            <h1 class="wd-page-title">Buscá un paseador</h1>
+            <p class="wd-page-subtitle">Contanos desde dónde se retira a tu mascota y te mostramos a los paseadores que trabajan en esa zona.</p>
         </div>
     </div>
 
@@ -33,38 +16,122 @@
         </div>
     </div>
 
-    <div class="wd-walker-list">
-        <article class="wd-walker-card" ng-repeat="paseador in paseadoresOrdenados">
-            <a ng-href="#/walkers/{{paseador.id}}" aria-label="Ver el perfil de {{paseador.firstName}} {{paseador.lastName}}">
-                <img class="wd-avatar" ng-src="{{paseador.profileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{paseador.firstName}} {{paseador.lastName}}" />
-            </a>
-            <div class="wd-walker-info">
-                <div class="wd-walker-name-row">
-                    <h2 class="wd-walker-name"><a class="wd-link-plain" ng-href="#/walkers/{{paseador.id}}">{{paseador.firstName}} {{paseador.lastName}}</a></h2>
-                    <span class="wd-rating-inline" ng-if="paseador.ratingCount > 0">
-                        <wd-stars value="walker.averageRating"></wd-stars>
-                        <strong>{{paseador.averageRating.toFixed(1).replace('.', ',')}}</strong>
-                        ({{paseador.ratingCount}})
-                    </span>
-                    <span class="wd-rating-inline" ng-if="paseador.ratingCount == 0">Sin valoraciones todavía</span>
-                </div>
-                <div class="wd-walker-meta">
-                    <i class="fa fa-map-marker" aria-hidden="true"></i>
-                    {{paseador.cityName}}, {{paseador.provinceName}}
-                    <span class="wd-distance" ng-if="paseador.distanceKm != null">· {{paseador.distanceKm < 0.1 ? 'a menos de 100 m' : 'a ' + (paseador.distanceKm | number:1).replace('.', ',') + ' km'}} de tu domicilio</span>
-                </div>
-                <p class="wd-walker-desc">{{paseador.description}}</p>
+    <section class="wd-search-panel">
+        <h2 class="wd-search-title"><span class="wd-search-number">1</span> ¿Desde dónde retiramos a tu mascota?</h2>
+        <div class="wd-choice-list" role="radiogroup" aria-label="Dirección de retiro">
+            <label class="wd-choice" ng-class="{'is-selected': retiro.modo == 'home', 'is-disabled': !domicilioUbicado}">
+                <input type="radio" name="modoRetiro" value="home" ng-model="retiro.modo" ng-disabled="!domicilioUbicado">
+                <span class="wd-choice-body">
+                    <span class="wd-choice-title">En mi domicilio</span>
+                    <span class="wd-choice-text" ng-if="domicilioUbicado">{{domicilio}}</span>
+                    <span class="wd-choice-text" ng-if="cliente && !domicilioUbicado">Todavía no ubicaste tu domicilio en el mapa. Podés hacerlo desde <a href="#/profile">tu perfil</a>.</span>
+                </span>
+            </label>
+            <label class="wd-choice" ng-class="{'is-selected': retiro.modo == 'other'}">
+                <input type="radio" name="modoRetiro" value="other" ng-model="retiro.modo">
+                <span class="wd-choice-body">
+                    <span class="wd-choice-title">En otra dirección</span>
+                    <span class="wd-choice-text">Por ejemplo, si en este momento estás con tu mascota en otro lugar.</span>
+                </span>
+            </label>
+        </div>
+        <div class="wd-search-address" ng-if="retiro.modo == 'other'">
+            <wd-address-field address="retiro.otro" allow-locate="true"
+                              label="Dirección de retiro"
+                              hint="Elegí una dirección de la lista o marcala en el mapa."></wd-address-field>
+        </div>
+
+        <h2 class="wd-search-title"><span class="wd-search-number">2</span> ¿Cómo querés elegir al paseador?</h2>
+        <div class="wd-segmented wd-segmented-wide" role="group" aria-label="Forma de búsqueda">
+            <button type="button" ng-class="{'is-active': busqueda.modo == 'zona'}" ng-click="busqueda.modo = 'zona'" aria-pressed="{{busqueda.modo == 'zona'}}">
+                <i class="fa fa-map-marker" aria-hidden="true"></i> Por cercanía o valoración
+            </button>
+            <button type="button" ng-class="{'is-active': busqueda.modo == 'horario'}" ng-click="busqueda.modo = 'horario'" aria-pressed="{{busqueda.modo == 'horario'}}">
+                <i class="fa fa-calendar" aria-hidden="true"></i> Por día y horario
+            </button>
+        </div>
+
+        <div class="wd-form-grid wd-search-when" ng-if="busqueda.modo == 'horario'">
+            <div class="form-group">
+                <label for="busquedaFecha">¿Qué día querés el paseo?</label>
+                <input type="date" id="busquedaFecha" class="form-control" ng-model="busqueda.fecha" min="{{hoy}}">
             </div>
-            <div class="wd-walker-price">
-                <div>
-                    <span class="wd-price-amount">${{paseador.amount | wdMoney}}</span>
-                    <span class="wd-price-unit">/ hora</span>
-                </div>
-                <a class="btn btn-primary" ng-href="#/walks/step-1?walkerId={{paseador.id}}">Solicitar paseo</a>
-                <a class="wd-link-plain wd-link-sm" ng-href="#/walkers/{{paseador.id}}">Ver perfil y opiniones</a>
+            <div class="form-group">
+                <label for="busquedaHora">¿A qué hora?</label>
+                <select id="busquedaHora" class="form-control" ng-model="busqueda.hora" ng-options="hora for hora in horasDelDia">
+                    <option value="">Cualquier horario</option>
+                </select>
             </div>
-        </article>
-    </div>
+            <p class="wd-field-hint wd-span-2">Te mostramos solo a los paseadores que trabajan en esa zona y tienen lugar ese día{{busqueda.hora ? ' y a esa hora' : ''}}.</p>
+        </div>
+    </section>
+
+    <section class="wd-search-results" aria-live="polite">
+        <div class="wd-page-header wd-results-header">
+            <div>
+                <h2 class="wd-results-title" ng-if="buscado && paseadores.length > 0">
+                    {{paseadores.length}} {{paseadores.length == 1 ? 'paseador trabaja' : 'paseadores trabajan'}} en esa zona<span ng-if="textoHorarioBuscado()">, con lugar el {{textoHorarioBuscado()}}</span>
+                </h2>
+                <h2 class="wd-results-title" ng-if="buscado && paseadores.length == 0">No encontramos paseadores</h2>
+                <h2 class="wd-results-title" ng-if="!buscado && !buscando">Elegí una dirección de retiro</h2>
+                <h2 class="wd-results-title" ng-if="buscando && !buscado">Buscando paseadores...</h2>
+                <p class="wd-page-subtitle" ng-if="textoRetiro()">Retiro en {{textoRetiro()}}.</p>
+            </div>
+        </div>
+
+        <div class="wd-sort" ng-if="paseadores.length > 1">
+            <span class="wd-sort-label">Ordenar por</span>
+            <div class="wd-segmented" role="group" aria-label="Ordenar paseadores">
+                <button type="button" ng-class="{'is-active': ordenarPor == 'distance'}"
+                        ng-click="establecerOrden('distance')" aria-pressed="{{ordenarPor == 'distance'}}">
+                    <i class="fa fa-map-marker" aria-hidden="true"></i> Más cercanos
+                </button>
+                <button type="button" ng-class="{'is-active': ordenarPor == 'rating'}"
+                        ng-click="establecerOrden('rating')" aria-pressed="{{ordenarPor == 'rating'}}">
+                    <i class="fa fa-star" aria-hidden="true"></i> Mejor valorados
+                </button>
+            </div>
+        </div>
+
+        <p class="wd-field-hint" ng-if="buscado && paseadores.length == 0">
+            Ningún paseador atiende esa dirección<span ng-if="busqueda.modo == 'horario'"> en ese día y horario</span>.
+            Probá con otra dirección<span ng-if="busqueda.modo == 'horario'">, otro día u otro horario</span>:
+            cada paseador trabaja solo dentro del radio que eligió.
+        </p>
+
+        <div class="wd-walker-list">
+            <article class="wd-walker-card" ng-repeat="paseador in paseadoresOrdenados">
+                <a ng-href="#/walkers/{{paseador.id}}" aria-label="Ver el perfil de {{paseador.firstName}} {{paseador.lastName}}">
+                    <img class="wd-avatar" ng-src="{{paseador.profileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{paseador.firstName}} {{paseador.lastName}}" />
+                </a>
+                <div class="wd-walker-info">
+                    <div class="wd-walker-name-row">
+                        <h3 class="wd-walker-name"><a class="wd-link-plain" ng-href="#/walkers/{{paseador.id}}">{{paseador.firstName}} {{paseador.lastName}}</a></h3>
+                        <span class="wd-rating-inline" ng-if="paseador.ratingCount > 0">
+                            <wd-stars value="paseador.averageRating"></wd-stars>
+                            <strong>{{paseador.averageRating.toFixed(1).replace('.', ',')}}</strong>
+                            ({{paseador.ratingCount}})
+                        </span>
+                        <span class="wd-rating-inline" ng-if="paseador.ratingCount == 0">Sin valoraciones todavía</span>
+                    </div>
+                    <div class="wd-walker-meta">
+                        <i class="fa fa-map-marker" aria-hidden="true"></i>
+                        {{textoDistancia(paseador)}} de tu dirección de retiro
+                        <span class="wd-distance">· trabaja hasta {{textoRadio(paseador)}} km a la redonda</span>
+                    </div>
+                    <p class="wd-walker-desc">{{paseador.description}}</p>
+                </div>
+                <div class="wd-walker-price">
+                    <div>
+                        <span class="wd-price-amount">${{paseador.amount | wdMoney}}</span>
+                        <span class="wd-price-unit">/ hora</span>
+                    </div>
+                    <button type="button" class="btn btn-primary" ng-click="solicitar(paseador)">Solicitar paseo</button>
+                    <a class="wd-link-plain wd-link-sm" ng-href="#/walkers/{{paseador.id}}">Ver perfil y opiniones</a>
+                </div>
+            </article>
+        </div>
+    </section>
 </div>
 <!--End customer-->
 <!--Begin Walker-->

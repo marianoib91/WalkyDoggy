@@ -1797,3 +1797,183 @@ button.wd-pet-add {
 .wd-rate-input {
     max-width: 260px;
 }
+
+/* ===== Registro en pasos ===== */
+.wd-wizard {
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.wd-steps {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 24px;
+    padding: 0;
+    list-style: none;
+}
+
+.wd-steps li {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid #E7E9EC;
+    border-radius: 12px;
+    color: #5B6470;
+    background-color: #ffffff;
+}
+
+.wd-steps .wd-step-number {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    line-height: 24px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid #D5D9DE;
+    border-radius: 50%;
+}
+
+.wd-steps .wd-step-name {
+    min-width: 0;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.wd-steps li.is-current {
+    border-color: #166A4F;
+    color: #14181F;
+}
+
+.wd-steps li.is-current .wd-step-number {
+    border-color: #166A4F;
+    background-color: #166A4F;
+    color: #ffffff;
+}
+
+.wd-steps li.is-done .wd-step-number {
+    border-color: #166A4F;
+    color: #166A4F;
+}
+
+@media (max-width: 575px) {
+    .wd-steps li {
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px 6px;
+        text-align: center;
+        font-size: 13px;
+    }
+}
+
+.wd-lead {
+    margin: 0 0 18px;
+    font-size: 15px;
+    line-height: 1.55;
+    color: #3A424E;
+}
+
+.wd-radius-field {
+    max-width: 360px;
+    margin-top: 18px;
+}
+
+.wd-subsection-title {
+    margin: 22px 0 10px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* ===== Busqueda de paseadores (portada del cliente) ===== */
+.wd-search-panel {
+    margin-bottom: 28px;
+    padding: 24px;
+    border: 1px solid #E7E9EC;
+    border-radius: 16px;
+    background-color: #ffffff;
+}
+
+.wd-search-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 14px;
+    font-size: 17px;
+}
+
+.wd-search-title:not(:first-child) {
+    margin-top: 26px;
+}
+
+.wd-search-number {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 50%;
+    background-color: #166A4F;
+    color: #ffffff;
+}
+
+.wd-search-address {
+    margin-top: 16px;
+}
+
+.wd-search-when {
+    margin-top: 16px;
+    max-width: 640px;
+}
+
+.wd-segmented-wide {
+    display: inline-flex;
+    flex-wrap: wrap;
+}
+
+.wd-choice.is-disabled {
+    opacity: 0.7;
+}
+
+.wd-results-title {
+    margin: 0 0 4px;
+    font-size: 20px;
+}
+
+.wd-results-header {
+    margin-bottom: 12px;
+}
+
+.wd-pickup-summary {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid #E7E9EC;
+    border-radius: 12px;
+    background-color: #F8F9FA;
+}
+
+.wd-pickup-summary > .fa {
+    font-size: 20px;
+    color: #166A4F;
+}
+
+.wd-pickup-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.wd-notice-warn {
+    border-color: #F1C6C2;
+    background-color: #FDF3F2;
+}
+
+.wd-notice-warn > .fa {
+    color: #B42318;
+}

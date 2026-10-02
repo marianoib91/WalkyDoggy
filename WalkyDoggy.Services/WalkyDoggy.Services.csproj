@@ -92,6 +92,7 @@
     <Compile Include="Services\ServicioPaseadores.cs" />
     <Compile Include="Services\ServicioJornadas.cs" />
     <Compile Include="Utilities\AyudanteReservas.cs" />
+    <Compile Include="Utilities\Geografia.cs" />
     <Compile Include="Utilities\ServicioDiaDeLaSemana.cs" />
     <Compile Include="Utilities\ServicioMembresia.cs" />
     <Compile Include="ServicioEncriptacion.cs" />
