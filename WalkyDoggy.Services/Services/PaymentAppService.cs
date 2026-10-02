@@ -356,7 +356,7 @@ namespace WalkyDoggy.Services.Services
             var normalized = NormalizePayoutAccount(account);
             if (normalized == null)
             {
-                error = "Ingresá un alias (de 6 a 20 letras, números, puntos o guiones) o un CBU/CVU de 22 dígitos.";
+                error = "Ingresá un alias (de 6 a 20 letras, números, puntos o guiones), un CBU/CVU de 22 dígitos o un email de Mercado Pago.";
                 return false;
             }
 
@@ -374,10 +374,16 @@ namespace WalkyDoggy.Services.Services
         }
 
         //Un CBU/CVU son 22 digitos (se aceptan espacios o guiones al tipearlo); un alias tiene de 6 a 20 caracteres
-        //entre letras, numeros, puntos y guiones. Devuelve null si no es ninguno de los dos.
+        //entre letras, numeros, puntos y guiones; tambien se acepta el email de la cuenta de Mercado Pago (con el se
+        //puede transferir, y las cuentas de prueba no tienen alias ni CVU). Devuelve null si no es ninguno de los tres.
         private static String NormalizePayoutAccount(String account)
         {
             var text = (account ?? String.Empty).Trim();
+
+            if (text.Contains("@"))
+            {
+                return text.Length <= 120 && Regex.IsMatch(text, @"^[^@\s]+@[^@\s]+\.[^@\s]+$") ? text : null;
+            }
 
             var digits = text.Replace(" ", String.Empty).Replace("-", String.Empty);
             if (digits.Length > 0 && digits.All(Char.IsDigit))

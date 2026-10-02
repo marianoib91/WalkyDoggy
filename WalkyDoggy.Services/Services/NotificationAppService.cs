@@ -239,7 +239,7 @@ namespace WalkyDoggy.Services.Services
         {
             if (String.IsNullOrEmpty(booking.WalkerPayoutAccount))
             {
-                return "\n\nTodavía no cargaste dónde cobrar. Completá tu alias o CBU/CVU en tu perfil para que podamos transferirte: " + Link("#/profile");
+                return "\n\nTodavía no cargaste dónde cobrar. Completá tu alias, CBU/CVU o email de Mercado Pago en tu perfil para que podamos transferirte:" + Link("#/profile");
             }
 
             return "\n\nTe lo transferimos a " + booking.WalkerPayoutAccount + " (titular: " + booking.WalkerPayoutHolder + "). Si no es correcto, corregilo en tu perfil: " + Link("#/profile");

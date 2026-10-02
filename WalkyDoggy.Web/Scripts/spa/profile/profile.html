@@ -92,15 +92,15 @@
                 </p>
                 <div class="wd-form-grid">
                     <div class="form-group">
-                        <label for="inputPayoutAccount">Alias o CBU/CVU</label>
+                        <label for="inputPayoutAccount">Alias, CBU/CVU o email</label>
                         <input type="text"
                                id="inputPayoutAccount"
                                name="inputPayoutAccount"
                                class="form-control"
                                ng-model="payout.account"
-                               maxlength="30"
+                               maxlength="120"
                                autocomplete="off"
-                               placeholder="mi.alias.mp o los 22 dígitos">
+                               placeholder="mi.alias.mp, los 22 dígitos o el email">
                     </div>
                     <div class="form-group">
                         <label for="inputPayoutHolder">Titular de la cuenta</label>
@@ -114,7 +114,7 @@
                                placeholder="Nombre y apellido del titular">
                     </div>
                 </div>
-                <p class="wd-field-hint">Es el alias de tu cuenta de Mercado Pago o el CBU/CVU de tu banco. Revisalo bien: a esa cuenta se transfieren tus cobros.</p>
+                <p class="wd-field-hint">Es el alias, el CBU/CVU o el email de tu cuenta de Mercado Pago, o el CBU de tu banco. Revisalo bien: a esa cuenta se transfieren tus cobros.</p>
                 <div>
                     <button type="button" class="btn btn-default" ng-click="savePayout()" ng-disabled="payout.saving">
                         {{payout.saving ? 'Guardando...' : 'Guardar datos de cobro'}}
