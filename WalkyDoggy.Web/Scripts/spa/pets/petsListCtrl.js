@@ -50,7 +50,7 @@
 
         }
         function alEliminarMascota(respuesta) {
-            if (respuesta.status = 200) {
+            if (respuesta.status == 200) {
                 servicioNotificaciones.mostrarExito('Tu mascota se ha eliminado con éxito');
                 var config = {
                     params: {

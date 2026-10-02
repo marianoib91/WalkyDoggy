@@ -134,7 +134,7 @@
         }
 
         function alActualizarUsuario(respuesta) {
-            if (respuesta.status = 200) {
+            if (respuesta.status == 200) {
                 servicioNotificaciones.mostrarExito('Perfil actualizado con éxito');
                 // $location.path('/');
                 console.log();

@@ -78,7 +78,7 @@
             }
         }
         function alRegistrarMascota(respuesta) {
-            if (respuesta.status = 200) {
+            if (respuesta.status == 200) {
                 servicioNotificaciones.mostrarExito(respuesta.data.name + ' se ha registrado exitosamente.');
                 if (fotoPendiente) {
                     servicioSubidaArchivos.subirImagenDePerfil(fotoPendiente, 'pet', respuesta.data.id, function () {
@@ -93,7 +93,7 @@
             }
         }
         function alActualizarMascota(respuesta) {
-            if (respuesta.status = 200) {
+            if (respuesta.status == 200) {
                 servicioNotificaciones.mostrarExito('Cambios guardados con éxito');
                 $location.path('/pets/list');
             }

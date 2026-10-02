@@ -201,33 +201,16 @@
     <Content Include="Scripts\spa\register\register-walker.html" />
     <Content Include="Scripts\spa\register\registerModalCtrl.js" />
     <Content Include="Scripts\spa\app.js" />
-    <Content Include="Scripts\spa\customers\customerEditCtrl.js" />
-    <Content Include="Scripts\spa\customers\customersRegCtrl.js" />
-    <Content Include="Scripts\spa\customers\editCustomerModal.html" />
-    <Content Include="Scripts\spa\directives\availableMovie.html" />
     <Content Include="Scripts\spa\modules\common.ui.js" />
-    <Content Include="Scripts\spa\movies\edit.html" />
-    <Content Include="Scripts\spa\movies\details.html" />
-    <Content Include="Scripts\spa\movies\movieEditCtrl.js" />
-    <Content Include="Scripts\spa\movies\movieAddCtrl.js" />
-    <Content Include="Scripts\spa\movies\movieDetailsCtrl.js" />
-    <Content Include="Scripts\spa\movies\moviesCtrl.js" />
-    <Content Include="Scripts\spa\customers\customersCtrl.js" />
     <Content Include="Scripts\spa\home\indexCtrl.js" />
     <Content Include="Scripts\spa\home\rootCtrl.js" />
-    <Content Include="Scripts\spa\layout\sideBar.directive.js" />
-    <Content Include="Scripts\spa\directives\rating.directive.js" />
     <Content Include="Scripts\spa\directives\stars.directive.js" />
     <Content Include="Scripts\spa\filters\money.filter.js" />
-    <Content Include="Scripts\spa\layout\customPager.directive.js" />
     <Content Include="Scripts\spa\layout\topBar.directive.js" />
     <Content Include="Scripts\spa\profile\profile.html" />
     <Content Include="Scripts\spa\profile\profileCtrl.js" />
     <Content Include="Scripts\spa\public\homePublic.html" />
     <Content Include="Scripts\spa\public\homePublicCtrl.js" />
-    <Content Include="Scripts\spa\rental\rentMovieCtrl.js" />
-    <Content Include="Scripts\spa\rental\rentMovieModal.html" />
-    <Content Include="Scripts\spa\rental\rentStatsCtrl.js" />
     <Content Include="Scripts\spa\services\fileUploadService.js" />
     <Content Include="Scripts\spa\services\membershipService.js" />
     <Content Include="Scripts\spa\services\notificationService.js" />
@@ -256,8 +239,6 @@
     <Content Include="Scripts\vendors\moment.js" />
     <Content Include="Scripts\vendors\sweetalert.min.js" />
     <Content Include="Scripts\vendors\ui-bootstrap-tpls-0.13.1.js" />
-    <Content Include="Scripts\spa\customers\register.html" />
-    <Content Include="Scripts\spa\customers\customers.html" />
     <Content Include="Scripts\spa\home\index.html" />
     <Content Include="Scripts\vendors\angular-route.js" />
     <Content Include="Scripts\vendors\angular.js" />
@@ -271,12 +252,7 @@
     <Content Include="Scripts\vendors\toastr.js" />
     <Content Include="Scripts\vendors\underscore.js" />
     <Content Include="Scripts\_references.js" />
-    <Content Include="Scripts\spa\layout\pager.html" />
     <Content Include="Scripts\spa\layout\topBar.html" />
-    <Content Include="Scripts\spa\layout\sideBar.html" />
-    <Content Include="Scripts\spa\movies\add.html" />
-    <Content Include="Scripts\spa\movies\movies.html" />
-    <Content Include="Scripts\spa\rental\rental.html" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -311,7 +287,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Infrastructure\Core\ControladorApiBaseExtendido.cs" />
     <Compile Include="Infrastructure\Core\ControladorApiBase.cs" />
     <Compile Include="Infrastructure\Core\IdentidadDelActor.cs" />
     <Compile Include="Infrastructure\Core\ProtectorDeSecretos.cs" />
@@ -351,7 +326,6 @@
     <Content Include="Content\fonts\fontawesome-webfont.woff" />
     <Content Include="Content\fonts\fontawesome-webfont.woff2" />
     <Content Include="Content\fonts\FontAwesome.otf" />
-    <Content Include="Scripts\spa\directives\availableMovie.directive.js" />
     <Content Include="Scripts\spa\modules\common.core.js" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="App_Data\Building Single Page Applications using Web API and angularJS.pdf" />
@@ -375,7 +349,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Content\images\movies\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WalkyDoggy.Application\WalkyDoggy.Application.csproj">

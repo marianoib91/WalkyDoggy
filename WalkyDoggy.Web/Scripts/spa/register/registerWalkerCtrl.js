@@ -19,7 +19,7 @@
         }
 
         function alRegistrar(resultado) {
-            if (resultado.status = 200) {
+            if (resultado.status == 200) {
                 servicioMembresia.guardarCredenciales(resultado.data, $scope.paseador.firstName);
             }
             else {
