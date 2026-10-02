@@ -291,6 +291,7 @@
     <Compile Include="Controllers\CustomersController.cs" />
     <Compile Include="Controllers\DistanceMatrixController.cs" />
     <Compile Include="Controllers\ImagesController.cs" />
+    <Compile Include="Controllers\MercadoPagoController.cs" />
     <Compile Include="Controllers\PetsController.cs" />
     <Compile Include="Controllers\PricesController.cs" />
     <Compile Include="Controllers\ProvincesController.cs" />
@@ -307,6 +308,9 @@
     </Compile>
     <Compile Include="Infrastructure\Core\ApiControllerBaseExtended.cs" />
     <Compile Include="Infrastructure\Core\ApiControllerBase.cs" />
+    <Compile Include="Infrastructure\Core\SecretProtector.cs" />
+    <Compile Include="Infrastructure\MercadoPago\MercadoPagoOAuthClient.cs" />
+    <Compile Include="Infrastructure\MercadoPago\MercadoPagoSettings.cs" />
     <Compile Include="Infrastructure\Core\DataRepositoryFactory.cs" />
     <Compile Include="Infrastructure\Core\FileUploadResult.cs" />
     <Compile Include="Infrastructure\Core\MimeMultipart.cs" />

@@ -32,7 +32,8 @@ namespace WalkyDoggy.Web.Mappings
                 ForMember(p => p.RoleId, m => m.MapFrom(s => s.User.UserRoles.Select(x => x.RoleId).FirstOrDefault())).
                 ForMember(p => p.CityName, m => m.MapFrom(s => s.City.Name)).
                 ForMember(p => p.ProvinceName, m => m.MapFrom(s => s.City.Province.Name)).
-                ForMember(p => p.Amount, m => m.MapFrom(s => s.Price.Amount));
+                ForMember(p => p.Amount, m => m.MapFrom(s => s.Price.Amount)).
+                ForMember(p => p.MercadoPagoLinked, m => m.MapFrom(s => s.MercadoPagoAccessToken != null));
 
             Mapper.CreateMap<Pet, PetDto>().
                 ForMember(p => p.BreedName, m => m.MapFrom(s => s.Breed.Name)).

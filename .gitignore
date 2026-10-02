@@ -23,3 +23,5 @@ packages/
 
 # Imágenes de perfil subidas por los usuarios
 WalkyDoggy.Web/Content/images/uploads/
+# Credenciales locales (Mercado Pago)
+WalkyDoggy.Web/Secrets.config

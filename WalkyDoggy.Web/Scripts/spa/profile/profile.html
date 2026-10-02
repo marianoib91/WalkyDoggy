@@ -84,6 +84,34 @@
                 <h2 class="wd-form-section-title">Domicilio</h2>
                 <wd-address-field address="user"></wd-address-field>
             </section>
+            <section class="wd-form-section" ng-if="isWalker && mp.enabled">
+                <h2 class="wd-form-section-title">Cobros con Mercado Pago</h2>
+
+                <div class="wd-payout" ng-if="mp.loaded && !mp.linked">
+                    <p class="wd-payout-text">
+                        Vinculá tu cuenta de Mercado Pago para recibir los pagos online de tus clientes directamente en tu cuenta.
+                        Mientras no la vincules, solo van a poder pagarte en efectivo.
+                    </p>
+                    <div>
+                        <button type="button" class="btn btn-primary" ng-click="linkMercadoPago()" ng-disabled="!mp.configured || mp.working">
+                            {{mp.working ? 'Abriendo Mercado Pago...' : 'Vincular Mercado Pago'}}
+                        </button>
+                    </div>
+                    <p class="wd-field-hint" ng-if="!mp.configured">La vinculación todavía no está configurada en este sistema (faltan las credenciales de la aplicación de Mercado Pago).</p>
+                </div>
+
+                <div class="wd-payout" ng-if="mp.loaded && mp.linked">
+                    <div class="wd-payout-linked">
+                        <span class="wd-status wd-status-confirmed">Cuenta vinculada</span>
+                        <span class="wd-field-hint">Cuenta de Mercado Pago n.º {{mp.userId}}</span>
+                    </div>
+                    <p class="wd-payout-text">Tus clientes ya pueden elegir Mercado Pago para pagarte y el dinero llega directo a tu cuenta.</p>
+                    <div>
+                        <button type="button" class="btn btn-default" ng-click="unlinkMercadoPago()">Desvincular</button>
+                    </div>
+                </div>
+            </section>
+
             <div class="wd-form-footer">
                 <button class="btn btn-primary btn-lg" type="submit">Guardar cambios</button>
             </div>

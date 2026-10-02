@@ -92,8 +92,15 @@ namespace WalkyDoggy.Services.Services
 
         public void Update(WalkerDto walkerDto)
         {
-            var walker = Mapper.Map<WalkerDto, Walker>(walkerDto);
-            this.walkersRepository.Edit(walker);
+            //Se actualiza el paseador existente (y no una copia armada desde el DTO) para no pisar
+            //con NULL las columnas que el DTO no trae, como los datos de la cuenta de Mercado Pago
+            var walker = this.walkersRepository.GetSingle(walkerDto.Id);
+            if (walker == null)
+            {
+                return;
+            }
+
+            Mapper.Map(walkerDto, walker);
             this.unitOfWork.Commit();
         }
 

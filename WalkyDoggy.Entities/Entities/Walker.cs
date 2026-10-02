@@ -37,6 +37,19 @@ namespace WalkyDoggy.Entities
 
         public String Longitude { get; set; }
 
+        //Cuenta de Mercado Pago vinculada por el paseador (OAuth). Los tokens se guardan cifrados y nunca salen del servidor.
+        public String MercadoPagoUserId { get; set; }
+
+        public String MercadoPagoAccessToken { get; set; }
+
+        public String MercadoPagoRefreshToken { get; set; }
+
+        public String MercadoPagoPublicKey { get; set; }
+
+        public DateTime? MercadoPagoTokenExpiresAt { get; set; }
+
+        public DateTime? MercadoPagoLinkedAt { get; set; }
+
         public User User { get; set; }
 
         public City City { get; set; }

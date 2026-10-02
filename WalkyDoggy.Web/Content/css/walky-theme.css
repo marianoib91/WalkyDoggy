@@ -1296,3 +1296,46 @@ button.wd-pet-add {
 .walks-requested .wd-section-title:first-of-type {
     margin-top: 0;
 }
+
+/* ===== Cobros con Mercado Pago ===== */
+.wd-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 8px;
+    padding: 16px 20px;
+    border: 1px solid #F1E2B3;
+    border-radius: 12px;
+    background-color: #FEF9E7;
+    color: #5B4A12;
+}
+
+.wd-notice .fa {
+    margin-top: 3px;
+    font-size: 18px;
+}
+
+.wd-notice a {
+    font-weight: 500;
+}
+
+.wd-payout {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.wd-payout-text {
+    margin: 0;
+    color: #3A424E;
+}
+
+.wd-payout-linked {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.wd-payout-linked .wd-field-hint {
+    margin: 0;
+}

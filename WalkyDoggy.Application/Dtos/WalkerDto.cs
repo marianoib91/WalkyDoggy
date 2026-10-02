@@ -51,5 +51,8 @@ namespace WalkyDoggy.Application.Dtos
 
         //Distancia en km al domicilio del cliente (solo cuando se consulta con un cliente que tiene coordenadas)
         public Double? DistanceKm { get; set; }
+
+        //Indica si el paseador vinculo su cuenta de Mercado Pago (los tokens nunca viajan al navegador)
+        public Boolean MercadoPagoLinked { get; set; }
     }
 }
