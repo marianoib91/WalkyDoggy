@@ -13,6 +13,7 @@ namespace WalkyDoggy.Data.Configurations
             Property(u => u.Age).IsRequired();
             Property(u => u.Description).HasMaxLength(150);
             Property(u => u.ProfileImage);
+            Property(u => u.Traits).HasMaxLength(200);
         }
     }
 }

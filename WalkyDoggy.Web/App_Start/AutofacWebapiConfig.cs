@@ -122,6 +122,14 @@ namespace WalkyDoggy.Web.App_Start
             .As<IServicioPagos>()
             .InstancePerRequest();
 
+            builder.RegisterType<ServicioFavoritos>()
+            .As<IServicioFavoritos>()
+            .InstancePerRequest();
+
+            builder.RegisterType<ServicioMensajes>()
+            .As<IServicioMensajes>()
+            .InstancePerRequest();
+
             builder.RegisterType<ServicioValoraciones>()
             .As<IServicioValoraciones>()
             .InstancePerRequest();

@@ -67,6 +67,8 @@
     <Compile Include="Configurations\EntityBaseConfiguration.cs" />
     <Compile Include="Configurations\PricesConfiguration.cs" />
     <Compile Include="Configurations\ProvincesConfiguration.cs" />
+    <Compile Include="Configurations\MessagesConfiguration.cs" />
+    <Compile Include="Configurations\FavoriteWalkersConfiguration.cs" />
     <Compile Include="Configurations\RankingsConfiguration.cs" />
     <Compile Include="Configurations\UsersConfiguration.cs" />
     <Compile Include="Configurations\WalkersConfiguration.cs" />

@@ -34,6 +34,12 @@ namespace WalkyDoggy.Application.Dtos
 
         public String PaymentStatus { get; set; }
 
+        //El momento real en que empezo el paseo (lo inicia el cliente cuando el paseador llega a buscar a la mascota); null mientras no empiece
+        public DateTime? StartedAt { get; set; }
+
+        //Customer | Walker: quien lo inicio
+        public String StartedBy { get; set; }
+
         //El paseador dio por finalizado el paseo; null mientras no lo haga
         public DateTime? FinishedAt { get; set; }
 
@@ -58,6 +64,11 @@ namespace WalkyDoggy.Application.Dtos
         public Double Total { get; set; }
 
         public List<BookingPetDto> Pets { get; set; }
+
+        //Chat de la reserva: mensajes sin leer para quien consulta y cantidad total (el chat se habilita al confirmar la reserva)
+        public Int32 UnreadMessages { get; set; }
+
+        public Int32 MessageCount { get; set; }
     }
 
     public class BookingPetDto

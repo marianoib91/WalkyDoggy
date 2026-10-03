@@ -90,6 +90,17 @@
                     </div>
                 </div>
             </section>
+            <section class="wd-form-section">
+                <h2 class="wd-form-section-title">¿Cómo es {{mascota.name || 'tu mascota'}}?</h2>
+                <p class="wd-field-hint">Marcá las características que lo representan; de cada par podés elegir una sola, y volver a tocarla para sacarla. Las usamos para sugerirte paseadores que ya llevan perros parecidos, con los que se va a llevar bien.</p>
+                <div class="wd-trait-pairs">
+                    <div class="wd-trait-pair" role="group" ng-repeat="par in pares">
+                        <button type="button" class="wd-trait" ng-repeat="rasgo in par" ng-class="{'is-on': esRasgo(rasgo.codigo)}"
+                                aria-pressed="{{esRasgo(rasgo.codigo)}}" ng-click="alternarRasgo(par, rasgo.codigo)">{{rasgo.texto}}</button>
+                    </div>
+                </div>
+                <p class="wd-field-hint" ng-if="cantidadRasgos() < minimoEnComun">Marcá al menos {{minimoEnComun}} para que podamos encontrarle compañeros parecidos.</p>
+            </section>
             <div class="wd-form-footer">
                 <a class="btn btn-default" href="#/pets/list" style="margin-right:12px">Cancelar</a>
                 <button class="btn btn-primary" type="submit">Guardar cambios</button>

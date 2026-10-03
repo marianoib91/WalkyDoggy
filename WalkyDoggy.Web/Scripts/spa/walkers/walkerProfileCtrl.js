@@ -3,9 +3,9 @@
 
     app.controller('perfilPaseadorCtrl', perfilPaseadorCtrl);
 
-    perfilPaseadorCtrl.$inject = ['$scope', 'servicioApi', 'servicioNotificaciones', '$routeParams', '$rootScope'];
+    perfilPaseadorCtrl.$inject = ['$scope', 'servicioApi', 'servicioNotificaciones', 'servicioFavoritos', '$routeParams', '$rootScope'];
 
-    function perfilPaseadorCtrl($scope, servicioApi, servicioNotificaciones, $routeParams, $rootScope) {
+    function perfilPaseadorCtrl($scope, servicioApi, servicioNotificaciones, servicioFavoritos, $routeParams, $rootScope) {
         var tamanoPagina = 8;
         var dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -28,7 +28,19 @@
 
         iniciar();
 
+        $scope.esFavorito = function () {
+            return servicioFavoritos.esFavorito($scope.idPaseador);
+        };
+
+        $scope.alternarFavorito = function () {
+            servicioFavoritos.alternar($rootScope.repository.loggedUser.customerId, $scope.idPaseador);
+        };
+
         function iniciar() {
+            if ($scope.esCliente) {
+                servicioFavoritos.cargar($rootScope.repository.loggedUser.customerId);
+            }
+
             servicioApi.get('/api/walkers/getDetail', { params: { id: $scope.idPaseador } }, function (resultado) {
                 if (!resultado.data) {
                     $scope.noEncontrado = true;

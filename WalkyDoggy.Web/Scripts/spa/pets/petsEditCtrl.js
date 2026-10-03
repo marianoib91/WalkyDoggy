@@ -3,9 +3,9 @@
 
     app.controller('editarMascotaCtrl', editarMascotaCtrl);
 
-    editarMascotaCtrl.$inject = ['$scope', 'servicioMembresia', 'servicioNotificaciones', 'servicioApi', 'servicioSubidaArchivos', '$rootScope', '$location', '$routeParams'];
+    editarMascotaCtrl.$inject = ['$scope', 'servicioMembresia', 'servicioNotificaciones', 'servicioApi', 'servicioSubidaArchivos', 'servicioCaracteristicas', '$rootScope', '$location', '$routeParams'];
 
-    function editarMascotaCtrl($scope, servicioMembresia, servicioNotificaciones, servicioApi, servicioSubidaArchivos, $rootScope, $location, $routeParams) {
+    function editarMascotaCtrl($scope, servicioMembresia, servicioNotificaciones, servicioApi, servicioSubidaArchivos, servicioCaracteristicas, $rootScope, $location, $routeParams) {
 
         $scope.idMascota = $routeParams.id;
         $scope.idUsuario = $rootScope.repository.loggedUser.id;
@@ -14,6 +14,31 @@
         $scope.mascota = {};
         $scope.razas = {};
         $scope.tamanos = {};
+
+        //Caracteristicas (pares de opuestos): las elegidas se guardan en la mascota como codigos separados por coma
+        $scope.pares = servicioCaracteristicas.pares;
+        $scope.minimoEnComun = servicioCaracteristicas.minimoEnComun;
+        $scope.rasgosElegidos = [];
+
+        $scope.esRasgo = function (codigo) {
+            return $scope.rasgosElegidos.indexOf(codigo) !== -1;
+        };
+
+        $scope.cantidadRasgos = function () {
+            return $scope.rasgosElegidos.length;
+        };
+
+        //Tocar una caracteristica la elige (y saca la opuesta del par); tocarla de nuevo la saca
+        $scope.alternarRasgo = function (par, codigo) {
+            var yaElegida = $scope.esRasgo(codigo);
+
+            $scope.rasgosElegidos = $scope.rasgosElegidos.filter(function (elegido) {
+                return !par.some(function (rasgo) { return rasgo.codigo === elegido; });
+            });
+            if (!yaElegida) {
+                $scope.rasgosElegidos.push(codigo);
+            }
+        };
         var fotoPendiente = null;
         iniciar();
 
@@ -58,6 +83,7 @@
 
         function alCargarMascota(resultado) {
             $scope.mascota = resultado.data;
+            $scope.rasgosElegidos = servicioCaracteristicas.leer($scope.mascota && $scope.mascota.traits);
         }
 
         function alCargarRazas(resultado) {
@@ -69,6 +95,8 @@
         }
 
         $scope.actualizarMascota = function () {
+            $scope.mascota.traits = $scope.rasgosElegidos.join(',');
+
             if ($scope.mascota.id) {
                 servicioApi.post('/api/pets/update', $scope.mascota, alActualizarMascota);
             }

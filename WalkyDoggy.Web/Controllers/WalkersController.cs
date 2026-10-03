@@ -128,7 +128,8 @@ namespace WalkyDoggy.Web.Controllers
         //date (yyyy-MM-dd) y timeFrom (HH:00) son opcionales: filtran por los paseadores con horario libre.
         [HttpGet]
         [Route("getForPickup")]
-        public HttpResponseMessage GetForPickup(HttpRequestMessage pedido, String latitude, String longitude, String date = null, String timeFrom = null)
+        //petIds (ids separados por coma, opcional): las mascotas del cliente, para saber cuantos perros parecidos lleva cada paseador en cada horario.
+        public HttpResponseMessage GetForPickup(HttpRequestMessage pedido, String latitude, String longitude, String date = null, String timeFrom = null, String petIds = null)
         {
             return CrearRespuestaHttp(pedido, () =>
             {
@@ -149,9 +150,50 @@ namespace WalkyDoggy.Web.Controllers
                     fecha = fechaLeida;
                 }
 
-                var paseadoresDto = this.servicioPaseadores.BuscarParaRetiro(latitud, longitud, fecha, timeFrom);
+                var paseadoresDto = this.servicioPaseadores.BuscarParaRetiro(latitud, longitud, fecha, timeFrom, LeerIds(petIds));
 
                 return pedido.CreateResponse(HttpStatusCode.OK, paseadoresDto);
+            });
+        }
+
+        //Ids separados por coma ("3,7"); los que no son numeros se ignoran
+        private static List<Int64> LeerIds(String ids)
+        {
+            var leidos = new List<Int64>();
+            if (String.IsNullOrWhiteSpace(ids))
+            {
+                return leidos;
+            }
+
+            foreach (var texto in ids.Split(','))
+            {
+                Int64 id;
+                if (Int64.TryParse(texto.Trim(), out id))
+                {
+                    leidos.Add(id);
+                }
+            }
+
+            return leidos;
+        }
+
+        //Horarios libres del paseador en la fecha, con los perros parecidos a las mascotas del cliente (petIds) que lleva en cada uno
+        [HttpGet]
+        [Route("getAvailableSlots")]
+        public HttpResponseMessage GetAvailableSlots(HttpRequestMessage pedido, Int64 walkerId, String date, String petIds = null)
+        {
+            return CrearRespuestaHttp(pedido, () =>
+            {
+                DateTime fechaLeida;
+                if (!DateTime.TryParseExact(date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture,
+                                            System.Globalization.DateTimeStyles.None, out fechaLeida))
+                {
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { "La fecha no es válida." });
+                }
+
+                var cupos = this.servicioPaseadores.ObtenerCuposConCompatibilidad(walkerId, fechaLeida, LeerIds(petIds));
+
+                return pedido.CreateResponse(HttpStatusCode.OK, cupos);
             });
         }
 

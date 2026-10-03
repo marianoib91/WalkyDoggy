@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Http;
+using WalkyDoggy.Application.Constants;
 using WalkyDoggy.Application.Dtos;
 using WalkyDoggy.Data.Infrastructure;
 using WalkyDoggy.Data.Repositories;
@@ -34,6 +35,18 @@ namespace WalkyDoggy.Web.Controllers
             this.servicioMascotas = servicioMascotas;
         }
 
+        //Controla las caracteristicas marcadas (existen, una sola por par) y las deja ordenadas. Devuelve el motivo del error, o null si esta bien.
+        private static String ValidarCaracteristicas(PetDto mascotaDto)
+        {
+            String normalizadas;
+            var error = PetTraits.Validar(mascotaDto.Traits, out normalizadas);
+            if (error == null)
+            {
+                mascotaDto.Traits = normalizadas;
+            }
+            return error;
+        }
+
         [HttpPost]
         [Route("register")]
         public HttpResponseMessage Register(HttpRequestMessage pedido, PetDto mascotaDto)
@@ -41,12 +54,17 @@ namespace WalkyDoggy.Web.Controllers
             return CrearRespuestaHttp(pedido, () =>
             {
                 HttpResponseMessage respuesta = null;
+                String error;
 
                 if (!ModelState.IsValid)
                 {
                     respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         ModelState.Keys.SelectMany(k => ModelState[k].Errors)
                               .Select(m => m.ErrorMessage).ToArray());
+                }
+                else if ((error = ValidarCaracteristicas(mascotaDto)) != null)
+                {
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
                 }
                 else
                 {
@@ -65,12 +83,17 @@ namespace WalkyDoggy.Web.Controllers
             return CrearRespuestaHttp(pedido, () =>
             {
                 HttpResponseMessage respuesta = null;
+                String error;
 
                 if (!ModelState.IsValid)
                 {
                     respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         ModelState.Keys.SelectMany(k => ModelState[k].Errors)
                               .Select(m => m.ErrorMessage).ToArray());
+                }
+                else if ((error = ValidarCaracteristicas(mascotaDto)) != null)
+                {
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
                 }
                 else
                 {
