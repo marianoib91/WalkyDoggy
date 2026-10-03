@@ -39,6 +39,13 @@
             <wd-address-field address="retiro.otro" allow-locate="true"
                               label="Dirección de retiro"
                               hint="Elegí una dirección de la lista o marcala en el mapa."></wd-address-field>
+            <div class="wd-notice wd-notice-warn" ng-if="faltaEnRetiro()" role="alert">
+                <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                <div>
+                    <strong>Falta completar la dirección.</strong>
+                    Para pedir el paseo falta {{faltaEnRetiro()}}. Podés ver los paseadores de la zona, pero completalo en los campos de arriba para poder reservar.
+                </div>
+            </div>
         </div>
 
         <h2 class="wd-search-title"><span class="wd-search-number">2</span> ¿Cómo querés elegir al paseador?</h2>
@@ -141,7 +148,7 @@
                         <div class="wd-times-title">Horarios con lugar el {{textoHorarioBuscado().split(' a las')[0]}} <span class="wd-field-hint">· tocá uno para reservarlo</span></div>
                         <div class="wd-times-list">
                             <button type="button" class="wd-time-chip" ng-repeat="cupo in (paseador.verTodos ? paseador.availableTimes : paseador.availableTimes.slice(0, 8))"
-                                    ng-click="solicitar(paseador, cupo.time)" title="{{textoLugares(cupo)}}">
+                                    ng-click="solicitar(paseador, cupo.time)" ng-disabled="faltaEnRetiro()" title="{{textoLugares(cupo)}}">
                                 {{cupo.time}} <small>{{textoLugares(cupo)}}</small>
                             </button>
                             <button type="button" class="wd-time-more" ng-if="paseador.availableTimes.length > 8" ng-click="paseador.verTodos = !paseador.verTodos">
@@ -155,7 +162,7 @@
                         <span class="wd-price-amount">${{paseador.amount | wdMoney}}</span>
                         <span class="wd-price-unit">/ hora</span>
                     </div>
-                    <button type="button" class="btn btn-primary" ng-click="solicitar(paseador)">Solicitar paseo</button>
+                    <button type="button" class="btn btn-primary" ng-click="solicitar(paseador)" ng-disabled="faltaEnRetiro()" title="{{faltaEnRetiro() ? 'Completá la dirección de retiro para reservar' : ''}}">Solicitar paseo</button>
                     <a class="wd-link-plain wd-link-sm" ng-href="#/walkers/{{paseador.id}}">Ver perfil y opiniones</a>
                 </div>
             </article>

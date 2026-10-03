@@ -209,12 +209,19 @@ namespace WalkyDoggy.Services.Services
             if (!String.IsNullOrWhiteSpace(criterioSolicitudPaseo.PickupStreetName))
             {
                 var calle = criterioSolicitudPaseo.PickupStreetName.Trim();
-                if (calle.Length > 50 ||
-                    !criterioSolicitudPaseo.PickupStreetNumber.HasValue || criterioSolicitudPaseo.PickupStreetNumber.Value <= 0 ||
-                    !criterioSolicitudPaseo.PickupCityId.HasValue ||
-                    this.repositorioCiudades.ObtenerUno(criterioSolicitudPaseo.PickupCityId.Value) == null)
+                if (calle.Length > 50)
                 {
-                    error = "La dirección de retiro no es válida. Elegila de la lista de sugerencias.";
+                    error = "El nombre de la calle de retiro es demasiado largo (hasta 50 caracteres).";
+                    return null;
+                }
+                if (!criterioSolicitudPaseo.PickupStreetNumber.HasValue || criterioSolicitudPaseo.PickupStreetNumber.Value <= 0)
+                {
+                    error = "A la dirección de retiro le falta el número de calle. Completalo para poder reservar.";
+                    return null;
+                }
+                if (!criterioSolicitudPaseo.PickupCityId.HasValue || this.repositorioCiudades.ObtenerUno(criterioSolicitudPaseo.PickupCityId.Value) == null)
+                {
+                    error = "No se reconoció la ciudad de la dirección de retiro. Elegí la dirección de la lista de sugerencias.";
                     return null;
                 }
 

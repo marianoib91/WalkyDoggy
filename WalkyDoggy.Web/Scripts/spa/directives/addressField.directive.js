@@ -361,6 +361,9 @@
                     }
                     scope.state.query = formatearEtiqueta(direccion.streetName, direccion.streetNumber, lugar.city, lugar.state);
                     scope.state.message = mensajeDeExito || 'Ajustaste el pin: revisá que la calle y el número sean los correctos.';
+                    if (number === null && !direccion.streetNumber && scope.allowNoNumber != 'true') {
+                        scope.state.message = 'En ese punto del mapa no figura el número de la calle: completalo a mano en el campo Número.';
+                    }
                     resolverCiudad(lugar);
                 });
             }

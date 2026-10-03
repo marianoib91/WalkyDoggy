@@ -106,6 +106,28 @@
             };
         }
 
+        //Que le falta a la direccion de "otra direccion" para poder reservar (null si esta completa o si se retira en el domicilio).
+        //La busqueda alcanza con la ubicacion del mapa, pero la reserva necesita calle, numero y ciudad reconocida.
+        $scope.faltaEnRetiro = function () {
+            var otro = $scope.retiro.otro;
+            if ($scope.retiro.modo !== 'other' || leerCoordenadas(otro) === null) {
+                return null;
+            }
+
+            var faltantes = [];
+            if (!otro.streetName) {
+                faltantes.push('la calle');
+            }
+            if (!(Number(otro.streetNumber) > 0)) {
+                faltantes.push('el número de la calle');
+            }
+            if (!otro.cityId) {
+                faltantes.push('la ciudad (elegí la dirección de la lista de sugerencias)');
+            }
+
+            return faltantes.length ? faltantes.join(' y ') : null;
+        };
+
         $scope.textoRetiro = function () {
             var direccion = direccionElegida();
             return direccion ? textoDireccion(direccion) : '';
@@ -229,6 +251,12 @@
         $scope.solicitar = function (paseador, horaElegida) {
             var direccion = direccionElegida();
             if (!direccion) {
+                return;
+            }
+
+            var falta = $scope.faltaEnRetiro();
+            if (falta) {
+                servicioNotificaciones.mostrarError('A la dirección de retiro le falta ' + falta + '. Completala para poder reservar.');
                 return;
             }
 
