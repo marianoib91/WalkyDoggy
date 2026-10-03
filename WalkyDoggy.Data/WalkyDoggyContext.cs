@@ -24,6 +24,7 @@ namespace WalkyDoggy.Data
         public IDbSet<Ranking> Rankings { get; set; }
         public IDbSet<Message> Messages { get; set; }
         public IDbSet<FavoriteWalker> FavoriteWalkers { get; set; }
+        public IDbSet<PetReview> PetReviews { get; set; }
         public IDbSet<Breed> Breeds { get; set; }
         public IDbSet<Size> Sizes { get; set; }
         public IDbSet<Price> Prices { get; set; }
@@ -54,6 +55,7 @@ namespace WalkyDoggy.Data
             modelBuilder.Configurations.Add(new RankingsConfiguration());
             modelBuilder.Configurations.Add(new MessagesConfiguration());
             modelBuilder.Configurations.Add(new FavoriteWalkersConfiguration());
+            modelBuilder.Configurations.Add(new PetReviewsConfiguration());
             modelBuilder.Configurations.Add(new PricesConfiguration());
             modelBuilder.Configurations.Add(new WorkDaysConfiguration());
 

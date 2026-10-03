@@ -65,6 +65,7 @@
     <Compile Include="Contracts\IPasarelaDePago.cs" />
     <Compile Include="Contracts\IServicioMensajes.cs" />
     <Compile Include="Contracts\IServicioFavoritos.cs" />
+    <Compile Include="Contracts\IServicioResenasMascotas.cs" />
     <Compile Include="Contracts\IServicioValoraciones.cs" />
     <Compile Include="Contracts\IProveedorTokensVendedor.cs" />
     <Compile Include="Contracts\IServicioMascotas.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="Services\ServicioPagos.cs" />
     <Compile Include="Services\ServicioMensajes.cs" />
     <Compile Include="Services\ServicioFavoritos.cs" />
+    <Compile Include="Services\ServicioResenasMascotas.cs" />
     <Compile Include="Services\ServicioValoraciones.cs" />
     <Compile Include="Services\ServicioMascotas.cs" />
     <Compile Include="Services\ServicioPrecios.cs" />

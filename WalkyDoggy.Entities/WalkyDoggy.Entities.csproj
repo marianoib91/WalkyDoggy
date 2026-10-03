@@ -61,6 +61,7 @@
     <Compile Include="Entities\Province.cs" />
     <Compile Include="Entities\Message.cs" />
     <Compile Include="Entities\FavoriteWalker.cs" />
+    <Compile Include="Entities\PetReview.cs" />
     <Compile Include="Entities\Ranking.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\User.cs" />

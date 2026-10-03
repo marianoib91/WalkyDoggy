@@ -2355,3 +2355,28 @@ button.wd-pet-add {
 .wd-match-filter .fa { color: #E3A008; }
 
 .wd-optional { font-size: 14px; font-weight: 400; color: #5B6470; }
+
+/* ===== Reseñas de las mascotas (las escriben los paseadores) ===== */
+.wd-pet-reviews {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid #E7E9EC;
+    border-radius: 10px;
+    background-color: #F8F9FA;
+}
+
+.wd-pet-review-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.wd-review-alert { font-weight: 600; color: #B91C1C; }
+
+.wd-review-list { margin: 10px 0 0; padding: 0; list-style: none; }
+
+.wd-review-list li {
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background-color: #FFFFFF;
+}
+
+.wd-review-list li.is-mine { border: 1px solid #E3A008; background-color: #FFFBEB; }
+.wd-review-top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.wd-review-text { margin: 4px 0 0; overflow-wrap: anywhere; }

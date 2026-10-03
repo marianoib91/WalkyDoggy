@@ -78,5 +78,17 @@ namespace WalkyDoggy.Application.Dtos
         public String Name { get; set; }
 
         public String ProfileImage { get; set; }
+
+        //Reseñas que dejaron los paseadores de esta mascota (solo se informan al paseador, para que decida al recibir el pedido)
+        public Int32 ReviewCount { get; set; }
+
+        //Promedio de estrellas (null si todavia no tiene reseñas)
+        public Double? ReviewAverage { get; set; }
+
+        //Reseñas de 1 o 2 estrellas
+        public Int32 NegativeReviews { get; set; }
+
+        //Si el paseador de la reserva ya reseño a esta mascota en este paseo
+        public Boolean ReviewedByWalker { get; set; }
     }
 }

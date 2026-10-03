@@ -63,6 +63,7 @@
     <Compile Include="Dtos\BookingDto.cs" />
     <Compile Include="Dtos\MessageDtos.cs" />
     <Compile Include="Dtos\FavoriteDtos.cs" />
+    <Compile Include="Dtos\PetReviewDtos.cs" />
     <Compile Include="Dtos\RatingDtos.cs" />    <Compile Include="Dtos\CustomerDto.cs" />
     <Compile Include="Dtos\IDto.cs" />
     <Compile Include="Dtos\LoginDto.cs" />

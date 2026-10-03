@@ -29,6 +29,7 @@ namespace WalkyDoggy.Services.Services
         private readonly IRepositorioEntidadBase<Ranking> repositorioValoraciones;
         private readonly IServicioNotificaciones servicioNotificaciones;
         private readonly IServicioMensajes servicioMensajes;
+        private readonly IServicioResenasMascotas servicioResenasMascotas;
         #endregion
 
         //El cliente puede iniciar el paseo desde unas horas antes del horario agendado, porque el horario real de retiro se acuerda por el chat
@@ -48,7 +49,8 @@ namespace WalkyDoggy.Services.Services
                                 IProveedorTokensVendedor proveedorTokens,
                                 IRepositorioEntidadBase<Ranking> repositorioValoraciones,
                                 IServicioNotificaciones servicioNotificaciones,
-                                IServicioMensajes servicioMensajes) :
+                                IServicioMensajes servicioMensajes,
+                                IServicioResenasMascotas servicioResenasMascotas) :
             base(repositorioErrores, unidadDeTrabajo, repositorioPaseos)
         {
             this.repositorioPaseos = repositorioPaseos;
@@ -61,6 +63,7 @@ namespace WalkyDoggy.Services.Services
             this.repositorioValoraciones = repositorioValoraciones;
             this.servicioNotificaciones = servicioNotificaciones;
             this.servicioMensajes = servicioMensajes;
+            this.servicioResenasMascotas = servicioResenasMascotas;
         }
 
         public List<WalkDto> Registrar(WalkRequestCriteria criterioSolicitudPaseo, out String error)
@@ -597,6 +600,15 @@ namespace WalkyDoggy.Services.Services
                                                      ToDictionary(x => x.BookingKey, x => (Int32)Math.Round(x.Score));
             var resumenesDeChat = this.servicioMensajes.ObtenerResumenes(clavesReserva, rol);
 
+            //El paseador ve las reseñas que tiene cada mascota (para decidir si lleva el paseo) y cuales ya reseño el
+            var esPaseador = rol == "Walker";
+            var resumenesDeMascotas = esPaseador
+                ? this.servicioResenasMascotas.ObtenerResumenes(paseos.Select(x => x.PetId))
+                : new Dictionary<Int64, PetReviewSummaryDto>();
+            var paseosResenados = esPaseador && paseos.Count > 0
+                ? this.servicioResenasMascotas.ObtenerPaseosResenados(paseos.Select(x => x.Id), paseos[0].WalkerId)
+                : new HashSet<Int64>();
+
             return paseos.GroupBy(ClaveDeReserva).Select(group =>
             {
                 var primero = group.First();
@@ -643,7 +655,16 @@ namespace WalkyDoggy.Services.Services
                     Longitude = usaDireccionDeRetiro ? primero.PickupLongitude : cliente.Longitude,
                     PricePerPet = precioPorMascota,
                     Total = precioPorMascota * group.Count(),
-                    Pets = group.Select(x => new BookingPetDto { Id = x.Pet.Id, Name = x.Pet.Name, ProfileImage = x.Pet.ProfileImage }).ToList(),
+                    Pets = group.Select(x => new BookingPetDto
+                    {
+                        Id = x.Pet.Id,
+                        Name = x.Pet.Name,
+                        ProfileImage = x.Pet.ProfileImage,
+                        ReviewCount = resumenesDeMascotas.ContainsKey(x.PetId) ? resumenesDeMascotas[x.PetId].Count : 0,
+                        ReviewAverage = resumenesDeMascotas.ContainsKey(x.PetId) ? resumenesDeMascotas[x.PetId].Average : null,
+                        NegativeReviews = resumenesDeMascotas.ContainsKey(x.PetId) ? resumenesDeMascotas[x.PetId].NegativeCount : 0,
+                        ReviewedByWalker = paseosResenados.Contains(x.Id)
+                    }).ToList(),
                     UnreadMessages = resumenesDeChat.ContainsKey(group.Key) ? resumenesDeChat[group.Key].NoLeidos : 0,
                     MessageCount = resumenesDeChat.ContainsKey(group.Key) ? resumenesDeChat[group.Key].Total : 0
                 };

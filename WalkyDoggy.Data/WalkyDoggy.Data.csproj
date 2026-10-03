@@ -69,6 +69,7 @@
     <Compile Include="Configurations\ProvincesConfiguration.cs" />
     <Compile Include="Configurations\MessagesConfiguration.cs" />
     <Compile Include="Configurations\FavoriteWalkersConfiguration.cs" />
+    <Compile Include="Configurations\PetReviewsConfiguration.cs" />
     <Compile Include="Configurations\RankingsConfiguration.cs" />
     <Compile Include="Configurations\UsersConfiguration.cs" />
     <Compile Include="Configurations\WalkersConfiguration.cs" />
