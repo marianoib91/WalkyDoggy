@@ -13,6 +13,9 @@
         var borrador = $rootScope.borradorPaseo;
         var retiroElegido = $rootScope.retiroElegido;
         var numeroDePedido = 0;
+        //Horario con el que se llega (de la busqueda o del paso 2). Se aplica cuando ya llego la lista de horarios del dia:
+        //si se carga antes, el desplegable no lo muestra aunque el modelo lo tenga.
+        var horaPropuesta = null;
 
         $scope.mascotas = {};
         $scope.paseo = {};
@@ -48,7 +51,7 @@
         //Si se vuelve del paso 2 se conserva lo que ya se habia elegido
         if (borrador && borrador.walkerId == idPaseador) {
             $scope.paseo.date = moment(borrador.date, 'YYYY-MM-DD');
-            $scope.paseo.timeFrom = borrador.timeFrom;
+            horaPropuesta = borrador.timeFrom;
 
             if (borrador.pickup) {
                 $scope.retiroActual = angular.copy(borrador.pickup);
@@ -61,7 +64,7 @@
             //Si en la portada se buscó por día y horario, se propone ese día y horario
             if (retiroElegido.fecha) {
                 $scope.paseo.date = moment(retiroElegido.fecha, 'YYYY-MM-DD');
-                $scope.paseo.timeFrom = retiroElegido.hora;
+                horaPropuesta = retiroElegido.hora;
             }
         }
 
@@ -163,6 +166,11 @@
                 }
                 $scope.horarios = resultado.data;
                 $scope.cargandoHorarios = false;
+                if (horaPropuesta && $scope.horarios.indexOf(horaPropuesta) !== -1) {
+                    $scope.paseo.timeFrom = horaPropuesta;
+                }
+                horaPropuesta = null;
+
                 if ($scope.horarios.indexOf($scope.paseo.timeFrom) === -1) {
                     $scope.paseo.timeFrom = null;
                 }

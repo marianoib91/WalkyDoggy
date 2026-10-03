@@ -260,6 +260,9 @@
                 return;
             }
 
+            //Una busqueda nueva descarta cualquier reserva a medio hacer de antes
+            $rootScope.borradorPaseo = null;
+
             var porHorario = $scope.busqueda.modo === 'horario' && $scope.busqueda.fecha;
             $rootScope.retiroElegido = {
                 pickup: direccion,
