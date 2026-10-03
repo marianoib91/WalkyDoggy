@@ -19,8 +19,9 @@ namespace WalkyDoggy.Services.Services
 {
     public class ServicioPaseadores : ServicioEntidadBase<Walker, WalkerDto>, IServicioPaseadores
     {
-        //Cantidad maxima de mascotas que un paseador puede llevar a la vez
-        public const Int32 MaximoMascotasPorPaseo = 5;
+        //Cuantas mascotas puede llevar a la vez un paseador (lo elige cada uno)
+        public const Int32 MascotasMinimas = 1;
+        public const Int32 MascotasMaximas = 5;
 
         #region Variables
         private readonly IRepositorioEntidadBase<Walker> repositorioPaseadores;
@@ -164,12 +165,17 @@ namespace WalkyDoggy.Services.Services
             var idPrecioAnterior = paseador.PriceId;
             var radioAnterior = paseador.ServiceRadiusKm;
             var cuentaAnterior = paseador.PayoutAccount;
+            var cupoAnterior = paseador.MaxPetsAtOnce;
             Mapper.Map(paseadorDto, paseador);
 
             //Sin radio informado queda el que tenia; sin cuenta informada (null) tambien. Un texto vacio borra la cuenta.
             if (paseadorDto.ServiceRadiusKm <= 0)
             {
                 paseador.ServiceRadiusKm = radioAnterior;
+            }
+            if (paseadorDto.MaxPetsAtOnce <= 0)
+            {
+                paseador.MaxPetsAtOnce = cupoAnterior;
             }
             if (paseadorDto.PayoutAccount == null)
             {
@@ -225,11 +231,17 @@ namespace WalkyDoggy.Services.Services
 
                 if (fecha.HasValue)
                 {
-                    var horariosLibres = ObtenerHorariosDisponibles(paseadorDto.Id, fecha.Value);
-                    if (String.IsNullOrWhiteSpace(horario) ? horariosLibres.Count == 0 : !horariosLibres.Contains(horario))
+                    var cupos = ObtenerCupos(paseadorDto.Id, fecha.Value);
+                    if (!String.IsNullOrWhiteSpace(horario))
+                    {
+                        cupos = cupos.Where(x => x.Time == horario).ToList();
+                    }
+                    if (cupos.Count == 0)
                     {
                         continue;
                     }
+
+                    paseadorDto.AvailableTimes = cupos;
                 }
 
                 paseadorDto.DistanceKm = Math.Round(distancia, 1);
@@ -240,20 +252,26 @@ namespace WalkyDoggy.Services.Services
         }
 
         //Verifica la zona de trabajo y los datos de cobro. Devuelve el mensaje de error, o null si esta todo bien.
-        //Al registrarse (exigirUbicacion) la direccion de referencia con sus coordenadas y el radio son obligatorios;
+        //Al registrarse (esRegistro) la direccion de referencia con sus coordenadas y el radio son obligatorios;
         //al actualizar, un radio en 0 significa "sin cambios".
-        public static String ValidarZonaYCobro(WalkerDto paseadorDto, Boolean exigirUbicacion)
+        public static String ValidarCondiciones(WalkerDto paseadorDto, Boolean esRegistro)
         {
             Double latitud, longitud;
-            if (exigirUbicacion && !Geografia.IntentarLeerCoordenadas(paseadorDto.Latitude, paseadorDto.Longitude, out latitud, out longitud))
+            if (esRegistro && !Geografia.IntentarLeerCoordenadas(paseadorDto.Latitude, paseadorDto.Longitude, out latitud, out longitud))
             {
                 return "Elegí la dirección de referencia de la lista de sugerencias o marcala en el mapa.";
             }
 
             var radio = paseadorDto.ServiceRadiusKm;
-            if ((exigirUbicacion || radio != 0) && (radio < RadioMinimoKm || radio > RadioMaximoKm))
+            if ((esRegistro || radio != 0) && (radio < RadioMinimoKm || radio > RadioMaximoKm))
             {
                 return "El radio de trabajo tiene que estar entre " + RadioMinimoKm + " y " + RadioMaximoKm + " km.";
+            }
+
+            var cupo = paseadorDto.MaxPetsAtOnce;
+            if ((esRegistro || cupo != 0) && (cupo < MascotasMinimas || cupo > MascotasMaximas))
+            {
+                return "La cantidad de perros a la vez tiene que estar entre " + MascotasMinimas + " y " + MascotasMaximas + ".";
             }
 
             if (!String.IsNullOrWhiteSpace(paseadorDto.PayoutAccount))
@@ -287,16 +305,29 @@ namespace WalkyDoggy.Services.Services
         }
 
         //Horarios en los que el paseador puede recibir un paseo en la fecha indicada.
-        //Un paseo dura una hora, por eso el horario de fin de la jornada no se ofrece como inicio.
         public List<String> ObtenerHorariosDisponibles(Int64 idPaseador, DateTime fecha)
         {
-            var horarios = new List<String>();
+            return ObtenerCupos(idPaseador, fecha).Select(x => x.Time).ToList();
+        }
+
+        //Horarios de la fecha en los que al paseador le queda algun lugar libre, con cuantos lugares le quedan.
+        //Un paseo dura una hora, por eso el horario de fin de la jornada no se ofrece como inicio.
+        //Cada paseador define cuantas mascotas lleva a la vez (MaxPetsAtOnce); un horario sin lugares libres no se ofrece.
+        public List<AvailableTimeDto> ObtenerCupos(Int64 idPaseador, DateTime fecha)
+        {
+            var cupos = new List<AvailableTimeDto>();
             var dia = fecha.Date;
             var ahora = DateTime.Now;
 
             if (dia < ahora.Date)
             {
-                return horarios;
+                return cupos;
+            }
+
+            var paseador = this.repositorioPaseadores.ObtenerUno(idPaseador);
+            if (paseador == null)
+            {
+                return cupos;
             }
 
             var diaDeLaSemana = new ServicioDiaDeLaSemana().ObtenerDiaDeLaSemana(dia.DayOfWeek.ToString());
@@ -305,7 +336,7 @@ namespace WalkyDoggy.Services.Services
                                                    ToList();
             if (jornadas.Count == 0)
             {
-                return horarios;
+                return cupos;
             }
 
             var paseos = this.repositorioPaseos.ObtenerTodos().
@@ -326,21 +357,17 @@ namespace WalkyDoggy.Services.Services
                     }
 
                     var horario = hora.ToString("00") + ":00";
-                    var mascotasEnPaseo = paseos.Count(x => x.TimeFrom == horario);
-                    if (mascotasEnPaseo >= MaximoMascotasPorPaseo)
+                    var lugaresLibres = paseador.MaxPetsAtOnce - paseos.Count(x => x.TimeFrom == horario);
+                    if (lugaresLibres < 1 || cupos.Any(x => x.Time == horario))
                     {
                         continue;
                     }
 
-                    if (!horarios.Contains(horario))
-                    {
-                        horarios.Add(horario);
-                    }
+                    cupos.Add(new AvailableTimeDto { Time = horario, FreeSpots = lugaresLibres });
                 }
             }
 
-            horarios.Sort();
-            return horarios;
+            return cupos.OrderBy(x => x.Time).ToList();
         }
     }
 }

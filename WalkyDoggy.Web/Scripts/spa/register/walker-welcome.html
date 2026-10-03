@@ -6,6 +6,7 @@
         <ul class="wd-welcome-summary" ng-if="paseador">
             <li><i class="fa fa-bullseye" aria-hidden="true"></i> Zona: hasta {{paseador.serviceRadiusKm | wdKm}} km alrededor de {{paseador.streetName}}</li>
             <li><i class="fa fa-money" aria-hidden="true"></i> Tarifa: ${{paseador.amount | wdMoney}} por hora</li>
+            <li><i class="fa fa-paw" aria-hidden="true"></i> Llevás hasta {{paseador.maxPetsAtOnce}} {{paseador.maxPetsAtOnce == 1 ? 'perro' : 'perros'}} a la vez</li>
         </ul>
     </div>
 

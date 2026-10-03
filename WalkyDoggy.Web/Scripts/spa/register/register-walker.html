@@ -120,6 +120,12 @@
                     <p class="wd-field-hint">Es el precio de una hora de paseo por mascota. Podés ajustarlo cuando quieras desde "Condiciones laborales".</p>
                 </div>
                 <div class="form-group wd-span-2">
+                    <label for="rwMaxPets">¿Cuántos perros podés pasear a la vez?</label>
+                    <select id="rwMaxPets" name="inputMaxPets" class="form-control wd-rate-input" ng-model="paseador.maxPetsAtOnce"
+                            ng-options="n as (n == 1 ? '1 perro' : n + ' perros') for n in cantidadesDePerros" required></select>
+                    <p class="wd-field-hint">Es el máximo de perros que llevás juntos en un mismo horario, de 1 a 5. Cuando alcanzás ese número, ese horario deja de estar disponible para otros clientes hasta que se libere un lugar.</p>
+                </div>
+                <div class="form-group wd-span-2">
                     <label for="rwPayout">Alias o CBU/CVU (opcional)</label>
                     <input type="text" id="rwPayout" name="inputPayout" class="form-control" ng-model="paseador.payoutAccount"
                            maxlength="22" autocomplete="off" placeholder="Por ejemplo, paseos.rosario.mp o los 22 dígitos de tu CBU/CVU">

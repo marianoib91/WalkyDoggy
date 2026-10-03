@@ -40,6 +40,9 @@ namespace WalkyDoggy.Entities
         //Radio, en kilometros, alrededor de la direccion de referencia en el que el paseador acepta retirar mascotas
         public Double ServiceRadiusKm { get; set; }
 
+        //Cantidad maxima de mascotas que el paseador lleva a la vez en un mismo horario (de 1 a 5)
+        public Int32 MaxPetsAtOnce { get; set; }
+
         //Alias o CBU/CVU donde el paseador recibe transferencias (opcional)
         public String PayoutAccount { get; set; }
 

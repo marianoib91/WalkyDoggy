@@ -120,6 +120,18 @@
                         <span class="wd-distance">· trabaja hasta {{textoRadio(paseador)}} km a la redonda</span>
                     </div>
                     <p class="wd-walker-desc">{{paseador.description}}</p>
+                    <div class="wd-times" ng-if="busqueda.modo == 'horario' && paseador.availableTimes.length > 0">
+                        <div class="wd-times-title">Horarios con lugar el {{textoHorarioBuscado().split(' a las')[0]}} <span class="wd-field-hint">· tocá uno para reservarlo</span></div>
+                        <div class="wd-times-list">
+                            <button type="button" class="wd-time-chip" ng-repeat="cupo in (paseador.verTodos ? paseador.availableTimes : paseador.availableTimes.slice(0, 8))"
+                                    ng-click="solicitar(paseador, cupo.time)" title="{{textoLugares(cupo)}}">
+                                {{cupo.time}} <small>{{textoLugares(cupo)}}</small>
+                            </button>
+                            <button type="button" class="wd-time-more" ng-if="paseador.availableTimes.length > 8" ng-click="paseador.verTodos = !paseador.verTodos">
+                                {{paseador.verTodos ? 'Ver menos' : 'Ver los ' + paseador.availableTimes.length + ' horarios'}}
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="wd-walker-price">
                     <div>

@@ -57,9 +57,9 @@ namespace WalkyDoggy.Web.Controllers
                     respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         new[] { "Debe ingresar una tarifa por hora válida (entre $" + ServicioPaseadores.TarifaMinima + " y $" + ServicioPaseadores.TarifaMaxima.ToString("N0") + ")." });
                 }
-                else if (ServicioPaseadores.ValidarZonaYCobro(paseadorDto, true) != null)
+                else if (ServicioPaseadores.ValidarCondiciones(paseadorDto, true) != null)
                 {
-                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { ServicioPaseadores.ValidarZonaYCobro(paseadorDto, true) });
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { ServicioPaseadores.ValidarCondiciones(paseadorDto, true) });
                 }
                 else
                 {
@@ -109,7 +109,7 @@ namespace WalkyDoggy.Web.Controllers
                     return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { "La tarifa por hora tiene que estar entre $" + ServicioPaseadores.TarifaMinima + " y $" + ServicioPaseadores.TarifaMaxima.ToString("N0") + "." });
                 }
 
-                var errorZona = paseadorDto == null ? null : ServicioPaseadores.ValidarZonaYCobro(paseadorDto, false);
+                var errorZona = paseadorDto == null ? null : ServicioPaseadores.ValidarCondiciones(paseadorDto, false);
                 if (errorZona != null)
                 {
                     return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { errorZona });

@@ -12,8 +12,9 @@
         $scope.paso = 1;
         $scope.guardando = false;
 
-        //El radio arranca en 5 km; la direccion de referencia se completa en el paso 2
-        $scope.paseador = { serviceRadiusKm: 5 };
+        //El radio arranca en 5 km y la cantidad de perros en 3; la direccion de referencia se completa en el paso 2
+        $scope.paseador = { serviceRadiusKm: 5, maxPetsAtOnce: 3 };
+        $scope.cantidadesDePerros = [1, 2, 3, 4, 5];
 
         $scope.siguiente = function () {
             if ($scope.paso === 1 && $scope.paseador.password != $scope.paseador.confirmPassword) {

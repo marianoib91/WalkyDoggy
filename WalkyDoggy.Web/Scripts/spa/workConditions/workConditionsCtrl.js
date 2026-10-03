@@ -20,7 +20,8 @@
         angular.forEach($scope.dias, function (dia) { $scope.semana[dia] = diaVacio(); });
 
         $scope.paseador = null;
-        $scope.form = { amount: null, description: '' };
+        $scope.form = { amount: null, maxPets: 3, description: '' };
+        $scope.cantidadesDePerros = [1, 2, 3, 4, 5];
         $scope.guardando = false;
         $scope.cargado = false;
 
@@ -52,6 +53,7 @@
             servicioApi.get('/api/walkers/getByUserId', { params: { userId: $rootScope.repository.loggedUser.id } }, function (resultado) {
                 $scope.paseador = resultado.data;
                 $scope.form.amount = resultado.data.amount;
+                $scope.form.maxPets = resultado.data.maxPetsAtOnce;
                 $scope.form.description = resultado.data.description;
                 $scope.cargado = true;
             });
@@ -160,6 +162,7 @@
             $scope.guardando = true;
             servicioApi.post('/api/workDays/saveWeek', { walkerId: idPaseador, ranges: franjas }, function () {
                 $scope.paseador.amount = Number($scope.form.amount);
+                $scope.paseador.maxPetsAtOnce = $scope.form.maxPets;
                 $scope.paseador.description = $scope.form.description.trim();
 
                 servicioApi.post('/api/walkers/update', $scope.paseador, function () {

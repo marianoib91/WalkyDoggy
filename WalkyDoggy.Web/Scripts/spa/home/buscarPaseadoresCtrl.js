@@ -187,6 +187,11 @@
             return String(paseador.serviceRadiusKm).replace('.', ',');
         };
 
+        //"quedan 2 lugares", "último lugar"
+        $scope.textoLugares = function (cupo) {
+            return cupo.freeSpots === 1 ? 'último lugar' : 'quedan ' + cupo.freeSpots + ' lugares';
+        };
+
         $scope.textoHorarioBuscado = function () {
             if ($scope.busqueda.modo !== 'horario' || !$scope.busqueda.fecha) {
                 return '';
@@ -197,8 +202,9 @@
 
         /* ---------- Pedir el paseo ---------- */
 
-        //Los datos elegidos (direccion de retiro y, si los puso, dia y horario) viajan al paso 1 de la reserva
-        $scope.solicitar = function (paseador) {
+        //Los datos elegidos (direccion de retiro y, si los puso, dia y horario) viajan al paso 1 de la reserva.
+        //Si se toca un horario de la lista de un paseador, se reserva ese horario.
+        $scope.solicitar = function (paseador, horaElegida) {
             var direccion = direccionElegida();
             if (!direccion) {
                 return;
@@ -208,7 +214,7 @@
             $rootScope.retiroElegido = {
                 pickup: direccion,
                 fecha: porHorario ? moment($scope.busqueda.fecha).format('YYYY-MM-DD') : null,
-                hora: porHorario && $scope.busqueda.hora ? $scope.busqueda.hora : null
+                hora: horaElegida || (porHorario && $scope.busqueda.hora ? $scope.busqueda.hora : null)
             };
 
             $location.path('/walks/step-1').search({ walkerId: paseador.id });

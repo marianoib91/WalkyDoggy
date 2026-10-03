@@ -2026,3 +2026,53 @@ button.wd-pet-add {
     gap: 18px;
     margin-top: 6px;
 }
+
+/* ===== Horarios con lugar en la busqueda por dia ===== */
+.wd-times {
+    margin-top: 12px;
+}
+
+.wd-times-title {
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #3A424E;
+}
+
+.wd-times-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.wd-time-chip {
+    padding: 6px 12px;
+    border: 1px solid #166A4F;
+    border-radius: 999px;
+    background-color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    color: #166A4F;
+    transition: background-color 0.1s;
+}
+
+.wd-time-chip small {
+    margin-left: 4px;
+    font-size: 11px;
+    font-weight: 400;
+    color: #5B6470;
+}
+
+.wd-time-chip:hover,
+.wd-time-chip:focus {
+    background-color: #E7F2EC;
+}
+
+.wd-time-more {
+    padding: 6px 4px;
+    border: 0;
+    background: none;
+    font-size: 13px;
+    color: #166A4F;
+    text-decoration: underline;
+}

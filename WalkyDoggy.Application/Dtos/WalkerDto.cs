@@ -52,6 +52,9 @@ namespace WalkyDoggy.Application.Dtos
         //Radio de trabajo, en km, alrededor de la direccion de referencia (StreetName, StreetNumber, Latitude, Longitude)
         public Double ServiceRadiusKm { get; set; }
 
+        //Cuantas mascotas lleva a la vez en un mismo horario (de 1 a 5)
+        public Int32 MaxPetsAtOnce { get; set; }
+
         //Alias o CBU/CVU para recibir transferencias (opcional)
         public String PayoutAccount { get; set; }
 
@@ -65,5 +68,16 @@ namespace WalkyDoggy.Application.Dtos
         public Double? AverageRating { get; set; }
 
         public Int32 RatingCount { get; set; }
+
+        //Horarios libres del dia buscado, con los lugares que le quedan en cada uno (solo al buscar paseadores por dia)
+        public List<AvailableTimeDto> AvailableTimes { get; set; }
+    }
+
+    //Un horario con lugares libres de un paseador
+    public class AvailableTimeDto
+    {
+        public String Time { get; set; }
+
+        public Int32 FreeSpots { get; set; }
     }
 }

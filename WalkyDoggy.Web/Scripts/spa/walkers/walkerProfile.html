@@ -14,6 +14,10 @@
                     <i class="fa fa-bullseye" aria-hidden="true"></i>
                     Zona de trabajo: hasta {{paseador.serviceRadiusKm | wdKm}} km alrededor de {{paseador.streetName}}
                 </div>
+                <div class="wd-walker-meta" ng-if="paseador.maxPetsAtOnce">
+                    <i class="fa fa-paw" aria-hidden="true"></i>
+                    Pasea hasta {{paseador.maxPetsAtOnce}} {{paseador.maxPetsAtOnce == 1 ? 'perro' : 'perros'}} a la vez
+                </div>
                 <div class="wd-profile-rating" ng-if="paseador.ratingCount > 0">
                     <wd-stars value="paseador.averageRating"></wd-stars>
                     <strong>{{formatearPromedio(paseador.averageRating)}}</strong>

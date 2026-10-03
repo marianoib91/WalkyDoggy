@@ -143,10 +143,11 @@ namespace WalkyDoggy.Services.Services
             }
 
             var mascotasYaReservadas = paseosEnLaMismaHora.Count(x => x.WalkerId == paseador.Id);
-            if (mascotasYaReservadas + mascotas.Count > ServicioPaseadores.MaximoMascotasPorPaseo)
+            var lugaresLibres = Math.Max(0, paseador.MaxPetsAtOnce - mascotasYaReservadas);
+            if (mascotas.Count > lugaresLibres)
             {
-                error = "El paseador solo puede llevar hasta " + ServicioPaseadores.MaximoMascotasPorPaseo +
-                        " mascotas a la vez en ese horario.";
+                error = "El paseador lleva hasta " + paseador.MaxPetsAtOnce + " mascotas a la vez y en ese horario " +
+                        (lugaresLibres == 0 ? "ya no le quedan lugares." : "solo le " + (lugaresLibres == 1 ? "queda 1 lugar." : "quedan " + lugaresLibres + " lugares."));
                 return null;
             }
 
