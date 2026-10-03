@@ -8,6 +8,7 @@
     function servicioMembresia(servicioApi, servicioNotificaciones, $http, $base64, $cookieStore, $rootScope, $location) {
         var loggedUser = {};
         var datosMembresia = null;
+        var destinoPosterior = '/';
 
         var servicio = {
             iniciarSesion: iniciarSesion,
@@ -25,8 +26,10 @@
             servicioApi.post('/api/account/register', usuario, alCompletar, falloRegistro);
         }
 
-        function guardarCredenciales(usuario, email) {
+        //destino: pantalla a la que se va despues de guardar las credenciales (por defecto, el inicio)
+        function guardarCredenciales(usuario, email, destino) {
             loggedUser = usuario;
+            destinoPosterior = destino || '/';
             datosMembresia = $base64.encode(usuario.email + ':' + usuario.password);
             if (usuario.id == 0) {
                 var config = {
@@ -86,7 +89,7 @@
             $http.defaults.headers.common['Authorization'] = 'Basic ' + datosMembresia;
             $cookieStore.put('repository', $rootScope.repository);           
             servicioNotificaciones.mostrarExito('Bienvenido ' + respuesta.data.email);
-            $location.path('/');
+            $location.path(destinoPosterior);
         }
 
         function quitarCredenciales() {

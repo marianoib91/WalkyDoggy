@@ -63,6 +63,11 @@
           controller: "paso2Ctrl",
           resolve: { isAuthenticated: estaAutenticado }
       })
+        .when("/walker-welcome", {
+            templateUrl: "scripts/spa/register/walker-welcome.html",
+            controller: "bienvenidaPaseadorCtrl",
+            resolve: { isAuthenticated: estaAutenticado }
+        })
         .when("/work-conditions", {
             templateUrl: "scripts/spa/workConditions/workConditions.html",
             controller: "condicionesLaboralesCtrl",

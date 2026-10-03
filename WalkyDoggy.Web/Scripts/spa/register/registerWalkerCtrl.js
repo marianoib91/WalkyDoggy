@@ -53,7 +53,8 @@
 
         function alRegistrar(resultado) {
             if (resultado.status == 200) {
-                servicioMembresia.guardarCredenciales(resultado.data, $scope.paseador.firstName);
+                //Al terminar el registro se lo lleva a la pantalla de bienvenida
+                servicioMembresia.guardarCredenciales(resultado.data, $scope.paseador.firstName, '/walker-welcome');
             }
             else {
                 $scope.guardando = false;

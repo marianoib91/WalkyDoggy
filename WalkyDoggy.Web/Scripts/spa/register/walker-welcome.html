@@ -1,0 +1,24 @@
+<div class="wd-welcome">
+    <div class="wd-welcome-hero">
+        <span class="wd-welcome-icon" aria-hidden="true"><i class="fa fa-check"></i></span>
+        <h1 class="wd-page-title">¡Felicitaciones<span ng-if="paseador">, {{paseador.firstName}}</span>!</h1>
+        <p class="wd-lead">Ya sos paseador de Walky Doggy. Tu cuenta quedó creada y tu zona de trabajo ya está definida.</p>
+        <ul class="wd-welcome-summary" ng-if="paseador">
+            <li><i class="fa fa-bullseye" aria-hidden="true"></i> Zona: hasta {{paseador.serviceRadiusKm | wdKm}} km alrededor de {{paseador.streetName}}</li>
+            <li><i class="fa fa-money" aria-hidden="true"></i> Tarifa: ${{paseador.amount | wdMoney}} por hora</li>
+        </ul>
+    </div>
+
+    <section class="wd-form-card wd-welcome-next">
+        <h2 class="wd-form-section-title">Un último paso: definí tus horarios de trabajo</h2>
+        <p class="wd-lead">
+            Todavía nadie puede pedirte un paseo, porque no cargaste en qué días y a qué horas trabajás.
+            Es muy rápido: marcás en una grilla semanal los horarios en los que estás disponible, y listo.
+            Podés cambiarlos cuando quieras.
+        </p>
+        <div class="wd-welcome-actions">
+            <a class="btn btn-primary btn-lg" href="#/work-conditions"><i class="fa fa-calendar" aria-hidden="true"></i> Definir mis horarios</a>
+            <a class="wd-link-plain" href="#/">Lo hago más tarde</a>
+        </div>
+    </section>
+</div>

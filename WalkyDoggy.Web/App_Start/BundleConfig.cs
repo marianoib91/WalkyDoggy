@@ -62,6 +62,7 @@ namespace WalkyDoggy.Web.App_Start
                  "~/Scripts/spa/account/loginModalCtrl.js",
                 "~/Scripts/spa/register/registerModalCtrl.js",
                 "~/Scripts/spa/register/registerWalkerCtrl.js",
+                "~/Scripts/spa/register/walkerWelcomeCtrl.js",
                 "~/Scripts/spa/register/registerCustomerCtrl.js",
                 "~/Scripts/spa/account/forgotPasswordCtrl.js",
                 "~/Scripts/spa/home/rootCtrl.js",

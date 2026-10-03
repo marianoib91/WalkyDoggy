@@ -1977,3 +1977,52 @@ button.wd-pet-add {
 .wd-notice-warn > .fa {
     color: #B42318;
 }
+
+/* ===== Bienvenida del paseador ===== */
+.wd-welcome {
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.wd-welcome-hero {
+    text-align: center;
+    padding: 12px 0 28px;
+}
+
+.wd-welcome-icon {
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 14px;
+    line-height: 64px;
+    font-size: 28px;
+    border-radius: 50%;
+    background-color: #166A4F;
+    color: #ffffff;
+}
+
+.wd-welcome-summary {
+    display: inline-block;
+    margin: 6px 0 0;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+    color: #3A424E;
+}
+
+.wd-welcome-summary li {
+    margin: 4px 0;
+}
+
+.wd-welcome-summary .fa {
+    width: 20px;
+    color: #166A4F;
+}
+
+.wd-welcome-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 18px;
+    margin-top: 6px;
+}

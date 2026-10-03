@@ -199,6 +199,8 @@
     <Content Include="Scripts\spa\register\registerCustomerCtrl.js" />
     <Content Include="Scripts\spa\register\registerWalkerCtrl.js" />
     <Content Include="Scripts\spa\register\register-walker.html" />
+    <Content Include="Scripts\spa\register\walker-welcome.html" />
+    <Content Include="Scripts\spa\register\walkerWelcomeCtrl.js" />
     <Content Include="Scripts\spa\register\registerModalCtrl.js" />
     <Content Include="Scripts\spa\app.js" />
     <Content Include="Scripts\spa\modules\common.ui.js" />
