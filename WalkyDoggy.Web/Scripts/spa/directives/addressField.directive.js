@@ -152,7 +152,7 @@
                         return {
                             place: lugar,
                             title: lugar.street + (lugar.houseNumber ? ' ' + lugar.houseNumber : ''),
-                            subtitle: [lugar.city, lugar.state].filter(Boolean).join(', ')
+                            subtitle: [lugar.barrio, lugar.city, lugar.state].filter(Boolean).join(', ')
                         };
                     });
                     scope.state.activeIndex = scope.suggestions.length ? 0 : -1;
@@ -345,7 +345,7 @@
 
             //Al mover el pin se busca la calle de ese punto; si no hay numero se conserva el que ya estaba cargado
             function invertirYAplicar(punto, mensajeDeExito) {
-                servicioGeocodificacion.reverse(punto.lat, punto.lng).then(function (lugar) {
+                servicioGeocodificacion.reverse(punto.lat, punto.lng, scope.allowNoNumber == 'true').then(function (lugar) {
                     if (!lugar || !lugar.street) {
                         scope.state.message = 'No pudimos identificar la calle en ese punto. Corregí la dirección a mano si hace falta.';
                         return;
@@ -356,6 +356,8 @@
                     direccion.streetName = truncar(lugar.street, 50);
                     if (number !== null) {
                         direccion.streetNumber = number;
+                    } else if (scope.allowNoNumber == 'true' && !direccion.streetNumber) {
+                        direccion.streetNumber = 0;
                     }
                     scope.state.query = formatearEtiqueta(direccion.streetName, direccion.streetNumber, lugar.city, lugar.state);
                     scope.state.message = mensajeDeExito || 'Ajustaste el pin: revisá que la calle y el número sean los correctos.';

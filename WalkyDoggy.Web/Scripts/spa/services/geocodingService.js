@@ -11,6 +11,7 @@
     function servicioGeocodificacion($q) {
         var urlBase = 'https://photon.komoot.io';
         var limitesArgentina = '-73.6,-55.2,-53.5,-21.7';
+        var nombreCaba = 'Ciudad Autónoma de Buenos Aires';
 
         var servicio = {
             search: search,
@@ -35,21 +36,48 @@
         function aLugar(resultado) {
             var propiedades = resultado.properties || {};
             var coordinates = resultado.geometry.coordinates;
+            var esCaba = propiedades.state === nombreCaba;
 
             return {
                 street: propiedades.street || (propiedades.osm_key === 'highway' ? propiedades.name : null),
                 houseNumber: propiedades.housenumber || null,
-                city: propiedades.city || propiedades.locality || propiedades.town || propiedades.village || propiedades.district || propiedades.county || null,
+                //En la Ciudad de Buenos Aires Photon informa el barrio (Coghlan, Palermo...) y no la ciudad: la ciudad es la misma para todos
+                city: esCaba ? nombreCaba : (propiedades.city || propiedades.locality || propiedades.town || propiedades.village || propiedades.district || propiedades.county || null),
+                barrio: esCaba ? (propiedades.district || null) : null,
                 state: propiedades.state || null,
                 postcode: propiedades.postcode || null,
                 countryCode: propiedades.countrycode,
+                nombre: propiedades.name || null,
                 latitude: coordinates[1],
                 longitude: coordinates[0]
             };
         }
 
-        //Devuelve hasta 6 direcciones de Argentina que coincidan con el texto. "bias" es un punto {lat, lng} para priorizar lo cercano.
-        function search(texto, sesgo) {
+        //Photon es estricto con el texto: "Capital Federal" no devuelve nada y "CABA" si. Se unifican los nombres mas usados de la Ciudad de Buenos Aires.
+        function normalizarTexto(texto) {
+            return texto.replace(/\bcapital\s+federal\b|\bc\.\s?a\.\s?b\.\s?a\.?/gi, 'CABA').replace(/\s+/g, ' ').trim();
+        }
+
+        //Si el texto completo no encuentra nada se prueba con menos datos: sin la ultima parte (provincia, pais...) y, al final, solo calle y numero
+        function variantesDeBusqueda(texto) {
+            var variantes = [normalizarTexto(texto)];
+            var partes = variantes[0].split(',').map(function (parte) { return parte.trim(); }).filter(Boolean);
+
+            for (var cantidad = partes.length - 1; cantidad >= 1; cantidad--) {
+                variantes.push(partes.slice(0, cantidad).join(', '));
+            }
+
+            var calleYNumero = /^[^,\d]*\d+/.exec(variantes[0]);
+            if (calleYNumero) {
+                variantes.push(calleYNumero[0].trim());
+            }
+
+            return variantes.filter(function (variante, indice) {
+                return variante && variantes.indexOf(variante) === indice;
+            });
+        }
+
+        function buscarVariante(texto, sesgo) {
             var parametros = {
                 q: texto,
                 limit: 10,
@@ -74,15 +102,40 @@
             });
         }
 
-        //Direccion que corresponde a un punto del mapa (o null si no se reconoce)
-        function reverse(latitude, longitude) {
-            return get('/reverse', { lat: latitude, lon: longitude, limit: 1 }).then(function (data) {
-                var resultado = data.features && data.features[0];
-                if (!resultado) {
+        //Devuelve hasta 6 direcciones de Argentina que coincidan con el texto. "sesgo" es un punto {lat, lng} para priorizar lo cercano.
+        function search(texto, sesgo) {
+            var variantes = variantesDeBusqueda(texto);
+
+            function probar(indice) {
+                return buscarVariante(variantes[indice], sesgo).then(function (lugares) {
+                    if (lugares.length > 0 || indice === variantes.length - 1) {
+                        return lugares;
+                    }
+                    return probar(indice + 1);
+                });
+            }
+
+            return probar(0);
+        }
+
+        //Direccion que corresponde a un punto del mapa (o null si no se reconoce).
+        //Si el punto cae sobre una plaza, un parque o un edificio sin calle, se usa la calle mas cercana; con aceptarLugar
+        //(direcciones de referencia) se conserva el nombre del lugar, por ejemplo "Parque de la Independencia".
+        function reverse(latitude, longitude, aceptarLugar) {
+            return get('/reverse', { lat: latitude, lon: longitude, limit: 5 }).then(function (data) {
+                var lugares = (data.features || []).map(aLugar).filter(function (lugar) {
+                    return lugar.countryCode === 'AR';
+                });
+                if (lugares.length === 0) {
                     return null;
                 }
-                var lugar = aLugar(resultado);
-                return lugar.countryCode === 'AR' ? lugar : null;
+
+                var masCercano = lugares[0];
+                if (aceptarLugar && !masCercano.street && masCercano.nombre) {
+                    return angular.extend({}, masCercano, { street: masCercano.nombre });
+                }
+
+                return lugares.filter(function (lugar) { return !!lugar.street; })[0] || null;
             });
         }
 

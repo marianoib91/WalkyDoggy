@@ -31,6 +31,16 @@
         $scope.paseadores = [];
         $scope.paseadoresOrdenados = [];
         $scope.ordenarPor = 'distance';
+
+        //Filtro: cuantos perros a la vez lleva como maximo el paseador (1 = paseo individual)
+        $scope.filtros = { perros: '' };
+        $scope.opcionesPerros = [
+            { valor: '', texto: 'Cualquiera' },
+            { valor: 1, texto: 'Solo 1 perro (paseo individual)' },
+            { valor: 2, texto: 'Hasta 2 perros' },
+            { valor: 3, texto: 'Hasta 3 perros' },
+            { valor: 4, texto: 'Hasta 4 perros' }
+        ];
         $scope.buscando = false;
         $scope.buscado = false;
         $scope.pagosPendientes = 0;
@@ -154,15 +164,23 @@
             });
         }
 
+        //Se aplica el filtro de perros a la vez y despues el orden:
         //distance: de menor a mayor distancia a la direccion de retiro.
+        //amount: de menor a mayor tarifa por hora; a igual tarifa, el mas cercano.
         //rating: de mayor a menor promedio; a igual promedio, el que tiene mas valoraciones; los que no tienen, al final.
         $scope.establecerOrden = function (ordenarPor) {
             $scope.ordenarPor = ordenarPor;
 
-            var lista = $scope.paseadores.slice();
+            var maximoPerros = Number($scope.filtros.perros);
+            var lista = $scope.paseadores.filter(function (paseador) {
+                return !maximoPerros || paseador.maxPetsAtOnce <= maximoPerros;
+            });
             lista.sort(function (a, b) {
                 if (ordenarPor === 'distance') {
                     return (a.distanceKm || 0) - (b.distanceKm || 0);
+                }
+                if (ordenarPor === 'amount') {
+                    return (a.amount - b.amount) || ((a.distanceKm || 0) - (b.distanceKm || 0));
                 }
 
                 var valoradoA = a.averageRating !== null && a.averageRating !== undefined;
@@ -181,6 +199,10 @@
                 return '';
             }
             return paseador.distanceKm < 0.1 ? 'a menos de 100 m' : 'a ' + String(paseador.distanceKm).replace('.', ',') + ' km';
+        };
+
+        $scope.textoPerros = function (paseador) {
+            return paseador.maxPetsAtOnce === 1 ? 'pasea de a un perro (paseo individual)' : 'pasea hasta ' + paseador.maxPetsAtOnce + ' perros a la vez';
         };
 
         $scope.textoRadio = function (paseador) {

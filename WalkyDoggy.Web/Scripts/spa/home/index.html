@@ -69,9 +69,10 @@
     <section class="wd-search-results" aria-live="polite">
         <div class="wd-page-header wd-results-header">
             <div>
-                <h2 class="wd-results-title" ng-if="buscado && paseadores.length > 0">
-                    {{paseadores.length}} {{paseadores.length == 1 ? 'paseador trabaja' : 'paseadores trabajan'}} en esa zona<span ng-if="textoHorarioBuscado()">, con lugar el {{textoHorarioBuscado()}}</span>
+                <h2 class="wd-results-title" ng-if="buscado && paseadoresOrdenados.length > 0">
+                    {{paseadoresOrdenados.length}} {{paseadoresOrdenados.length == 1 ? 'paseador trabaja' : 'paseadores trabajan'}} en esa zona<span ng-if="textoHorarioBuscado()">, con lugar el {{textoHorarioBuscado()}}</span>
                 </h2>
+                <h2 class="wd-results-title" ng-if="buscado && paseadores.length > 0 && paseadoresOrdenados.length == 0">Ningún paseador cumple ese filtro</h2>
                 <h2 class="wd-results-title" ng-if="buscado && paseadores.length == 0">No encontramos paseadores</h2>
                 <h2 class="wd-results-title" ng-if="!buscado && !buscando">Elegí una dirección de retiro</h2>
                 <h2 class="wd-results-title" ng-if="buscando && !buscado">Buscando paseadores...</h2>
@@ -79,19 +80,34 @@
             </div>
         </div>
 
-        <div class="wd-sort" ng-if="paseadores.length > 1">
-            <span class="wd-sort-label">Ordenar por</span>
-            <div class="wd-segmented" role="group" aria-label="Ordenar paseadores">
-                <button type="button" ng-class="{'is-active': ordenarPor == 'distance'}"
-                        ng-click="establecerOrden('distance')" aria-pressed="{{ordenarPor == 'distance'}}">
-                    <i class="fa fa-map-marker" aria-hidden="true"></i> Más cercanos
-                </button>
-                <button type="button" ng-class="{'is-active': ordenarPor == 'rating'}"
-                        ng-click="establecerOrden('rating')" aria-pressed="{{ordenarPor == 'rating'}}">
-                    <i class="fa fa-star" aria-hidden="true"></i> Mejor valorados
-                </button>
+        <div class="wd-sort" ng-if="paseadores.length > 0">
+            <div class="wd-sort-group" ng-if="paseadores.length > 1">
+                <span class="wd-sort-label">Ordenar por</span>
+                <div class="wd-segmented" role="group" aria-label="Ordenar paseadores">
+                    <button type="button" ng-class="{'is-active': ordenarPor == 'distance'}"
+                            ng-click="establecerOrden('distance')" aria-pressed="{{ordenarPor == 'distance'}}">
+                        <i class="fa fa-map-marker" aria-hidden="true"></i> Más cercanos
+                    </button>
+                    <button type="button" ng-class="{'is-active': ordenarPor == 'rating'}"
+                            ng-click="establecerOrden('rating')" aria-pressed="{{ordenarPor == 'rating'}}">
+                        <i class="fa fa-star" aria-hidden="true"></i> Mejor valorados
+                    </button>
+                    <button type="button" ng-class="{'is-active': ordenarPor == 'amount'}"
+                            ng-click="establecerOrden('amount')" aria-pressed="{{ordenarPor == 'amount'}}">
+                        <i class="fa fa-money" aria-hidden="true"></i> Menor tarifa
+                    </button>
+                </div>
+            </div>
+            <div class="wd-sort-group">
+                <label class="wd-sort-label" for="filtroPerros">Perros a la vez</label>
+                <select id="filtroPerros" class="form-control wd-sort-select" ng-model="filtros.perros"
+                        ng-options="opcion.valor as opcion.texto for opcion in opcionesPerros" ng-change="establecerOrden(ordenarPor)"></select>
             </div>
         </div>
+
+        <p class="wd-field-hint" ng-if="buscado && paseadores.length > 0 && paseadoresOrdenados.length == 0">
+            Ningún paseador de esa zona lleva tan pocos perros a la vez. Probá con otra opción del filtro "Perros a la vez".
+        </p>
 
         <p class="wd-field-hint" ng-if="buscado && paseadores.length == 0">
             Ningún paseador atiende esa dirección<span ng-if="busqueda.modo == 'horario'"> en ese día y horario</span>.
@@ -118,6 +134,7 @@
                         <i class="fa fa-map-marker" aria-hidden="true"></i>
                         {{textoDistancia(paseador)}} de tu dirección de retiro
                         <span class="wd-distance">· trabaja hasta {{textoRadio(paseador)}} km a la redonda</span>
+                        <span class="wd-distance">· {{textoPerros(paseador)}}</span>
                     </div>
                     <p class="wd-walker-desc">{{paseador.description}}</p>
                     <div class="wd-times" ng-if="busqueda.modo == 'horario' && paseador.availableTimes.length > 0">

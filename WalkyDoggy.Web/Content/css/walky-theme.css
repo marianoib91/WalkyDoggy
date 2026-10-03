@@ -2076,3 +2076,20 @@ button.wd-pet-add {
     color: #166A4F;
     text-decoration: underline;
 }
+
+.wd-sort {
+    column-gap: 28px;
+    row-gap: 12px;
+}
+
+.wd-sort-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.wd-sort-select {
+    width: auto;
+    min-width: 230px;
+}
