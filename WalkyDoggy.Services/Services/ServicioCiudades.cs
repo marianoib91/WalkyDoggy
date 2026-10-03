@@ -93,9 +93,21 @@ namespace WalkyDoggy.Services.Services
             return Mapper.Map<City, CityDto>(ciudad);
         }
 
+        private static readonly String[] NombresDeLaCiudadDeBuenosAires = { "autonomous city of buenos aires", "buenos aires city", "city of buenos aires", "capital federal", "ciudad de buenos aires", "caba", "c.a.b.a." };
+
         private Province BuscarProvincia(String provinceName)
         {
             var normalizado = Normalizar(provinceName).Replace("provincia de ", "");
+            if (normalizado.EndsWith(" province"))
+            {
+                normalizado = normalizado.Substring(0, normalizado.Length - " province".Length);
+            }
+
+            //Nombres de la Ciudad de Buenos Aires que llegan en ingles o abreviados
+            if (NombresDeLaCiudadDeBuenosAires.Contains(normalizado))
+            {
+                normalizado = "ciudad autonoma de buenos aires";
+            }
             var provincias = this.repositorioProvincias.ObtenerTodos().ToList();
 
             //Coincidencia exacta y, si no, por prefijo (ej: "Tierra del Fuego" dentro del nombre completo de la provincia)

@@ -18,7 +18,11 @@
             reverse: reverse
         };
 
+        //lang=default pide los nombres locales (en español): sin eso Photon usa el idioma del navegador y, por ejemplo,
+        //devuelve "Autonomous City of Buenos Aires" cuando el navegador esta en ingles.
         function get(path, parametros) {
+            parametros.lang = 'default';
+
             var query = Object.keys(parametros).filter(function (key) {
                 return parametros[key] !== null && parametros[key] !== undefined;
             }).map(function (key) {
@@ -36,7 +40,7 @@
         function aLugar(resultado) {
             var propiedades = resultado.properties || {};
             var coordinates = resultado.geometry.coordinates;
-            var esCaba = propiedades.state === nombreCaba;
+            var esCaba = propiedades.state === nombreCaba || propiedades.state === 'Autonomous City of Buenos Aires';
 
             return {
                 street: propiedades.street || (propiedades.osm_key === 'highway' ? propiedades.name : null),
@@ -44,7 +48,7 @@
                 //En la Ciudad de Buenos Aires Photon informa el barrio (Coghlan, Palermo...) y no la ciudad: la ciudad es la misma para todos
                 city: esCaba ? nombreCaba : (propiedades.city || propiedades.locality || propiedades.town || propiedades.village || propiedades.district || propiedades.county || null),
                 barrio: esCaba ? (propiedades.district || null) : null,
-                state: propiedades.state || null,
+                state: esCaba ? nombreCaba : (propiedades.state || null),
                 postcode: propiedades.postcode || null,
                 countryCode: propiedades.countrycode,
                 nombre: propiedades.name || null,
