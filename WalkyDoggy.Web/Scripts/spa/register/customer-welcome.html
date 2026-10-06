@@ -1,0 +1,23 @@
+<div class="wd-welcome">
+    <div class="wd-welcome-hero">
+        <span class="wd-welcome-icon" aria-hidden="true"><i class="fa fa-check"></i></span>
+        <h1 class="wd-page-title">¡Bienvenido<span ng-if="cliente">, {{cliente.firstName}}</span>!</h1>
+        <p class="wd-lead">Tu cuenta quedó creada. Ya podés pedir paseos y hospedaje para tus perros.</p>
+        <ul class="wd-welcome-summary" ng-if="cliente">
+            <li><i class="fa fa-home" aria-hidden="true"></i> Domicilio: {{cliente.streetName}} {{cliente.streetNumber}}<span ng-if="cliente.cityName">, {{cliente.cityName}}</span></li>
+        </ul>
+    </div>
+
+    <section class="wd-form-card wd-welcome-next">
+        <h2 class="wd-form-section-title">Un último paso: cargá a tus mascotas</h2>
+        <p class="wd-lead">
+            Todavía no podés pedir un paseo, porque no cargaste a tus perros.
+            Es muy rápido: les ponés el nombre y una foto, y contás cómo son (si son juguetones, tranquilos, si se llevan bien con otros perros...).
+            Con eso te sugerimos paseadores que ya llevan perros parecidos. Podés cambiar todo cuando quieras.
+        </p>
+        <div class="wd-welcome-actions">
+            <a class="btn btn-primary btn-lg" href="#/pets/edit/0"><i class="fa fa-paw" aria-hidden="true"></i> Cargar mi primera mascota</a>
+            <a class="wd-link-plain" href="#/pets/list">Lo hago más tarde</a>
+        </div>
+    </section>
+</div>

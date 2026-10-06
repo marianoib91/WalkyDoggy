@@ -188,6 +188,7 @@
     <Content Include="Scripts\spa\services\confirmService.js" />
     <Content Include="Scripts\spa\services\chatService.js" />
     <Content Include="Scripts\spa\services\favoritesService.js" />
+    <Content Include="Scripts\spa\services\suggestionService.js" />
     <Content Include="Scripts\spa\services\traitsService.js" />
     <Content Include="Scripts\spa\admin\admin.html" />
     <Content Include="Scripts\spa\admin\adminCtrl.js" />
@@ -227,6 +228,7 @@
     <Content Include="Scripts\spa\pets\petsEditCtrl.js" />
     <Content Include="Scripts\spa\pets\petsList.html" />
     <Content Include="Scripts\spa\pets\petsListCtrl.js" />
+    <Content Include="Scripts\spa\pets\sugerenciaReserva.html" />
     <Content Include="Scripts\spa\register\register-customer.html" />
     <Content Include="Scripts\spa\register\register-modal.html" />
     <Content Include="Scripts\spa\register\registerCustomerCtrl.js" />
@@ -234,6 +236,8 @@
     <Content Include="Scripts\spa\register\register-walker.html" />
     <Content Include="Scripts\spa\register\walker-welcome.html" />
     <Content Include="Scripts\spa\register\walkerWelcomeCtrl.js" />
+    <Content Include="Scripts\spa\register\customerWelcomeCtrl.js" />
+    <Content Include="Scripts\spa\register\customer-welcome.html" />
     <Content Include="Scripts\spa\register\registerModalCtrl.js" />
     <Content Include="Scripts\spa\app.js" />
     <Content Include="Scripts\spa\modules\common.ui.js" />

@@ -112,6 +112,10 @@
             <span class="wd-badge" ng-if="hospedaje.chatUnread > 0">{{hospedaje.chatUnread}}</span>
         </button>
 
+        <button type="button" class="btn btn-default" ng-if="puedeDenunciar(hospedaje)" ng-click="denunciar(hospedaje)">
+            <i class="fa fa-flag-o" aria-hidden="true"></i> Denunciar
+        </button>
+
         <!-- Cuidador -->
         <button type="button" class="btn btn-primary" ng-if="esPaseador && hospedaje.status == 'Pending'" ng-disabled="trabajando" ng-click="confirmar(hospedaje)">Confirmar</button>
         <button type="button" class="btn btn-danger" ng-if="esPaseador && hospedaje.status == 'Pending'" ng-disabled="trabajando" ng-click="rechazar(hospedaje)">Rechazar</button>

@@ -1,77 +1,86 @@
-﻿<div class="row">
-    <form class="form-signin" role="form" novalidate angular-validator name="userRegistrationForm" angular-validator-submit="registrar()">
-        <h3 class="form-signin-heading">Cliente - Registrar nueva cuenta</h3>
-        <div class="form-group">
-            <input type="text"
-                   name="inputFirstName"
-                   class="form-control"
-                   ng-model="cliente.firstName"
-                   placeholder="Nombre"
-                   validate-on="blur"
-                   required
-                   required-message="'Nombre es requerido.'">
+<div class="wd-wizard">
+    <div class="wd-page-header">
+        <div>
+            <h1 class="wd-page-title">Registrate como cliente</h1>
+            <p class="wd-page-subtitle">Son dos pasos y lleva un minuto. Después vas a poder cambiar todo desde tu perfil.</p>
         </div>
-        <div class="form-group">
-            <input type="text"
-                   name="inputLastName"
-                   class="form-control"
-                   ng-model="cliente.lastName"
-                   placeholder="Apellido"
-                   validate-on="blur"
-                   required
-                   required-message="'Apellido es requerido.'">
+    </div>
+
+    <ol class="wd-steps" aria-label="Pasos del registro">
+        <li ng-repeat="nombre in nombresPasos" ng-class="{'is-current': paso == $index + 1, 'is-done': paso > $index + 1}" aria-current="{{paso == $index + 1 ? 'step' : undefined}}">
+            <span class="wd-step-number">{{paso > $index + 1 ? '✓' : $index + 1}}</span>
+            <span class="wd-step-name">{{nombre}}</span>
+        </li>
+    </ol>
+
+    <!-- Paso 1: datos personales -->
+    <form class="wd-form-card" role="form" novalidate angular-validator name="paso1Form" ng-if="paso == 1" angular-validator-submit="siguiente()">
+        <section class="wd-form-section">
+            <h2 class="wd-form-section-title">Tus datos</h2>
+            <div class="wd-form-grid">
+                <div class="form-group">
+                    <label for="rcFirstName">Nombre</label>
+                    <input type="text" id="rcFirstName" name="inputFirstName" class="form-control" ng-model="cliente.firstName"
+                           validate-on="blur" required required-message="'Nombre es requerido.'">
+                </div>
+                <div class="form-group">
+                    <label for="rcLastName">Apellido</label>
+                    <input type="text" id="rcLastName" name="inputLastName" class="form-control" ng-model="cliente.lastName"
+                           validate-on="blur" required required-message="'Apellido es requerido.'">
+                </div>
+                <div class="form-group">
+                    <label for="rcEmail">Email</label>
+                    <input type="text" id="rcEmail" name="inputEmail" class="form-control" ng-model="cliente.email"
+                           pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"
+                           invalid-message="'El email ingresado no es válido'"
+                           validate-on="blur" required required-message="'Email es requerido.'">
+                </div>
+                <div class="form-group">
+                    <label for="rcPhone">Teléfono celular</label>
+                    <input type="number" id="rcPhone" name="inputPhoneNumber" class="form-control" ng-model="cliente.phone"
+                           pattern=".{10,}"
+                           invalid-message="'El teléfono ingresado no es válido'"
+                           validate-on="blur" required required-message="'Teléfono Celular es requerido.'">
+                </div>
+                <div class="form-group">
+                    <label for="rcPassword">Contraseña</label>
+                    <input type="password" id="rcPassword" name="inputPassword" class="form-control" ng-model="cliente.password"
+                           pattern=".{6,}"
+                           invalid-message="'Debe contener al menos 6 caracteres'"
+                           validate-on="blur" required required-message="'Contraseña es requerida.'">
+                </div>
+                <div class="form-group">
+                    <label for="rcConfirmPassword">Confirmar contraseña</label>
+                    <input type="password" id="rcConfirmPassword" name="inputConfirmPassword" class="form-control" ng-model="cliente.confirmPassword"
+                           pattern=".{6,}"
+                           invalid-message="'Debe contener al menos 6 caracteres'"
+                           validate-on="blur" required required-message="'Confirmá la contraseña.'">
+                </div>
+            </div>
+        </section>
+        <div class="wd-form-footer">
+            <button type="submit" class="btn btn-primary btn-lg">Siguiente</button>
         </div>
-        <div class="form-group">
-            <input type="email"
-                   name="inputEmail"
-                   class="form-control"
-                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"
-                   invalid-message="'El email ingresado no es válido'"
-                   ng-model="cliente.email"
-                   placeholder="Email"
-                   validate-on="blur"
-                   required
-                   required-message="'Email es requerido.'">
+    </form>
+
+    <!-- Paso 2: domicilio -->
+    <form class="wd-form-card" role="form" novalidate angular-validator name="paso2Form" ng-if="paso == 2" angular-validator-submit="registrar()">
+        <section class="wd-form-section">
+            <h2 class="wd-form-section-title">¿Dónde vivís con tus perros?</h2>
+            <p class="wd-field-hint wd-lead">
+                Ingresá el <strong>domicilio en el que vivís con tus perros</strong>. Es la dirección a la que, por defecto, va a ir el paseador a buscarlos.
+            </p>
+            <p class="wd-field-hint wd-lead">
+                Si algún día necesitás que los busquen en otro lugar, <strong>no hace falta que cambies tu domicilio</strong>:
+                cuando reserves un paseo vas a poder elegir otra dirección de retiro para ese turno.
+            </p>
+
+            <wd-address-field address="cliente" label="Domicilio"
+                              hint="Escribí la calle y el número y elegí tu dirección de la lista, o marcala en el mapa."></wd-address-field>
+        </section>
+        <div class="wd-form-footer">
+            <button type="button" class="btn btn-default btn-lg" ng-click="volver()" style="margin-right:12px">Atrás</button>
+            <button type="submit" class="btn btn-primary btn-lg" ng-disabled="guardando">{{guardando ? 'Registrando...' : 'Registrarme'}}</button>
         </div>
-        <div class="form-group">
-            <input type="number"
-                   name="inputPhoneNumber"
-                   class="form-control"
-                   ng-model="cliente.phone"
-                   pattern=".{10,}"
-                   invalid-message="'El teléfono ingresado no es válido'"
-                   placeholder="Teléfono Celular"
-                   validate-on="blur"
-                   required
-                   required-message="'Teléfono Celular es requerido.'">
-        </div>
-        <div class="form-group">
-            <wd-address-field address="cliente"></wd-address-field>
-        </div>
-        <div class="form-group">
-            <input type="password"
-                   name="inputPassword"
-                   class="form-control"
-                   ng-model="cliente.password"
-                   placeholder="Contraseña"
-                   validate-on="blur"
-                   pattern=".{6,}"
-                   invalid-message="'Debe contener al menos 6 caracteres'"
-                   required
-                   required-message="'Contraseña es requerido.'">
-        </div>
-        <div class="form-group">
-            <input type="password"
-                   name="inputConfirmPassword"
-                   class="form-control"
-                   placeholder="Confirmar contraseña"
-                   ng-model="cliente.confirmPassword"
-                   validate-on="blur"
-                   pattern=".{6,}"
-                   invalid-message="'Debe contener al menos 6 caracteres'"
-                   required
-                   required-message="'Confirma contraseña es requerido.'">
-        </div>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Registrarme</button>
     </form>
 </div>

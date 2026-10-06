@@ -19,7 +19,7 @@
         var textosCancelo = { Customer: 'por el cliente', Walker: 'por el paseador', System: 'sin respuesta del paseador', Admin: 'por un administrador' };
         var nombresDias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
-        $scope.filtros = { estado: '', texto: '', desde: '', hasta: '' };
+        $scope.filtros = { estado: '', tipo: '', texto: '', desde: '', hasta: '' };
         $scope.paseos = [];
         $scope.total = 0;
         $scope.pagina = 1;
@@ -33,6 +33,7 @@
             $scope.cargando = true;
             var parametros = { page: pagina, pageSize: tamanoPagina };
             if ($scope.filtros.estado) { parametros.status = $scope.filtros.estado; }
+            if ($scope.filtros.tipo) { parametros.kind = $scope.filtros.tipo; }
             if ($scope.filtros.texto) { parametros.search = $scope.filtros.texto; }
             if ($scope.filtros.desde) { parametros.from = moment($scope.filtros.desde).format('YYYY-MM-DD'); }
             if ($scope.filtros.hasta) { parametros.to = moment($scope.filtros.hasta).format('YYYY-MM-DD'); }
@@ -69,6 +70,9 @@
 
         $scope.textoFecha = function (paseo) {
             var fecha = moment(paseo.date);
+            if (paseo.kind === 'Stay') {
+                return fecha.format('DD/MM/YYYY') + ' al ' + moment(paseo.checkOut).format('DD/MM/YYYY') + ' (' + paseo.nights + (paseo.nights === 1 ? ' noche' : ' noches') + ')';
+            }
             return nombresDias[fecha.day()] + ' ' + fecha.format('DD/MM/YYYY') + ', ' + paseo.timeFrom;
         };
 
@@ -86,15 +90,15 @@
                     : '';
 
             servicioConfirmacion.preguntar({
-                title: '¿Cancelar la reserva de ' + paseo.customerName + ' con ' + paseo.walkerName + '?',
-                text: aviso + 'Es una medida excepcional: se avisa por mail al cliente y al paseador, con tu motivo, y el horario queda libre. No se puede deshacer.',
+                title: '¿Cancelar ' + (paseo.kind === 'Stay' ? 'el hospedaje' : 'la reserva') + ' de ' + paseo.customerName + ' con ' + paseo.walkerName + '?',
+                text: aviso + (paseo.kind === 'Stay' ? 'Es una medida excepcional: se avisa a las dos partes en el chat del hospedaje, queda en la bitácora y el lugar queda libre. No se puede deshacer.' : 'Es una medida excepcional: se avisa por mail al cliente y al paseador, con tu motivo, y el horario queda libre. No se puede deshacer.'),
                 input: { label: 'Motivo de la cancelación', placeholder: 'Por ejemplo: pedido de ambas partes por un error de carga' },
                 confirmLabel: 'Cancelar reserva',
                 cancelLabel: 'Volver',
                 danger: true
             }).then(function (motivo) {
                 servicioApi.post('/api/admin/walks/cancel', { bookingKey: paseo.bookingKey, reason: motivo }, function () {
-                    servicioNotificaciones.mostrarExito('Cancelaste la reserva.');
+                    servicioNotificaciones.mostrarExito(paseo.kind === 'Stay' ? 'Cancelaste el hospedaje.' : 'Cancelaste la reserva.');
                     cargar($scope.pagina);
                 }, function (error) { mostrarError(error, 'No se pudo cancelar la reserva.'); });
             });

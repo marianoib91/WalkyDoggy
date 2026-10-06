@@ -17,7 +17,7 @@
     <p class="wd-field-hint" ng-if="cargando && !tablero">Cargando...</p>
 
     <div ng-if="tablero">
-        <p class="wd-field-hint">Reservas del {{textoPeriodo()}} (por día del paseo).</p>
+        <p class="wd-field-hint">Reservas del {{textoPeriodo()}} (por día del paseo o ingreso del hospedaje). Los hospedajes cuentan como reservas.</p>
 
         <div class="wd-kpis">
             <div class="wd-kpi">
@@ -31,6 +31,14 @@
             <div class="wd-kpi">
                 <span class="wd-kpi-value">{{tablero.petsWalked}}</span>
                 <span class="wd-kpi-label">Perros paseados</span>
+            </div>
+            <div class="wd-kpi">
+                <span class="wd-kpi-value">{{tablero.stayBookings}}</span>
+                <span class="wd-kpi-label">Hospedajes ({{tablero.stayNights}} {{tablero.stayNights == 1 ? 'noche' : 'noches'}})</span>
+            </div>
+            <div class="wd-kpi">
+                <span class="wd-kpi-value">{{tablero.petsBoarded}}</span>
+                <span class="wd-kpi-label">Perros hospedados</span>
             </div>
             <div class="wd-kpi">
                 <span class="wd-kpi-value">{{tablero.activeWalkers}}</span>

@@ -1,12 +1,20 @@
 <div ng-controller="adminPaseosCtrl">
     <p class="wd-field-hint">
-        Todas las reservas del sistema. Cancelar una es una medida excepcional (por ejemplo, un error de carga): se avisa a las dos partes y queda en la bitácora.
+        Todos los paseos y hospedajes del sistema. Cancelar uno es una medida excepcional (por ejemplo, un error de carga): se avisa a las dos partes y queda en la bitácora.
     </p>
 
     <div class="wd-admin-filters">
         <div class="form-group">
             <label for="paseos-texto">Buscar</label>
             <input id="paseos-texto" type="search" class="form-control" placeholder="Cliente, paseador o mascota" ng-model="filtros.texto" ng-change="alEscribir()" />
+        </div>
+        <div class="form-group">
+            <label for="paseos-tipo">Tipo</label>
+            <select id="paseos-tipo" class="form-control" ng-model="filtros.tipo" ng-change="buscar()">
+                <option value="">Paseos y hospedajes</option>
+                <option value="Walk">Solo paseos</option>
+                <option value="Stay">Solo hospedajes</option>
+            </select>
         </div>
         <div class="form-group">
             <label for="paseos-estado">Estado</label>
@@ -30,15 +38,16 @@
         </div>
     </div>
 
-    <p class="wd-field-hint" ng-if="!cargando && paseos.length == 0">No hay reservas que coincidan.</p>
+    <p class="wd-field-hint" ng-if="!cargando && paseos.length == 0">No hay paseos ni hospedajes que coincidan.</p>
 
     <div class="wd-admin-table-wrap" ng-if="paseos.length > 0">
         <table class="wd-admin-table">
             <thead>
-                <tr><th>Día y horario</th><th>Paseador</th><th>Cliente</th><th>Mascotas</th><th>Estado</th><th>Pago</th><th class="wd-admin-actions-col"><span class="sr-only">Acciones</span></th></tr>
+                <tr><th>Tipo</th><th>Día y horario</th><th>Paseador</th><th>Cliente</th><th>Mascotas</th><th>Estado</th><th>Pago</th><th class="wd-admin-actions-col"><span class="sr-only">Acciones</span></th></tr>
             </thead>
             <tbody>
                 <tr ng-repeat="paseo in paseos track by paseo.bookingKey" ng-class="{'is-blocked': paseo.status == 'Cancelled'}">
+                    <td><span class="wd-chip">{{paseo.kind == 'Stay' ? 'Hospedaje' : 'Paseo'}}</span></td>
                     <td>{{textoFecha(paseo)}}</td>
                     <td>{{paseo.walkerName}}</td>
                     <td>{{paseo.customerName}}</td>

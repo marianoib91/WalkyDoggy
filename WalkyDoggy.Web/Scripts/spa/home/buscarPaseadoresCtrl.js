@@ -3,13 +3,13 @@
 
     app.controller('buscarPaseadoresCtrl', buscarPaseadoresCtrl);
 
-    buscarPaseadoresCtrl.$inject = ['$scope', '$rootScope', '$location', '$window', 'servicioApi', 'servicioNotificaciones', 'servicioFavoritos', 'servicioCaracteristicas'];
+    buscarPaseadoresCtrl.$inject = ['$scope', '$rootScope', '$location', '$window', 'servicioApi', 'servicioNotificaciones', 'servicioFavoritos', 'servicioCaracteristicas', 'servicioSugerencia'];
 
     //Portada del cliente, en dos pasos (como el registro del paseador):
     //1. Que busca: desde donde se retira a las mascotas, cuales pasean y, si lo tiene, el dia y/o el horario que prefiere (todo opcional).
     //2. Los paseadores de la zona que cumplen con eso (llevan tantos perros como mascotas se eligieron y tienen lugar), con sus ordenes
     //   (por defecto, por valoracion) y filtros (incluido el matching entre mascotas).
-    function buscarPaseadoresCtrl($scope, $rootScope, $location, $window, servicioApi, servicioNotificaciones, servicioFavoritos, servicioCaracteristicas) {
+    function buscarPaseadoresCtrl($scope, $rootScope, $location, $window, servicioApi, servicioNotificaciones, servicioFavoritos, servicioCaracteristicas, servicioSugerencia) {
         var idCliente = $rootScope.repository.loggedUser.customerId;
         var idUsuario = $rootScope.repository.loggedUser.id;
         var numeroBusqueda = 0;
@@ -52,6 +52,33 @@
         $scope.buscando = false;
         $scope.buscado = false;
         $scope.pagosPendientes = 0;
+
+        /* ---------- Sugerencia de reserva (dia y horario que suele reservar) ---------- */
+
+        //Si en su historial hay un dia y horario que se repite, se lo sugiere arriba del paso 1 (sin patron claro no aparece nada)
+        $scope.botonSugerencia = 'Cargar día y horario';
+        $scope.textoSugerencia = servicioSugerencia.texto;
+        $scope.evidenciaSugerencia = servicioSugerencia.evidencia;
+
+        servicioSugerencia.cargar(idCliente, function (sugerencia) {
+            $scope.sugerencia = sugerencia;
+        });
+
+        //Se cargan en el paso 1 el proximo dia que corresponde, el horario y las mascotas que salen a esa hora
+        $scope.reservarSugerencia = function (sugerencia) {
+            $scope.busqueda.fecha = moment(sugerencia.nextDate, 'YYYY-MM-DD').toDate();
+            $scope.busqueda.hora = sugerencia.time;
+            angular.forEach($scope.mascotas, function (mascota) {
+                mascota.seleccionada = sugerencia.petIds.indexOf(mascota.id) !== -1;
+            });
+            $scope.sugerencia = null;
+            $scope.paso = 1;
+        };
+
+        $scope.descartarSugerencia = function (sugerencia) {
+            servicioSugerencia.descartar(idCliente, sugerencia);
+            $scope.sugerencia = null;
+        };
 
         iniciar();
 

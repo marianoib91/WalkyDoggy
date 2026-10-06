@@ -83,6 +83,11 @@
             controller: "bienvenidaPaseadorCtrl",
             resolve: { isAuthenticated: estaAutenticado }
         })
+        .when("/customer-welcome", {
+            templateUrl: "scripts/spa/register/customer-welcome.html",
+            controller: "bienvenidaClienteCtrl",
+            resolve: { isAuthenticated: estaAutenticado }
+        })
         .when("/work-conditions", {
             templateUrl: "scripts/spa/workConditions/workConditions.html",
             controller: "condicionesLaboralesCtrl",

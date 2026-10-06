@@ -41,6 +41,18 @@
             </div>
         </section>
 
+        <section class="wd-profile-boarding" ng-if="paseador.boardingEnabled && paseador.boardingPricePerNight">
+            <h2 class="wd-section-title">Hospedaje en su casa</h2>
+            <p class="wd-field-hint">Cuida a tus perros varias noches mientras no estás. La entrega y el retiro se acuerdan por el chat, y se paga al terminar.</p>
+            <p class="wd-profile-boarding-price">
+                <span class="wd-price-amount">${{paseador.boardingPricePerNight | wdMoney}}</span>
+                <span class="wd-price-unit">por noche y por perro · cuida hasta {{paseador.boardingMaxDogs}} {{paseador.boardingMaxDogs == 1 ? 'perro' : 'perros'}} a la vez</span>
+            </p>
+            <p class="wd-walker-desc" ng-if="paseador.boardingDescription">{{paseador.boardingDescription}}</p>
+            <a class="btn btn-primary" ng-if="esCliente" href="#/stays">Buscar hospedaje</a>
+            <a class="btn btn-default" ng-if="esPerfilPropio" href="#/work-conditions">Editar mi oferta de hospedaje</a>
+        </section>
+
         <section>
             <h2 class="wd-section-title">Disponibilidad semanal</h2>
             <dl class="wd-availability">

@@ -25,6 +25,8 @@ namespace WalkyDoggy.Services.Services
         private readonly IRepositorioEntidadBase<Customer> repositorioClientes;
         private readonly IRepositorioEntidadBase<Walker> repositorioPaseadores;
         private readonly IRepositorioEntidadBase<Walk> repositorioPaseos;
+        private readonly IRepositorioEntidadBase<Stay> repositorioHospedajes;
+        private readonly IServicioMensajes servicioMensajes;
         private readonly IRepositorioEntidadBase<AdminAction> repositorioAcciones;
         private readonly IServicioEncriptacion servicioEncriptacion;
         private readonly IServicioNotificaciones servicioNotificaciones;
@@ -35,6 +37,8 @@ namespace WalkyDoggy.Services.Services
                                       IRepositorioEntidadBase<Customer> repositorioClientes,
                                       IRepositorioEntidadBase<Walker> repositorioPaseadores,
                                       IRepositorioEntidadBase<Walk> repositorioPaseos,
+                                      IRepositorioEntidadBase<Stay> repositorioHospedajes,
+                                      IServicioMensajes servicioMensajes,
                                       IRepositorioEntidadBase<AdminAction> repositorioAcciones,
                                       IServicioEncriptacion servicioEncriptacion,
                                       IServicioNotificaciones servicioNotificaciones,
@@ -45,6 +49,8 @@ namespace WalkyDoggy.Services.Services
             this.repositorioClientes = repositorioClientes;
             this.repositorioPaseadores = repositorioPaseadores;
             this.repositorioPaseos = repositorioPaseos;
+            this.repositorioHospedajes = repositorioHospedajes;
+            this.servicioMensajes = servicioMensajes;
             this.repositorioAcciones = repositorioAcciones;
             this.servicioEncriptacion = servicioEncriptacion;
             this.servicioNotificaciones = servicioNotificaciones;
@@ -212,13 +218,31 @@ namespace WalkyDoggy.Services.Services
             }
             var reservasCanceladas = paseosCancelados.Select(AyudanteReservas.ClaveDe).Distinct().Count();
 
+            //Tambien los hospedajes que todavia no empezaron (los perros aun no fueron entregados): la otra parte los ve cancelados
+            var hospedajesCancelados = this.repositorioHospedajes.ObtenerTodos().
+                Where(x => x.Status != WalkStatus.Cancelled && !x.StartedAt.HasValue &&
+                           (idPaseador.HasValue ? x.WalkerId == idPaseador.Value : (idCliente.HasValue && x.CustomerId == idCliente.Value))).
+                ToList();
+            var clavesConChat = hospedajesCancelados.Where(x => x.Status == WalkStatus.Confirmed).Select(ServicioHospedajes.ClaveDe).ToList();
+            foreach (var hospedaje in hospedajesCancelados)
+            {
+                hospedaje.Status = WalkStatus.Cancelled;
+                hospedaje.CancelledBy = WalkCancelledBy.Admin;
+                hospedaje.StatusChangedAt = ahora;
+            }
+
             usuario.IsLocked = true;
             usuario.BlockReason = motivo;
             usuario.BlockedAt = ahora;
 
             Registrar(idAdministrador, AdminActionTypes.BlockUser, usuario.Id,
-                      "Motivo: " + motivo + " · Reservas canceladas: " + reservasCanceladas);
+                      "Motivo: " + motivo + " · Reservas canceladas: " + reservasCanceladas + " · Hospedajes cancelados: " + hospedajesCancelados.Count);
             this.unidadDeTrabajo.GuardarCambios();
+
+            foreach (var clave in clavesConChat)
+            {
+                this.servicioMensajes.AgregarDelSistema(clave, "Un administrador canceló este hospedaje.");
+            }
 
             this.servicioNotificaciones.ReservaCanceladaPorBloqueo(paseosCancelados, rolBloqueado);
             this.servicioNotificaciones.CuentaBloqueada(usuario.Email, motivo);

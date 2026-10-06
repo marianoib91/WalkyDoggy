@@ -22,6 +22,7 @@ namespace WalkyDoggy.Services.Services
         private const Int32 CantidadDeTopPaseadores = 5;
 
         private readonly IRepositorioEntidadBase<Walk> repositorioPaseos;
+        private readonly IRepositorioEntidadBase<Stay> repositorioHospedajes;
         private readonly IRepositorioEntidadBase<Ranking> repositorioValoraciones;
         private readonly IRepositorioEntidadBase<PetReview> repositorioResenas;
         private readonly IRepositorioEntidadBase<Complaint> repositorioDenuncias;
@@ -30,6 +31,7 @@ namespace WalkyDoggy.Services.Services
         private readonly IRepositorioEntidadBase<User> repositorioUsuarios;
 
         public ServicioTablero(IRepositorioEntidadBase<Walk> repositorioPaseos,
+                               IRepositorioEntidadBase<Stay> repositorioHospedajes,
                                IRepositorioEntidadBase<Ranking> repositorioValoraciones,
                                IRepositorioEntidadBase<PetReview> repositorioResenas,
                                IRepositorioEntidadBase<Complaint> repositorioDenuncias,
@@ -38,6 +40,7 @@ namespace WalkyDoggy.Services.Services
                                IRepositorioEntidadBase<User> repositorioUsuarios)
         {
             this.repositorioPaseos = repositorioPaseos;
+            this.repositorioHospedajes = repositorioHospedajes;
             this.repositorioValoraciones = repositorioValoraciones;
             this.repositorioResenas = repositorioResenas;
             this.repositorioDenuncias = repositorioDenuncias;
@@ -60,6 +63,8 @@ namespace WalkyDoggy.Services.Services
             public Double Total { get; set; }
             public Int32 Mascotas { get; set; }
             public Boolean Terminada { get; set; }
+            public Boolean EsHospedaje { get; set; }
+            public Int32 Noches { get; set; }
         }
 
         public DashboardDto Obtener(DateTime? desde, DateTime? hasta, Decimal comisionPorcentaje)
@@ -102,6 +107,27 @@ namespace WalkyDoggy.Services.Services
                 }).
                 ToList();
 
+            //Los hospedajes cuentan como reservas (por dia de ingreso) en todas las metricas; ademas tienen las suyas (cantidad, noches y perros hospedados)
+            reservas.AddRange(this.repositorioHospedajes.TodosConIncluidos(x => x.Walker).
+                Where(x => x.CheckIn >= inicio && x.CheckIn <= fin).
+                ToList().
+                Select(x => new Reserva
+                {
+                    Clave = ServicioHospedajes.ClaveDe(x),
+                    Dia = x.CheckIn.Date,
+                    Estado = ServicioHospedajes.EstadoDe(x),
+                    CanceladaPor = x.CancelledBy,
+                    IdPaseador = x.WalkerId,
+                    NombrePaseador = ((x.Walker.FirstName ?? String.Empty) + " " + (x.Walker.LastName ?? String.Empty)).Trim(),
+                    IdCliente = x.CustomerId,
+                    MetodoDePago = x.PaymentMethod,
+                    Total = (Double)x.Total,
+                    Mascotas = x.DogsCount,
+                    Terminada = x.FinishedAt.HasValue && x.Status != WalkStatus.Cancelled,
+                    EsHospedaje = true,
+                    Noches = x.Nights
+                }));
+
             var noCanceladas = reservas.Where(x => x.Estado != AdminWalkStatuses.Cancelled).ToList();
             var canceladas = reservas.Where(x => x.Estado == AdminWalkStatuses.Cancelled).ToList();
             var cobradas = reservas.Where(x => x.Estado == AdminWalkStatuses.Collected).ToList();
@@ -127,7 +153,10 @@ namespace WalkyDoggy.Services.Services
                 CancellationRate = reservas.Count == 0 ? 0 : Math.Round(100.0 * canceladas.Count / reservas.Count, 1),
                 ActiveWalkers = noCanceladas.Select(x => x.IdPaseador).Distinct().Count(),
                 ActiveCustomers = noCanceladas.Select(x => x.IdCliente).Distinct().Count(),
-                PetsWalked = reservas.Where(x => x.Terminada).Sum(x => x.Mascotas),
+                PetsWalked = reservas.Where(x => x.Terminada && !x.EsHospedaje).Sum(x => x.Mascotas),
+                StayBookings = noCanceladas.Count(x => x.EsHospedaje),
+                StayNights = noCanceladas.Where(x => x.EsHospedaje).Sum(x => x.Noches),
+                PetsBoarded = reservas.Where(x => x.Terminada && x.EsHospedaje).Sum(x => x.Mascotas),
                 CashCollected = efectivo,
                 MercadoPagoCollected = mercadoPago,
                 TotalCollected = efectivo + mercadoPago,

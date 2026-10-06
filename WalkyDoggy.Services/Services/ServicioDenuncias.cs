@@ -26,6 +26,7 @@ namespace WalkyDoggy.Services.Services
         private readonly IRepositorioEntidadBase<Complaint> repositorioDenuncias;
         private readonly IRepositorioEntidadBase<ComplaintImage> repositorioImagenes;
         private readonly IRepositorioEntidadBase<Walk> repositorioPaseos;
+        private readonly IRepositorioEntidadBase<Stay> repositorioHospedajes;
         private readonly IRepositorioEntidadBase<Customer> repositorioClientes;
         private readonly IRepositorioEntidadBase<Walker> repositorioPaseadores;
         private readonly IRepositorioEntidadBase<User> repositorioUsuarios;
@@ -38,6 +39,7 @@ namespace WalkyDoggy.Services.Services
         public ServicioDenuncias(IRepositorioEntidadBase<Complaint> repositorioDenuncias,
                                  IRepositorioEntidadBase<ComplaintImage> repositorioImagenes,
                                  IRepositorioEntidadBase<Walk> repositorioPaseos,
+                                 IRepositorioEntidadBase<Stay> repositorioHospedajes,
                                  IRepositorioEntidadBase<Customer> repositorioClientes,
                                  IRepositorioEntidadBase<Walker> repositorioPaseadores,
                                  IRepositorioEntidadBase<User> repositorioUsuarios,
@@ -50,6 +52,7 @@ namespace WalkyDoggy.Services.Services
             this.repositorioDenuncias = repositorioDenuncias;
             this.repositorioImagenes = repositorioImagenes;
             this.repositorioPaseos = repositorioPaseos;
+            this.repositorioHospedajes = repositorioHospedajes;
             this.repositorioClientes = repositorioClientes;
             this.repositorioPaseadores = repositorioPaseadores;
             this.repositorioUsuarios = repositorioUsuarios;
@@ -91,34 +94,61 @@ namespace WalkyDoggy.Services.Services
                 return false;
             }
 
-            var paseos = AyudanteReservas.Buscar(this.repositorioPaseos.TodosConIncluidos(x => x.Pet), solicitud.BookingKey);
-            var esDelActor = paseos.Count > 0 &&
-                             (solicitud.Actor == WalkCancelledBy.Customer
-                                 ? paseos[0].Pet.CustomerId == solicitud.ActorId
-                                 : paseos[0].WalkerId == solicitud.ActorId);
-            if (!esDelActor)
-            {
-                error = "La reserva no existe.";
-                return false;
-            }
-            if (paseos.Any(x => x.Status != WalkStatus.Confirmed))
-            {
-                error = "Solo se puede denunciar sobre un paseo que el paseador confirmó.";
-                return false;
-            }
-
-            var cliente = this.repositorioClientes.ObtenerUno(paseos[0].Pet.CustomerId);
-            var paseador = this.repositorioPaseadores.ObtenerUno(paseos[0].WalkerId);
-            if (cliente == null || paseador == null)
-            {
-                error = "La reserva no existe.";
-                return false;
-            }
-
             var esCliente = solicitud.Actor == WalkCancelledBy.Customer;
-            var idDenunciante = esCliente ? cliente.UserId : paseador.UserId;
-            var idDenunciado = esCliente ? paseador.UserId : cliente.UserId;
-            var clave = AyudanteReservas.ClaveDe(paseos[0]);
+            Int64 idDenunciante, idDenunciado;
+            String clave;
+
+            Int64 idHospedaje;
+            if (AyudanteReservas.EsClaveDeHospedaje(solicitud.BookingKey, out idHospedaje))
+            {
+                //Un hospedaje se denuncia igual que un paseo: lo pueden denunciar su cliente o su cuidador, una vez confirmado
+                var hospedaje = this.repositorioHospedajes.TodosConIncluidos(x => x.Walker, x => x.Customer).FirstOrDefault(x => x.Id == idHospedaje);
+                var esDelHospedaje = hospedaje != null && (esCliente ? hospedaje.CustomerId == solicitud.ActorId : hospedaje.WalkerId == solicitud.ActorId);
+                if (!esDelHospedaje)
+                {
+                    error = "El hospedaje no existe.";
+                    return false;
+                }
+                if (hospedaje.Status != WalkStatus.Confirmed)
+                {
+                    error = "Solo se puede denunciar sobre un hospedaje que el cuidador confirmó.";
+                    return false;
+                }
+
+                idDenunciante = esCliente ? hospedaje.Customer.UserId : hospedaje.Walker.UserId;
+                idDenunciado = esCliente ? hospedaje.Walker.UserId : hospedaje.Customer.UserId;
+                clave = solicitud.BookingKey;
+            }
+            else
+            {
+                var paseos = AyudanteReservas.Buscar(this.repositorioPaseos.TodosConIncluidos(x => x.Pet), solicitud.BookingKey);
+                var esDelActor = paseos.Count > 0 &&
+                                 (esCliente
+                                     ? paseos[0].Pet.CustomerId == solicitud.ActorId
+                                     : paseos[0].WalkerId == solicitud.ActorId);
+                if (!esDelActor)
+                {
+                    error = "La reserva no existe.";
+                    return false;
+                }
+                if (paseos.Any(x => x.Status != WalkStatus.Confirmed))
+                {
+                    error = "Solo se puede denunciar sobre un paseo que el paseador confirmó.";
+                    return false;
+                }
+
+                var cliente = this.repositorioClientes.ObtenerUno(paseos[0].Pet.CustomerId);
+                var paseador = this.repositorioPaseadores.ObtenerUno(paseos[0].WalkerId);
+                if (cliente == null || paseador == null)
+                {
+                    error = "La reserva no existe.";
+                    return false;
+                }
+
+                idDenunciante = esCliente ? cliente.UserId : paseador.UserId;
+                idDenunciado = esCliente ? paseador.UserId : cliente.UserId;
+                clave = AyudanteReservas.ClaveDe(paseos[0]);
+            }
 
             if (this.repositorioDenuncias.BuscarPor(x => x.BookingKey == clave && x.ReporterUserId == idDenunciante && x.Status != ComplaintStatus.Resolved).Any())
             {
@@ -299,9 +329,23 @@ namespace WalkyDoggy.Services.Services
                 return null;
             }
 
-            var paseos = AyudanteReservas.Buscar(this.repositorioPaseos.TodosConIncluidos(x => x.Pet, x => x.Pet.Customer, x => x.Walker), denuncia.BookingKey);
-            var nombreCliente = paseos.Count > 0 ? NombreCompleto(paseos[0].Pet.Customer.FirstName, paseos[0].Pet.Customer.LastName) : "Cliente";
-            var nombrePaseador = paseos.Count > 0 ? NombreCompleto(paseos[0].Walker.FirstName, paseos[0].Walker.LastName) : "Paseador";
+            String nombreCliente = "Cliente", nombrePaseador = "Paseador";
+            Int64 idHospedaje;
+            if (AyudanteReservas.EsClaveDeHospedaje(denuncia.BookingKey, out idHospedaje))
+            {
+                var hospedaje = this.repositorioHospedajes.TodosConIncluidos(x => x.Walker, x => x.Customer).FirstOrDefault(x => x.Id == idHospedaje);
+                if (hospedaje != null)
+                {
+                    nombreCliente = NombreCompleto(hospedaje.Customer.FirstName, hospedaje.Customer.LastName);
+                    nombrePaseador = NombreCompleto(hospedaje.Walker.FirstName, hospedaje.Walker.LastName);
+                }
+            }
+            else
+            {
+                var paseos = AyudanteReservas.Buscar(this.repositorioPaseos.TodosConIncluidos(x => x.Pet, x => x.Pet.Customer, x => x.Walker), denuncia.BookingKey);
+                nombreCliente = paseos.Count > 0 ? NombreCompleto(paseos[0].Pet.Customer.FirstName, paseos[0].Pet.Customer.LastName) : nombreCliente;
+                nombrePaseador = paseos.Count > 0 ? NombreCompleto(paseos[0].Walker.FirstName, paseos[0].Walker.LastName) : nombrePaseador;
+            }
 
             var clave = denuncia.BookingKey;
             var mensajes = this.repositorioMensajes.BuscarPor(x => x.BookingKey == clave).OrderBy(x => x.SentAt).ThenBy(x => x.Id).ToList().
@@ -383,6 +427,16 @@ namespace WalkyDoggy.Services.Services
         //"lunes 5 de octubre, 10:00 · Rex, Luna"
         private String ResumenDeReserva(String claveReserva)
         {
+            Int64 idHospedaje;
+            if (AyudanteReservas.EsClaveDeHospedaje(claveReserva, out idHospedaje))
+            {
+                //"Hospedaje del 10/10 al 13/10 (3 noches) · Rex, Luna"
+                var hospedaje = this.repositorioHospedajes.TodosConIncluidos(x => x.Pets.Select(p => p.Pet)).FirstOrDefault(x => x.Id == idHospedaje);
+                return hospedaje == null ? null :
+                    "Hospedaje del " + hospedaje.CheckIn.ToString("dd/MM", CulturaEspanola) + " al " + hospedaje.CheckOut.ToString("dd/MM", CulturaEspanola) +
+                    " (" + hospedaje.Nights + (hospedaje.Nights == 1 ? " noche" : " noches") + ") · " + String.Join(", ", hospedaje.Pets.Select(p => p.Pet.Name));
+            }
+
             var paseos = AyudanteReservas.Buscar(this.repositorioPaseos.TodosConIncluidos(x => x.Pet), claveReserva);
             if (paseos.Count == 0)
             {

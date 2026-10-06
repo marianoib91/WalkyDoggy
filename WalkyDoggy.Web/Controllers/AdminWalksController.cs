@@ -33,10 +33,10 @@ namespace WalkyDoggy.Web.Controllers
 
         [HttpGet]
         [Route("walks")]
-        public HttpResponseMessage Walks(HttpRequestMessage pedido, String status = null, [FromUri(Name = "from")] DateTime? desde = null, [FromUri(Name = "to")] DateTime? hasta = null, String search = null, Int32 page = 1, Int32 pageSize = 15)
+        public HttpResponseMessage Walks(HttpRequestMessage pedido, String status = null, String kind = null, [FromUri(Name = "from")] DateTime? desde = null, [FromUri(Name = "to")] DateTime? hasta = null, String search = null, Int32 page = 1, Int32 pageSize = 15)
         {
             return ComoAdministrador(pedido, idAdministrador =>
-                pedido.CreateResponse(HttpStatusCode.OK, servicioPaseosAdmin.Listar(status, desde, hasta, search, page, pageSize)));
+                pedido.CreateResponse(HttpStatusCode.OK, servicioPaseosAdmin.Listar(status, kind, desde, hasta, search, page, pageSize)));
         }
 
         [HttpPost]

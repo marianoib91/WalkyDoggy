@@ -2689,3 +2689,6 @@ button.wd-pet-add {
 @media (max-width: 767px) {
     .navbar-default .navbar-nav > li.userinfo > a.dropdown-toggle { max-width: none; }
 }
+
+/* Perfil publico del paseador: hospedaje */
+.wd-profile-boarding-price { margin: 4px 0 8px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }

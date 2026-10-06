@@ -58,6 +58,15 @@ namespace WalkyDoggy.Application.Dtos
         //Alias o CBU/CVU para recibir transferencias (opcional)
         public String PayoutAccount { get; set; }
 
+        //Hospedaje que ofrece en su casa (se muestra en su perfil publico; se edita desde Condiciones laborales)
+        public Boolean BoardingEnabled { get; set; }
+
+        public Decimal? BoardingPricePerNight { get; set; }
+
+        public Int32 BoardingMaxDogs { get; set; }
+
+        public String BoardingDescription { get; set; }
+
         //Distancia en km a la direccion de retiro (solo cuando se busca paseadores para una direccion)
         public Double? DistanceKm { get; set; }
 

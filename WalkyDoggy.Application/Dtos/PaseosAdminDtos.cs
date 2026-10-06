@@ -8,11 +8,19 @@ namespace WalkyDoggy.Application.Dtos
     //Una reserva (los paseos de un cliente con un paseador en un mismo dia y horario)
     public class AdminWalkDto
     {
+        //Walk (paseo) | Stay (hospedaje de varias noches: Date es el ingreso, TimeFrom queda vacio)
+        public String Kind { get; set; }
+
         public String BookingKey { get; set; }
 
         public DateTime Date { get; set; }
 
         public String TimeFrom { get; set; }
+
+        //Solo hospedajes: dia de salida y noches
+        public DateTime? CheckOut { get; set; }
+
+        public Int32 Nights { get; set; }
 
         public String WalkerName { get; set; }
 
@@ -114,6 +122,13 @@ namespace WalkyDoggy.Application.Dtos
         public Int32 ActiveCustomers { get; set; }
 
         public Int32 PetsWalked { get; set; }
+
+        //Hospedajes (ya incluidos en las reservas de arriba): cuantos no cancelados, cuantas noches y cuantos perros ya se hospedaron
+        public Int32 StayBookings { get; set; }
+
+        public Int32 StayNights { get; set; }
+
+        public Int32 PetsBoarded { get; set; }
 
         //Plata de las reservas ya cobradas
         public Double CashCollected { get; set; }

@@ -23,7 +23,12 @@ namespace WalkyDoggy.Web.Mappings
 
             Mapper.CreateMap<UserDto, User>();
 
-            Mapper.CreateMap<WalkerDto, Walker>();
+            //La oferta de hospedaje se guarda por su propia pantalla (api/stays/saveOffer): actualizar el perfil no la toca
+            Mapper.CreateMap<WalkerDto, Walker>().
+                ForMember(p => p.BoardingEnabled, m => m.Ignore()).
+                ForMember(p => p.BoardingPricePerNight, m => m.Ignore()).
+                ForMember(p => p.BoardingMaxDogs, m => m.Ignore()).
+                ForMember(p => p.BoardingDescription, m => m.Ignore());
 
             Mapper.CreateMap<PetDto, Pet>();
 

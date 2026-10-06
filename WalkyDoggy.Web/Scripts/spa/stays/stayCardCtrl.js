@@ -3,12 +3,12 @@
 
     app.controller('tarjetaHospedajeCtrl', tarjetaHospedajeCtrl);
 
-    tarjetaHospedajeCtrl.$inject = ['$scope', '$rootScope', '$window', 'servicioApi', 'servicioNotificaciones', 'servicioConfirmacion', 'servicioChat'];
+    tarjetaHospedajeCtrl.$inject = ['$scope', '$rootScope', '$window', 'servicioApi', 'servicioNotificaciones', 'servicioConfirmacion', 'servicioChat', 'servicioDenuncias'];
 
     //La tarjeta de un hospedaje (scope.hospedaje, que viene del ng-repeat) con todo lo que se puede hacer desde ella.
     //Se usa tanto en los turnos del cuidador como en "Mis hospedajes" del cliente. La pantalla que la contiene define
     //recargarHospedajes() para volver a pedir la lista despues de cada accion.
-    function tarjetaHospedajeCtrl($scope, $rootScope, $window, servicioApi, servicioNotificaciones, servicioConfirmacion, servicioChat) {
+    function tarjetaHospedajeCtrl($scope, $rootScope, $window, servicioApi, servicioNotificaciones, servicioConfirmacion, servicioChat, servicioDenuncias) {
         var usuario = $rootScope.repository.loggedUser;
         var etiquetasDeEstrellas = ['Muy malo', 'Malo', 'Regular', 'Bueno', 'Excelente'];
 
@@ -107,6 +107,25 @@
                 titulo: 'Chat con ' + (comoPaseador ? hospedaje.customerName : hospedaje.walkerName),
                 subtitulo: 'Hospedaje de ' + $scope.nombresDeMascotas(hospedaje) + ' · ' + $scope.fecha(hospedaje.checkIn) + ' al ' + $scope.fecha(hospedaje.checkOut)
             }).then(actualizar, actualizar);
+        };
+
+        /* ---------- Denuncias ---------- */
+
+        //Se puede denunciar sobre un hospedaje que el cuidador confirmó (la denuncia la ve solo un administrador)
+        $scope.puedeDenunciar = function (hospedaje) {
+            return hospedaje.status !== 'Pending' && hospedaje.status !== 'Cancelled';
+        };
+
+        $scope.denunciar = function (hospedaje) {
+            var comoPaseador = $scope.esPaseador;
+
+            servicioDenuncias.abrir({
+                bookingKey: hospedaje.bookingKey,
+                actor: comoPaseador ? 'Walker' : 'Customer',
+                actorId: comoPaseador ? $scope.idPaseador : $scope.idCliente,
+                titulo: 'Denunciar a ' + (comoPaseador ? hospedaje.customerName : hospedaje.walkerName),
+                subtitulo: 'Hospedaje de ' + $scope.nombresDeMascotas(hospedaje) + ' · ' + $scope.fecha(hospedaje.checkIn) + ' al ' + $scope.fecha(hospedaje.checkOut)
+            }).then(angular.noop, angular.noop);
         };
 
         $scope.confirmar = function (hospedaje) {

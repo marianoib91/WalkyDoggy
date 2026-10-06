@@ -18,18 +18,21 @@ namespace WalkyDoggy.Services.Services
         private const Int32 MaximoPagina = 50;
 
         private readonly IRepositorioEntidadBase<Walk> repositorioPaseos;
+        private readonly IRepositorioEntidadBase<Stay> repositorioHospedajes;
         private readonly IRepositorioEntidadBase<AdminAction> repositorioAcciones;
         private readonly IServicioNotificaciones servicioNotificaciones;
         private readonly IServicioMensajes servicioMensajes;
         private readonly IUnidadDeTrabajo unidadDeTrabajo;
 
         public ServicioPaseosAdmin(IRepositorioEntidadBase<Walk> repositorioPaseos,
+                                   IRepositorioEntidadBase<Stay> repositorioHospedajes,
                                    IRepositorioEntidadBase<AdminAction> repositorioAcciones,
                                    IServicioNotificaciones servicioNotificaciones,
                                    IServicioMensajes servicioMensajes,
                                    IUnidadDeTrabajo unidadDeTrabajo)
         {
             this.repositorioPaseos = repositorioPaseos;
+            this.repositorioHospedajes = repositorioHospedajes;
             this.repositorioAcciones = repositorioAcciones;
             this.servicioNotificaciones = servicioNotificaciones;
             this.servicioMensajes = servicioMensajes;
@@ -58,7 +61,7 @@ namespace WalkyDoggy.Services.Services
             return paseo.StartedAt.HasValue ? AdminWalkStatuses.InProgress : AdminWalkStatuses.Upcoming;
         }
 
-        public AdminWalkPageDto Listar(String estado, DateTime? desde, DateTime? hasta, String buscar, Int32 pagina, Int32 tamanoPagina)
+        public AdminWalkPageDto Listar(String estado, String tipo, DateTime? desde, DateTime? hasta, String buscar, Int32 pagina, Int32 tamanoPagina)
         {
             pagina = Math.Max(1, pagina);
             tamanoPagina = Math.Min(MaximoPagina, Math.Max(1, tamanoPagina));
@@ -75,7 +78,17 @@ namespace WalkyDoggy.Services.Services
                 consulta = consulta.Where(x => x.Date <= dia);
             }
 
-            var reservas = consulta.ToList().GroupBy(AyudanteReservas.ClaveDe).Select(ArmarReserva);
+            //Paseos y hospedajes en una misma lista (tipo: "Walk", "Stay" o vacio para los dos)
+            var elementos = new List<AdminWalkDto>();
+            if (tipo != "Stay")
+            {
+                elementos.AddRange(consulta.ToList().GroupBy(AyudanteReservas.ClaveDe).Select(ArmarReserva));
+            }
+            if (tipo != "Walk")
+            {
+                elementos.AddRange(ListarHospedajes(desde, hasta));
+            }
+            IEnumerable<AdminWalkDto> reservas = elementos;
 
             if (AdminWalkStatuses.Todos.Contains(estado ?? String.Empty))
             {
@@ -113,6 +126,12 @@ namespace WalkyDoggy.Services.Services
             {
                 error = "Escribí el motivo de la cancelación (entre " + MinimoMotivo + " y " + MaximoMotivo + " caracteres).";
                 return false;
+            }
+
+            Int64 idHospedaje;
+            if (AyudanteReservas.EsClaveDeHospedaje(solicitud.BookingKey, out idHospedaje))
+            {
+                return CancelarHospedaje(idAdministrador, idHospedaje, motivo, out error);
             }
 
             var paseos = AyudanteReservas.Buscar(CargarPaseos(), solicitud.BookingKey);
@@ -178,6 +197,7 @@ namespace WalkyDoggy.Services.Services
 
             return new AdminWalkDto
             {
+                Kind = "Walk",
                 BookingKey = grupo.Key,
                 Date = primero.Date,
                 TimeFrom = primero.TimeFrom,
@@ -195,6 +215,99 @@ namespace WalkyDoggy.Services.Services
                 ReceivedAt = primero.ReceivedAt,
                 CanCancel = estado == AdminWalkStatuses.Pending || estado == AdminWalkStatuses.Upcoming || estado == AdminWalkStatuses.InProgress
             };
+        }
+
+        //Los hospedajes del periodo (por dia de ingreso), en el mismo formato que las reservas de paseos
+        private List<AdminWalkDto> ListarHospedajes(DateTime? desde, DateTime? hasta)
+        {
+            var consulta = CargarHospedajes();
+            if (desde.HasValue)
+            {
+                var dia = desde.Value.Date;
+                consulta = consulta.Where(x => x.CheckIn >= dia);
+            }
+            if (hasta.HasValue)
+            {
+                var dia = hasta.Value.Date;
+                consulta = consulta.Where(x => x.CheckIn <= dia);
+            }
+
+            return consulta.ToList().Select(x =>
+            {
+                var estado = ServicioHospedajes.EstadoDe(x);
+                return new AdminWalkDto
+                {
+                    Kind = "Stay",
+                    BookingKey = ServicioHospedajes.ClaveDe(x),
+                    Date = x.CheckIn,
+                    TimeFrom = String.Empty,
+                    CheckOut = x.CheckOut,
+                    Nights = x.Nights,
+                    WalkerName = Nombre(x.Walker.FirstName, x.Walker.LastName),
+                    CustomerName = Nombre(x.Customer.FirstName, x.Customer.LastName),
+                    Pets = String.Join(", ", x.Pets.Select(p => p.Pet.Name)),
+                    PetCount = x.DogsCount,
+                    Status = estado,
+                    CancelledBy = estado == AdminWalkStatuses.Cancelled ? x.CancelledBy : null,
+                    PaymentMethod = x.PaymentMethod,
+                    PaymentStatus = x.PaymentStatus,
+                    Total = (Double)x.Total,
+                    StartedAt = x.StartedAt,
+                    FinishedAt = x.FinishedAt,
+                    ReceivedAt = x.ReceivedAt,
+                    CanCancel = estado == AdminWalkStatuses.Pending || estado == AdminWalkStatuses.Upcoming || estado == AdminWalkStatuses.InProgress
+                };
+            }).ToList();
+        }
+
+        private IQueryable<Stay> CargarHospedajes()
+        {
+            return this.repositorioHospedajes.TodosConIncluidos(x => x.Walker, x => x.Customer, x => x.Pets.Select(p => p.Pet));
+        }
+
+        private Boolean CancelarHospedaje(Int64 idAdministrador, Int64 idHospedaje, String motivo, out String error)
+        {
+            error = null;
+
+            var hospedaje = CargarHospedajes().FirstOrDefault(x => x.Id == idHospedaje);
+            if (hospedaje == null)
+            {
+                error = "El hospedaje no existe.";
+                return false;
+            }
+            if (hospedaje.Status == WalkStatus.Cancelled)
+            {
+                error = "El hospedaje ya está cancelado.";
+                return false;
+            }
+            if (hospedaje.FinishedAt.HasValue)
+            {
+                error = "El hospedaje ya terminó: no se puede cancelar.";
+                return false;
+            }
+
+            var estabaConfirmado = hospedaje.Status == WalkStatus.Confirmed;
+            var ahora = DateTime.Now;
+            hospedaje.Status = WalkStatus.Cancelled;
+            hospedaje.CancelledBy = WalkCancelledBy.Admin;
+            hospedaje.StatusChangedAt = ahora;
+
+            this.repositorioAcciones.Agregar(new AdminAction
+            {
+                AdminUserId = idAdministrador,
+                Action = AdminActionTypes.CancelWalk,
+                Detail = ("Hospedaje de " + Nombre(hospedaje.Customer.FirstName, hospedaje.Customer.LastName) + " con " +
+                          Nombre(hospedaje.Walker.FirstName, hospedaje.Walker.LastName) + " (" + hospedaje.CheckIn.ToString("dd/MM/yyyy") + " al " +
+                          hospedaje.CheckOut.ToString("dd/MM/yyyy") + ") · Motivo: " + motivo),
+                CreatedAt = ahora
+            });
+            this.unidadDeTrabajo.GuardarCambios();
+
+            if (estabaConfirmado)
+            {
+                this.servicioMensajes.AgregarDelSistema(ServicioHospedajes.ClaveDe(hospedaje), "Un administrador canceló este hospedaje.");
+            }
+            return true;
         }
 
         private static String Nombre(String nombre, String apellido)

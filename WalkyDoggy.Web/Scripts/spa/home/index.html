@@ -17,6 +17,8 @@
         </div>
     </div>
 
+    <div ng-if="paso == 1" ng-include="'scripts/spa/pets/sugerenciaReserva.html'"></div>
+
     <ol class="wd-steps" aria-label="Pasos de la búsqueda">
         <li ng-repeat="nombre in nombresPasos" ng-class="{'is-current': paso == $index + 1, 'is-done': paso > $index + 1}" aria-current="{{paso == $index + 1 ? 'step' : undefined}}">
             <span class="wd-step-number">{{paso > $index + 1 ? '✓' : $index + 1}}</span>
