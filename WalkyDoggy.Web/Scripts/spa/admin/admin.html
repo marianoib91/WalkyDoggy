@@ -1,0 +1,182 @@
+<div class="wd-admin">
+    <div class="wd-page-header">
+        <div>
+            <h1 class="wd-page-title">Administración</h1>
+            <p class="wd-page-subtitle">Gestioná las cuentas de clientes y paseadores, los administradores y mirá el registro de todo lo que se hizo.</p>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs wd-admin-tabs" role="tablist">
+        <li role="presentation" ng-class="{active: pestana == 'tablero'}"><a href="" role="tab" ng-click="cambiarPestana('tablero')">Tablero</a></li>
+        <li role="presentation" ng-class="{active: pestana == 'usuarios'}"><a href="" role="tab" ng-click="cambiarPestana('usuarios')">Usuarios</a></li>
+        <li role="presentation" ng-class="{active: pestana == 'paseos'}"><a href="" role="tab" ng-click="cambiarPestana('paseos')">Paseos</a></li>
+        <li role="presentation" ng-class="{active: pestana == 'denuncias'}"><a href="" role="tab" ng-click="cambiarPestana('denuncias')">Denuncias</a></li>
+        <li role="presentation" ng-class="{active: pestana == 'resenas'}"><a href="" role="tab" ng-click="cambiarPestana('resenas')">Reseñas</a></li>
+        <li role="presentation" ng-class="{active: pestana == 'publicidad'}"><a href="" role="tab" ng-click="cambiarPestana('publicidad')">Publicidad</a></li>
+        <li role="presentation" ng-class="{active: pestana == 'razas'}"><a href="" role="tab" ng-click="cambiarPestana('razas')">Razas</a></li>
+        <li role="presentation" ng-class="{active: pestana == 'tamanos'}"><a href="" role="tab" ng-click="cambiarPestana('tamanos')">Tamaños</a></li>
+        <li role="presentation" ng-class="{active: pestana == 'caracteristicas'}"><a href="" role="tab" ng-click="cambiarPestana('caracteristicas')">Características</a></li>
+        <li role="presentation" ng-class="{active: pestana == 'administradores'}"><a href="" role="tab" ng-click="cambiarPestana('administradores')">Administradores</a></li>
+        <li role="presentation" ng-class="{active: pestana == 'bitacora'}"><a href="" role="tab" ng-click="cambiarPestana('bitacora')">Bitácora</a></li>
+    </ul>
+
+    <!-- Usuarios -->
+    <section ng-if="pestana == 'usuarios'">
+        <div class="wd-admin-filters">
+            <div class="form-group">
+                <label for="filtro-texto">Buscar</label>
+                <input id="filtro-texto" type="search" class="form-control" placeholder="Nombre, mail o teléfono" ng-model="filtros.texto" ng-change="alEscribir()" />
+            </div>
+            <div class="form-group">
+                <label for="filtro-rol">Tipo</label>
+                <select id="filtro-rol" class="form-control" ng-model="filtros.rol" ng-change="buscar()">
+                    <option value="">Todos</option>
+                    <option value="Customer">Clientes</option>
+                    <option value="Walker">Paseadores</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="filtro-estado">Estado</label>
+                <select id="filtro-estado" class="form-control" ng-model="filtros.estado" ng-change="buscar()">
+                    <option value="">Todos</option>
+                    <option value="Active">Activos</option>
+                    <option value="Blocked">Bloqueados</option>
+                </select>
+            </div>
+        </div>
+
+        <p class="wd-field-hint" ng-if="!cargando && usuarios.length == 0">No hay usuarios que coincidan con la búsqueda.</p>
+
+        <div class="wd-admin-table-wrap" ng-if="usuarios.length > 0">
+            <table class="wd-admin-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Teléfono</th>
+                        <th>Alta</th>
+                        <th>Estado</th>
+                        <th class="wd-admin-actions-col"><span class="sr-only">Acciones</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="usuario in usuarios track by usuario.userId" ng-class="{'is-blocked': usuario.isLocked}">
+                        <td>
+                            <strong>{{usuario.fullName}}</strong>
+                            <div class="wd-field-hint">{{usuario.email}}</div>
+                        </td>
+                        <td>{{textoRol(usuario)}}</td>
+                        <td>{{usuario.phone}}</td>
+                        <td>{{usuario.createdDate | date:'dd/MM/yyyy'}}</td>
+                        <td>
+                            <span class="wd-status wd-status-confirmed" ng-if="!usuario.isLocked">Activo</span>
+                            <span class="wd-status wd-status-cancelled" ng-if="usuario.isLocked">Bloqueado</span>
+                            <div class="wd-field-hint wd-admin-reason" ng-if="usuario.isLocked">
+                                {{usuario.blockedAt | date:'dd/MM/yyyy'}}: {{usuario.blockReason}}
+                            </div>
+                            <div class="wd-field-hint" ng-if="!usuario.isLocked && usuario.upcomingBookings > 0">
+                                {{usuario.upcomingBookings}} {{usuario.upcomingBookings == 1 ? 'reserva' : 'reservas'}} por empezar
+                            </div>
+                        </td>
+                        <td class="wd-admin-actions-col">
+                            <button type="button" class="btn btn-danger btn-sm" ng-if="!usuario.isLocked" ng-click="bloquear(usuario)">Bloquear</button>
+                            <button type="button" class="btn btn-default btn-sm" ng-if="usuario.isLocked" ng-click="desbloquear(usuario)">Desbloquear</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="wd-admin-pager" ng-if="total > 0">
+            <span class="wd-field-hint">{{textoRango()}}</span>
+            <div>
+                <button type="button" class="btn btn-default btn-sm" ng-disabled="!hayAnterior()" ng-click="irA(pagina - 1)">Anterior</button>
+                <button type="button" class="btn btn-default btn-sm" ng-disabled="!haySiguiente()" ng-click="irA(pagina + 1)">Siguiente</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tablero y paseos -->
+    <section ng-if="pestana == 'tablero'" ng-include="'scripts/spa/admin/tablero.html'"></section>
+    <section ng-if="pestana == 'paseos'" ng-include="'scripts/spa/admin/paseos.html'"></section>
+
+    <!-- Denuncias y moderacion de reseñas -->
+    <section ng-if="pestana == 'denuncias'" ng-include="'scripts/spa/admin/denuncias.html'"></section>
+    <section ng-if="pestana == 'resenas'" ng-include="'scripts/spa/admin/resenas.html'"></section>
+
+    <!-- Publicidad de comercios -->
+    <section ng-if="pestana == 'publicidad'" ng-include="'scripts/spa/admin/publicidad.html'"></section>
+
+    <!-- Razas, tamaños y caracteristicas -->
+    <section ng-if="pestana == 'razas' || pestana == 'tamanos' || pestana == 'caracteristicas'" ng-include="'scripts/spa/admin/catalogos.html'"></section>
+
+    <!-- Administradores -->
+    <section ng-if="pestana == 'administradores'">
+        <h2 class="wd-section-title">Administradores</h2>
+        <div class="wd-admin-table-wrap">
+            <table class="wd-admin-table">
+                <thead>
+                    <tr><th>Mail</th><th>Alta</th><th>Estado</th></tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="admin in administradores track by admin.userId">
+                        <td><strong>{{admin.email}}</strong></td>
+                        <td>{{admin.createdDate | date:'dd/MM/yyyy'}}</td>
+                        <td>
+                            <span class="wd-status wd-status-confirmed" ng-if="!admin.isLocked">Activo</span>
+                            <span class="wd-status wd-status-cancelled" ng-if="admin.isLocked">Bloqueado</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="wd-section-title wd-admin-subtitle">Agregar un administrador</h2>
+        <form class="wd-admin-form" novalidate ng-submit="crearAdministrador()">
+            <div class="form-group">
+                <label for="nuevo-email">Mail</label>
+                <input id="nuevo-email" type="email" class="form-control" ng-model="nuevoAdmin.email" maxlength="200" autocomplete="off" />
+            </div>
+            <div class="form-group">
+                <label for="nuevo-clave">Contraseña</label>
+                <input id="nuevo-clave" type="password" class="form-control" ng-model="nuevoAdmin.password" maxlength="50" autocomplete="new-password" />
+                <span class="wd-field-hint">Entre 6 y 50 caracteres. La persona puede cambiarla después desde su menú.</span>
+            </div>
+            <div class="form-group">
+                <label for="nuevo-repetida">Repetí la contraseña</label>
+                <input id="nuevo-repetida" type="password" class="form-control" ng-model="nuevoAdmin.repetida" maxlength="50" autocomplete="new-password" />
+            </div>
+            <p class="wd-form-error" ng-if="errorAlta" role="alert">{{errorAlta}}</p>
+            <button type="submit" class="btn btn-primary" ng-disabled="guardandoAlta">Crear administrador</button>
+        </form>
+    </section>
+
+    <!-- Bitacora -->
+    <section ng-if="pestana == 'bitacora'">
+        <h2 class="wd-section-title">Bitácora</h2>
+        <p class="wd-field-hint" ng-if="acciones.length == 0">Todavía no hay acciones registradas.</p>
+        <div class="wd-admin-table-wrap" ng-if="acciones.length > 0">
+            <table class="wd-admin-table">
+                <thead>
+                    <tr><th>Fecha</th><th>Administrador</th><th>Acción</th><th>Sobre</th><th>Detalle</th></tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="accion in acciones track by accion.id">
+                        <td>{{accion.createdAt | date:'dd/MM/yyyy HH:mm'}}</td>
+                        <td>{{accion.adminEmail}}</td>
+                        <td>{{textoAccion(accion)}}</td>
+                        <td>{{accion.targetEmail}}</td>
+                        <td class="wd-admin-reason">{{accion.detail}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="wd-admin-pager" ng-if="totalAcciones > 0">
+            <span class="wd-field-hint">{{totalAcciones}} {{totalAcciones == 1 ? 'acción' : 'acciones'}}</span>
+            <div>
+                <button type="button" class="btn btn-default btn-sm" ng-disabled="!hayAnteriorBitacora()" ng-click="irABitacora(paginaBitacora - 1)">Anterior</button>
+                <button type="button" class="btn btn-default btn-sm" ng-disabled="!haySiguienteBitacora()" ng-click="irABitacora(paginaBitacora + 1)">Siguiente</button>
+            </div>
+        </div>
+    </section>
+</div>

@@ -3,9 +3,9 @@
 
     app.controller('paseosSolicitadosCtrl', paseosSolicitadosCtrl);
 
-    paseosSolicitadosCtrl.$inject = ['$scope', 'servicioApi', 'servicioNotificaciones', 'servicioConfirmacion', 'servicioChat', '$rootScope', '$location', '$interval'];
+    paseosSolicitadosCtrl.$inject = ['$scope', 'servicioApi', 'servicioNotificaciones', 'servicioConfirmacion', 'servicioChat', '$rootScope', '$location', '$interval', 'servicioDenuncias'];
 
-    function paseosSolicitadosCtrl($scope, servicioApi, servicioNotificaciones, servicioConfirmacion, servicioChat, $rootScope, $location, $interval) {
+    function paseosSolicitadosCtrl($scope, servicioApi, servicioNotificaciones, servicioConfirmacion, servicioChat, $rootScope, $location, $interval, servicioDenuncias) {
         var nombresDias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         var idCliente = $rootScope.repository.loggedUser.customerId;
         var etiquetasDeEstrellas = ['Muy malo', 'Malo', 'Regular', 'Bueno', 'Excelente'];
@@ -122,6 +122,21 @@
                 titulo: 'Chat con ' + reserva.walkerName,
                 subtitulo: $scope.nombresMascotas(reserva) + ' · ' + $scope.textoFecha(reserva) + ', ' + reserva.timeFrom
             }).then(actualizar, actualizar);
+        };
+
+        //Solo se denuncia sobre un paseo que el paseador confirmo (la denuncia la ve solo un administrador)
+        $scope.puedeDenunciar = function (reserva) {
+            return reserva.status === 'Confirmed';
+        };
+
+        $scope.denunciar = function (reserva) {
+            servicioDenuncias.abrir({
+                bookingKey: reserva.bookingKey,
+                actor: 'Customer',
+                actorId: idCliente,
+                titulo: 'Denunciar a ' + reserva.walkerName,
+                subtitulo: $scope.nombresMascotas(reserva) + ' · ' + $scope.textoFecha(reserva) + ', ' + reserva.timeFrom
+            }).then(angular.noop, angular.noop);
         };
 
         $scope.textoEstado = function (reserva) {

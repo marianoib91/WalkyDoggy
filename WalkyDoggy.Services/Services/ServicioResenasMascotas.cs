@@ -98,7 +98,7 @@ namespace WalkyDoggy.Services.Services
         public PetReviewSummaryDto ObtenerResenas(Int64 idMascota, Int64 idPaseadorQueConsulta, Int32 maximo)
         {
             var resenas = this.repositorioResenas.ObtenerTodos().
-                                                  Where(x => x.PetId == idMascota).
+                                                  Where(x => x.PetId == idMascota && !x.Hidden).
                                                   OrderByDescending(x => x.Date).
                                                   ToList();
 
@@ -122,7 +122,7 @@ namespace WalkyDoggy.Services.Services
         public Dictionary<Int64, PetReviewSummaryDto> ObtenerResumenes(IEnumerable<Int64> idsMascotas)
         {
             var ids = idsMascotas.Distinct().ToList();
-            var resenas = this.repositorioResenas.BuscarPor(x => ids.Contains(x.PetId)).ToList();
+            var resenas = this.repositorioResenas.BuscarPor(x => ids.Contains(x.PetId) && !x.Hidden).ToList();
 
             return resenas.GroupBy(x => x.PetId).ToDictionary(x => x.Key, x => Resumir(x.Key, x.ToList()));
         }

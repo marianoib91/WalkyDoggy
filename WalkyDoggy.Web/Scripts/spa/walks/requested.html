@@ -67,6 +67,9 @@
                 <div class="wd-walk-actions">
                     <button type="button" class="btn btn-primary" ng-if="esMercadoPago(reserva)" ng-disabled="trabajando" ng-click="pagar(reserva)">Pagar ${{reserva.total | wdMoney}}</button>
                     <button type="button" class="btn btn-default" ng-if="esMercadoPago(reserva)" ng-disabled="trabajando" ng-click="verificarPago(reserva)">Ya pagué, verificar</button>
+                    <button type="button" class="btn btn-default" ng-if="puedeDenunciar(reserva)" ng-click="denunciar(reserva)">
+                        <i class="fa fa-flag-o" aria-hidden="true"></i> Denunciar
+                    </button>
                     <button type="button" class="btn btn-default" ng-if="tieneChat(reserva)" ng-click="abrirChat(reserva)">
                         <i class="fa fa-comments-o" aria-hidden="true"></i> Chat <span class="wd-badge" ng-if="reserva.unreadMessages > 0">{{reserva.unreadMessages}}</span>
                     </button>
@@ -111,6 +114,9 @@
                     </button>
                     <button type="button" class="btn btn-default" ng-if="tieneChat(reserva)" ng-click="abrirChat(reserva)">
                         <i class="fa fa-comments-o" aria-hidden="true"></i> Chat <span class="wd-badge" ng-if="reserva.unreadMessages > 0">{{reserva.unreadMessages}}</span>
+                    </button>
+                    <button type="button" class="btn btn-default" ng-if="puedeDenunciar(reserva)" ng-click="denunciar(reserva)">
+                        <i class="fa fa-flag-o" aria-hidden="true"></i> Denunciar
                     </button>
                     <button type="button" class="btn btn-danger" ng-if="puedeCancelar(reserva)" ng-click="cancelar(reserva)">Cancelar</button>
                 </div>
@@ -161,9 +167,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="wd-walk-actions" ng-if="tieneChat(reserva)">
-                    <button type="button" class="btn btn-default" ng-click="abrirChat(reserva)">
+                <div class="wd-walk-actions" ng-if="tieneChat(reserva) || puedeDenunciar(reserva)">
+                    <button type="button" class="btn btn-default" ng-if="tieneChat(reserva)" ng-click="abrirChat(reserva)">
                         <i class="fa fa-comments-o" aria-hidden="true"></i> Chat <span class="wd-badge" ng-if="reserva.unreadMessages > 0">{{reserva.unreadMessages}}</span>
+                    </button>
+                    <button type="button" class="btn btn-default" ng-if="puedeDenunciar(reserva)" ng-click="denunciar(reserva)">
+                        <i class="fa fa-flag-o" aria-hidden="true"></i> Denunciar
                     </button>
                 </div>
             </article>

@@ -36,7 +36,7 @@
             </ul>
         </div>
         <div ng-show="userData.haySesion" class="pull-right">
-            <ul class="nav navbar-nav" ng-show="roleId!=3">
+            <ul class="nav navbar-nav" ng-show="roleId==2">
                 <li>
                     <a class="topbar-button" href="#/pets/list">
                         Mis mascotas
@@ -46,13 +46,33 @@
                     </a>
                 </li>
             </ul>
-            <ul class="nav navbar-nav" ng-show="roleId!=3">
+            <ul class="nav navbar-nav" ng-show="roleId==2 || roleId==3">
+                <li>
+                    <a class="topbar-button" href="#/friends">
+                        Comercios amigos
+                        <div class="topbar-icon">
+                            <i class="fa fa-heart fa-fw pull-right"></i>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav" ng-show="roleId==2">
                 <li>
                     <a class="topbar-button" href="#/walks/requested">
                         Paseos solicitados
                         <div class="topbar-icon">
                             <i class="fa fa-calendar pull-right">
                             </i>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav" ng-if="roleId==1">
+                <li>
+                    <a class="topbar-button" href="#/admin">
+                        Administración
+                        <div class="topbar-icon">
+                            <i class="fa fa-shield pull-right"></i>
                         </div>
                     </a>
                 </li>
@@ -79,7 +99,7 @@
                     </a>
                 </li>
             </ul>
-            <ul class="nav navbar-nav" ng-show="roleId!=3">
+            <ul class="nav navbar-nav" ng-show="roleId==2">
                 <li>
                     <a class="topbar-button topbar-cta" href="#/">
                         <i class="fa fa-plus"></i>
@@ -87,7 +107,7 @@
                     </a>
                 </li>
             </ul>
-            <!--<ul class="nav navbar-nav" ng-show="roleId!=3">
+            <!--<ul class="nav navbar-nav" ng-show="roleId==2">
                 <li>
                     <a class="topbar-button" href="#/">
                         Quiero ser Paseador
@@ -106,8 +126,8 @@
                         <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a href="#/profile">Mi perfil</a></li>
-                        <li><a href="">Cambiar contraseña</a></li>
+                        <li ng-if="roleId!=1"><a href="#/profile">Mi perfil</a></li>
+                        <li><a href="" ng-click="abrirModalCambioContrasena()">Cambiar contraseña</a></li>
                         <li><a href="" ng-click="cerrarSesion()">Cerrar sesión</a></li>
                     </ul>
                 </li>

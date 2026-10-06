@@ -84,14 +84,37 @@
         function alCargarMascota(resultado) {
             $scope.mascota = resultado.data;
             $scope.rasgosElegidos = servicioCaracteristicas.leer($scope.mascota && $scope.mascota.traits);
+            actualizarOpciones();
+        }
+
+        //Las razas y tamaños dados de baja por el administrador ya no se ofrecen, salvo el que la mascota ya tiene cargado
+        var todasLasRazas = [];
+        var todosLosTamanos = [];
+
+        function disponibles(items, idActual) {
+            return items.filter(function (item) { return item.active !== false || item.id === idActual; });
+        }
+
+        function actualizarOpciones() {
+            var mascota = $scope.mascota || {};
+            //Orden alfabetico (con acentos al estilo español) y "Otro" siempre al final
+            $scope.razas = disponibles(todasLasRazas, mascota.breedId).sort(function (a, b) {
+                if (a.name === 'Otro' || b.name === 'Otro') {
+                    return (a.name === 'Otro') - (b.name === 'Otro');
+                }
+                return a.name.localeCompare(b.name, 'es');
+            });
+            $scope.tamanos = disponibles(todosLosTamanos, mascota.sizeId);
         }
 
         function alCargarRazas(resultado) {
-            $scope.razas = resultado.data;
+            todasLasRazas = resultado.data;
+            actualizarOpciones();
         }
 
         function alCargarTamanos(resultado) {
-            $scope.tamanos = resultado.data;
+            todosLosTamanos = resultado.data;
+            actualizarOpciones();
         }
 
         $scope.actualizarMascota = function () {

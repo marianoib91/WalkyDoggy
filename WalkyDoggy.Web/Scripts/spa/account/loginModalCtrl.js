@@ -20,6 +20,9 @@
                 resultado.data.password = $scope.usuario.password;
                 servicioMembresia.guardarCredenciales(resultado.data, resultado.data.email);               
             }
+            else if (resultado.data.blocked) {
+                servicioNotificaciones.mostrarError('Tu cuenta está bloqueada. Motivo: ' + (resultado.data.reason || 'no se indicó') + '. Si creés que es un error, contactá a un administrador.');
+            }
             else {
                 servicioNotificaciones.mostrarError('Imposible iniciar sesión. Intente nuevamente.');
             }

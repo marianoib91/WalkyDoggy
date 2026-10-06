@@ -1,0 +1,70 @@
+<div ng-controller="adminPaseosCtrl">
+    <p class="wd-field-hint">
+        Todas las reservas del sistema. Cancelar una es una medida excepcional (por ejemplo, un error de carga): se avisa a las dos partes y queda en la bitácora.
+    </p>
+
+    <div class="wd-admin-filters">
+        <div class="form-group">
+            <label for="paseos-texto">Buscar</label>
+            <input id="paseos-texto" type="search" class="form-control" placeholder="Cliente, paseador o mascota" ng-model="filtros.texto" ng-change="alEscribir()" />
+        </div>
+        <div class="form-group">
+            <label for="paseos-estado">Estado</label>
+            <select id="paseos-estado" class="form-control" ng-model="filtros.estado" ng-change="buscar()">
+                <option value="">Todos</option>
+                <option value="Pending">Esperando al paseador</option>
+                <option value="Upcoming">Confirmados por empezar</option>
+                <option value="InProgress">En curso</option>
+                <option value="ToCollect">Para cobrar</option>
+                <option value="Collected">Cobrados</option>
+                <option value="Cancelled">Cancelados</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="paseos-desde">Desde</label>
+            <input id="paseos-desde" type="date" class="form-control" ng-model="filtros.desde" ng-change="buscar()" />
+        </div>
+        <div class="form-group">
+            <label for="paseos-hasta">Hasta</label>
+            <input id="paseos-hasta" type="date" class="form-control" ng-model="filtros.hasta" ng-change="buscar()" />
+        </div>
+    </div>
+
+    <p class="wd-field-hint" ng-if="!cargando && paseos.length == 0">No hay reservas que coincidan.</p>
+
+    <div class="wd-admin-table-wrap" ng-if="paseos.length > 0">
+        <table class="wd-admin-table">
+            <thead>
+                <tr><th>Día y horario</th><th>Paseador</th><th>Cliente</th><th>Mascotas</th><th>Estado</th><th>Pago</th><th class="wd-admin-actions-col"><span class="sr-only">Acciones</span></th></tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="paseo in paseos track by paseo.bookingKey" ng-class="{'is-blocked': paseo.status == 'Cancelled'}">
+                    <td>{{textoFecha(paseo)}}</td>
+                    <td>{{paseo.walkerName}}</td>
+                    <td>{{paseo.customerName}}</td>
+                    <td>{{paseo.pets}}</td>
+                    <td>
+                        <span class="wd-status" ng-class="claseEstado(paseo)">{{textoEstado(paseo)}}</span>
+                        <div class="wd-field-hint" ng-if="paseo.status == 'Cancelled'">{{textoCancelo(paseo)}}</div>
+                        <div class="wd-field-hint" ng-if="paseo.startedAt && paseo.status != 'Cancelled'">Inició {{paseo.startedAt | date:'HH:mm'}}<span ng-if="paseo.finishedAt"> · terminó {{paseo.finishedAt | date:'HH:mm'}}</span></div>
+                    </td>
+                    <td>
+                        ${{paseo.total | wdMoney}}
+                        <div class="wd-field-hint">{{textoPago(paseo)}}</div>
+                    </td>
+                    <td class="wd-admin-actions-col">
+                        <button type="button" class="btn btn-danger btn-sm" ng-if="paseo.canCancel" ng-click="cancelar(paseo)">Cancelar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="wd-admin-pager" ng-if="total > 0">
+        <span class="wd-field-hint">{{total}} {{total == 1 ? 'reserva' : 'reservas'}}</span>
+        <div>
+            <button type="button" class="btn btn-default btn-sm" ng-disabled="!hayAnterior()" ng-click="irA(pagina - 1)">Anterior</button>
+            <button type="button" class="btn btn-default btn-sm" ng-disabled="!haySiguiente()" ng-click="irA(pagina + 1)">Siguiente</button>
+        </div>
+    </div>
+</div>

@@ -21,6 +21,11 @@ namespace WalkyDoggy.Entities
 
         public Boolean IsLocked { get; set; }
 
+        //Por que un administrador bloqueo la cuenta y cuando (se le muestra a la persona al intentar entrar)
+        public String BlockReason { get; set; }
+
+        public DateTime? BlockedAt { get; set; }
+
         public DateTime CreatedDate { get; set; }
 
         public virtual ICollection<UserRole> UserRoles { get; set; }

@@ -23,5 +23,12 @@ namespace WalkyDoggy.Entities
         public Int32 Stars { get; set; }
 
         public String Comments { get; set; }
+
+        //Un administrador la oculto (moderacion): no se muestra ni cuenta en los promedios, pero no se borra y se puede volver a mostrar
+        public Boolean Hidden { get; set; }
+
+        public String HiddenReason { get; set; }
+
+        public DateTime? HiddenAt { get; set; }
     }
 }

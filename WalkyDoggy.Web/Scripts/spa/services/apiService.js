@@ -3,24 +3,39 @@
 
     app.factory('servicioApi', servicioApi);
 
-    servicioApi.$inject = ['$http', '$location', 'servicioNotificaciones', '$rootScope'];
+    servicioApi.$inject = ['$http', '$location', 'servicioNotificaciones', '$rootScope', '$cookieStore'];
 
-    function servicioApi($http, $location, servicioNotificaciones, $rootScope) {
+    function servicioApi($http, $location, servicioNotificaciones, $rootScope, $cookieStore) {
         var servicio = {
             get: get,
             post: post,
             remove:remove
         };
 
+        //Un 401 con la sesion abierta significa que las credenciales dejaron de valer (por ejemplo, un administrador bloqueo la cuenta):
+        //se cierra la sesion y se lleva a la persona a la portada, donde al iniciar sesion se le explica el motivo.
+        //Sin sesion se mantiene el comportamiento anterior.
+        function alNoAutenticado(mensajeSinSesion) {
+            if ($rootScope.repository && $rootScope.repository.loggedUser) {
+                $rootScope.repository = {};
+                $cookieStore.remove('repository');
+                $http.defaults.headers.common.Authorization = '';
+                servicioNotificaciones.mostrarError('Tu sesión ya no es válida. Iniciá sesión de nuevo; si tu cuenta fue bloqueada, vas a ver el motivo.');
+                $location.path('/public');
+                return;
+            }
+
+            servicioNotificaciones.mostrarError(mensajeSinSesion);
+            $rootScope.previousState = $location.path();
+            $location.path('/login');
+        }
         function get(url, config, alExito, alFallar) {
             return $http.get(url, config)
                     .then(function (resultado) {
                         alExito(resultado);
                     }, function (error) {
                         if (error.status == '401') {
-                            servicioNotificaciones.mostrarError('Authentication required.');
-                            $rootScope.previousState = $location.path();
-                            $location.path('/login');
+                            alNoAutenticado('Authentication required.');
                         }
                         else if (alFallar != null) {
                             alFallar(error);
@@ -34,9 +49,7 @@
                         alExito(resultado);
                     }, function (error) {
                         if (error.status == '401') {
-                            servicioNotificaciones.mostrarError('Authentication required.');
-                            $rootScope.previousState = $location.path();
-                            $location.path('/login');
+                            alNoAutenticado('Authentication required.');
                         }
                         else if (alFallar != null) {
                             alFallar(error);
@@ -52,9 +65,7 @@
                     alExito(resultado);
                 }, function (error) {
                     if (error.status == '401') {
-                        servicioNotificaciones.mostrarError('Debe autenticarse para ingresar a esta opción.');
-                        $rootScope.previousState = $location.path();
-                        $location.path('/login');
+                        alNoAutenticado('Debe autenticarse para ingresar a esta opción.');
                     }
                     else if (alFallar != null) {
                         alFallar(error);

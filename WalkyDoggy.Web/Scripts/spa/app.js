@@ -33,6 +33,16 @@
                  templateUrl: "scripts/spa/public/homePublic.html",
                  controller: "inicioPublicoCtrl"
              })
+         .when("/friends", {
+             templateUrl: "scripts/spa/friends/friends.html",
+             controller: "comerciosAmigosCtrl",
+             resolve: { isAuthenticated: estaAutenticado }
+         })
+         .when("/admin", {
+             templateUrl: "scripts/spa/admin/admin.html",
+             controller: "adminCtrl",
+             resolve: { isAuthenticated: estaAutenticado }
+         })
          .when("/profile", {
              templateUrl: "scripts/spa/profile/profile.html",
              controller: "perfilCtrl",

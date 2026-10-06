@@ -51,6 +51,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Constants\AdminActionTypes.cs" />
+    <Compile Include="Constants\ComplaintConstants.cs" />
+    <Compile Include="Constants\PublicidadConstants.cs" />
     <Compile Include="Constants\Roles.cs" />
     <Compile Include="Constants\WalkConstants.cs" />
     <Compile Include="Constants\PetTraits.cs" />
@@ -66,6 +69,12 @@
     <Compile Include="Dtos\PetReviewDtos.cs" />
     <Compile Include="Dtos\RatingDtos.cs" />    <Compile Include="Dtos\CustomerDto.cs" />
     <Compile Include="Dtos\IDto.cs" />
+    <Compile Include="Dtos\AdministracionDtos.cs" />
+    <Compile Include="Dtos\CambioContrasenaDto.cs" />
+    <Compile Include="Dtos\CatalogosDtos.cs" />
+    <Compile Include="Dtos\DenunciasDtos.cs" />
+    <Compile Include="Dtos\PaseosAdminDtos.cs" />
+    <Compile Include="Dtos\PublicidadDtos.cs" />
     <Compile Include="Dtos\LoginDto.cs" />
     <Compile Include="Dtos\PetDto.cs" />
     <Compile Include="Dtos\PriceDto.cs" />

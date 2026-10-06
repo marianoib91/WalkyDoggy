@@ -100,6 +100,83 @@ namespace WalkyDoggy.Services.Services
             });
         }
 
+        public void ReservaCanceladaPorBloqueo(IEnumerable<Walk> paseos, String rolBloqueado)
+        {
+            Notificar(paseos, reserva =>
+            {
+                var detalle = reserva.Pets + " el " + reserva.When;
+
+                if (rolBloqueado == "Walker")
+                {
+                    EnviarA(reserva.CustomerEmail, "Se canceló tu paseo con " + reserva.WalkerName,
+                        "Hola " + reserva.CustomerFirstName + ",\n\nEl paseo de " + detalle + " se canceló porque la cuenta de " + reserva.WalkerName +
+                        " dejó de estar disponible.\n\nPodés pedirle el paseo a otro paseador: " + ArmarEnlace("#/"));
+                }
+                else
+                {
+                    EnviarA(reserva.WalkerEmail, "Se canceló un paseo",
+                        "Hola " + reserva.WalkerFirstName + ",\n\nEl paseo de " + detalle + " se canceló porque la cuenta de " + reserva.CustomerName +
+                        " dejó de estar disponible. El horario quedó libre.");
+                }
+            });
+        }
+
+        public void ReservaCanceladaPorAdministrador(IEnumerable<Walk> paseos, String motivo)
+        {
+            Notificar(paseos, reserva =>
+            {
+                var detalle = reserva.Pets + " el " + reserva.When;
+
+                EnviarA(reserva.CustomerEmail, "Un administrador canceló tu paseo",
+                    "Hola " + reserva.CustomerFirstName + ",\n\nUn administrador de WalkyDoggy canceló el paseo de " + detalle + " con " + reserva.WalkerName +
+                    ".\n\nMotivo: " + motivo + "\n\nPodés pedirle el paseo a otro paseador: " + ArmarEnlace("#/"));
+                EnviarA(reserva.WalkerEmail, "Un administrador canceló un paseo",
+                    "Hola " + reserva.WalkerFirstName + ",\n\nUn administrador de WalkyDoggy canceló el paseo de " + detalle + " de " + reserva.CustomerName +
+                    ".\n\nMotivo: " + motivo + "\n\nEl horario quedó libre.");
+            });
+        }
+
+        public void CuentaBloqueada(String email, String motivo)
+        {
+            try
+            {
+                EnviarA(email, "Tu cuenta de WalkyDoggy fue bloqueada",
+                    "Un administrador bloqueó tu cuenta, por este motivo:\n\n" + motivo +
+                    "\n\nMientras esté bloqueada no vas a poder iniciar sesión y se cancelaron tus paseos pendientes.");
+            }
+            catch (Exception)
+            {
+                //Los avisos nunca rompen la operacion que los origino
+            }
+        }
+
+        public void AdvertenciaPorDenuncia(String email, String motivo)
+        {
+            try
+            {
+                EnviarA(email, "Advertencia sobre tu cuenta de WalkyDoggy",
+                    "Un administrador revisó una denuncia sobre tu cuenta y te envía esta advertencia:\n\n" + motivo +
+                    "\n\nSi la situación se repite, tu cuenta puede ser bloqueada.");
+            }
+            catch (Exception)
+            {
+                //Los avisos nunca rompen la operacion que los origino
+            }
+        }
+
+        public void CuentaDesbloqueada(String email)
+        {
+            try
+            {
+                EnviarA(email, "Tu cuenta de WalkyDoggy fue habilitada",
+                    "Un administrador volvió a habilitar tu cuenta. Ya podés iniciar sesión: " + ArmarEnlace("#/"));
+            }
+            catch (Exception)
+            {
+                //Los avisos nunca rompen la operacion que los origino
+            }
+        }
+
         /* ---------- Armado de los mails ---------- */
 
         private void Notificar(IEnumerable<Walk> paseos, Action<Reserva> send)

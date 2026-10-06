@@ -1,0 +1,76 @@
+<div class="wd-friends">
+    <div class="wd-page-header">
+        <div>
+            <h1 class="wd-page-title">Comercios amigos</h1>
+            <p class="wd-page-subtitle">Veterinarias, guardias veterinarias, forrajerías, pet shops y más: los comercios aliados de WalkyDoggy para cuidar a tu mascota.</p>
+        </div>
+    </div>
+
+    <div class="wd-notice" ng-if="cargado && !conUbicacion">
+        <i class="fa fa-map-marker" aria-hidden="true"></i>
+        <div>
+            <strong>Todavía no sabemos dónde estás.</strong>
+            Cargá tu ubicación en <a href="#/profile">tu perfil</a> y te mostramos primero los comercios más cercanos.
+        </div>
+    </div>
+
+    <p class="wd-field-hint" ng-if="!cargado">Cargando...</p>
+
+    <div ng-if="cargado && comercios.length == 0">
+        <p class="wd-field-hint">Todavía no hay comercios amigos para mostrar. ¡Pronto vas a encontrar acá veterinarias, forrajerías y más!</p>
+    </div>
+
+    <div ng-if="comercios.length > 0">
+        <div class="wd-friends-filters">
+            <div class="form-group">
+                <label for="amigos-texto">Buscar</label>
+                <input id="amigos-texto" type="search" class="form-control" placeholder="Nombre, descripción o dirección" ng-model="filtro.texto" ng-change="actualizar()" />
+            </div>
+        </div>
+
+        <div class="wd-filter-chips" role="group" aria-label="Rubros">
+            <button type="button" class="wd-filter-chip" ng-class="{'is-active': !filtro.categoria}" ng-click="elegirCategoria('')">
+                Todos <span class="wd-filter-count">{{cantidadDe()}}</span>
+            </button>
+            <button type="button" class="wd-filter-chip" ng-repeat="categoria in categorias" ng-if="cantidadDe(categoria.codigo) > 0"
+                    ng-class="{'is-active': filtro.categoria == categoria.codigo}" ng-click="elegirCategoria(categoria.codigo)">
+                <i class="fa" ng-class="categoria.icono" aria-hidden="true"></i> {{categoria.plural}} <span class="wd-filter-count">{{cantidadDe(categoria.codigo)}}</span>
+            </button>
+        </div>
+
+        <p class="wd-field-hint" ng-if="cantidadMostrada == 0">No hay comercios que coincidan con la búsqueda.</p>
+
+        <section class="wd-friends-group" ng-repeat="grupo in grupos track by grupo.codigo">
+            <h2 class="wd-section-title"><i class="fa" ng-class="grupo.icono" aria-hidden="true"></i> {{grupo.titulo}} <span class="wd-count">{{grupo.comercios.length}}</span></h2>
+            <div class="wd-friends-grid">
+                <article class="wd-friend" ng-repeat="comercio in grupo.comercios track by comercio.id">
+                    <div class="wd-friend-head">
+                        <h3 class="wd-friend-name">{{comercio.name}}</h3>
+                        <span class="wd-friend-distance" ng-if="textoDistancia(comercio)"><i class="fa fa-map-marker" aria-hidden="true"></i> {{textoDistancia(comercio)}}</span>
+                    </div>
+                    <p class="wd-friend-description" ng-if="comercio.description">{{comercio.description}}</p>
+                    <p class="wd-friend-address" ng-if="comercio.address">
+                        {{comercio.address}}
+                        <a ng-if="comercio.latitude" ng-href="{{enlaceComoLlegar(comercio)}}" target="_blank" rel="noopener">· Cómo llegar</a>
+                    </p>
+
+                    <div class="wd-friend-promos" ng-if="comercio.promotions.length > 0">
+                        <div class="wd-friend-promos-title"><i class="fa fa-tag" aria-hidden="true"></i> Promociones</div>
+                        <div class="wd-friend-promo" ng-repeat="promocion in comercio.promotions track by promocion.adId">
+                            <div>
+                                <strong>{{promocion.title}}</strong>
+                                <span class="wd-field-hint" ng-if="promocion.text"> {{promocion.text}}</span>
+                            </div>
+                            <button type="button" class="btn btn-default btn-sm" ng-if="promocion.linkUrl" ng-click="abrirPromocion(promocion)">Ver</button>
+                        </div>
+                    </div>
+
+                    <div class="wd-friend-actions">
+                        <a class="btn btn-default btn-sm" ng-if="comercio.phone" ng-href="tel:{{comercio.phone}}"><i class="fa fa-phone" aria-hidden="true"></i> {{comercio.phone}}</a>
+                        <button type="button" class="btn btn-default btn-sm" ng-if="comercio.website" ng-click="abrirWeb(comercio)"><i class="fa fa-globe" aria-hidden="true"></i> Visitar</button>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </div>
+</div>

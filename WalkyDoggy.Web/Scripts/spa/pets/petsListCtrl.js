@@ -21,6 +21,11 @@
                 }
             }
             servicioApi.get('/api/pets/getAllByCustomerId/', config, alCargarMascotas);
+
+            //El domicilio del cliente (para mostrarle los avisos de los comercios que tiene cerca)
+            servicioApi.get('/api/customers/getByUserId', { params: { userId: $scope.idUsuario } }, function (resultado) {
+                $scope.cliente = resultado.data;
+            });
         }
 
         function alCargarMascotas(resultado) {

@@ -15,6 +15,27 @@ namespace WalkyDoggy.Web.Infrastructure.Core
             return usuario != null && usuario.Identity != null && usuario.Identity.IsAuthenticated;
         }
 
+        //Solo un usuario con el rol de administrador (y con la cuenta habilitada) puede usar las funciones de administracion
+        public static Boolean EsAdministrador(IPrincipal usuario, IRepositorioEntidadBase<User> repositorioUsuarios, out Int64 idAdministrador)
+        {
+            idAdministrador = 0;
+            if (!EstaAutenticado(usuario))
+            {
+                return false;
+            }
+
+            var email = usuario.Identity.Name;
+            var administrador = repositorioUsuarios.TodosConIncluidos(x => x.UserRoles).
+                FirstOrDefault(x => x.Email == email && !x.IsLocked && x.UserRoles.Any(r => r.RoleId == WalkyDoggy.Application.Constants.Roles.Admin));
+            if (administrador == null)
+            {
+                return false;
+            }
+
+            idAdministrador = administrador.Id;
+            return true;
+        }
+
         public static Boolean EsCliente(IPrincipal usuario, IRepositorioEntidadBase<Customer> repositorioClientes, Int64 idCliente)
         {
             if (!EstaAutenticado(usuario))

@@ -1,0 +1,87 @@
+<div ng-controller="adminCatalogosCtrl">
+
+    <!-- Razas y tamaños -->
+    <div ng-if="pestana != 'caracteristicas'">
+        <p class="wd-field-hint">
+            Nada se borra: si das de baja {{texto().articulo}} {{texto().singular}}, deja de ofrecerse al cargar mascotas, pero las que ya lo tenían lo conservan.
+            <span ng-if="pestana == 'razas'">"Otro" es la opción comodín: no se renombra ni se da de baja.</span>
+        </p>
+
+        <form class="wd-admin-inline-form" novalidate ng-submit="agregar()">
+            <div class="form-group">
+                <label for="catalogo-nuevo">{{texto().nueva}}</label>
+                <input id="catalogo-nuevo" type="text" class="form-control" maxlength="60" ng-model="nuevo.nombre" autocomplete="off" />
+            </div>
+            <button type="submit" class="btn btn-primary" ng-disabled="guardando || !nuevo.nombre">Agregar</button>
+        </form>
+
+        <div class="wd-admin-table-wrap">
+            <table class="wd-admin-table">
+                <thead>
+                    <tr><th>Nombre</th><th>Mascotas</th><th>Estado</th><th class="wd-admin-actions-col"><span class="sr-only">Acciones</span></th></tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="item in items track by item.id" ng-class="{'is-blocked': !item.active}">
+                        <td><strong>{{item.name}}</strong></td>
+                        <td>{{item.petCount}}</td>
+                        <td>
+                            <span class="wd-status wd-status-confirmed" ng-if="item.active">Activo</span>
+                            <span class="wd-status wd-status-cancelled" ng-if="!item.active">De baja</span>
+                        </td>
+                        <td class="wd-admin-actions-col">
+                            <button type="button" class="btn btn-default btn-sm" ng-if="!item.protected" ng-click="renombrar(item)">Renombrar</button>
+                            <button type="button" class="btn btn-danger btn-sm" ng-if="!item.protected && item.active" ng-click="alternarActivo(item)">Dar de baja</button>
+                            <button type="button" class="btn btn-default btn-sm" ng-if="!item.protected && !item.active" ng-click="alternarActivo(item)">Reactivar</button>
+                            <span class="wd-field-hint" ng-if="item.protected">Opción comodín</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Caracteristicas -->
+    <div ng-if="pestana == 'caracteristicas'">
+        <p class="wd-field-hint">
+            Las características vienen en pares opuestos (por ejemplo, Juguetón y Tranquilo) y de cada par el cliente elige una sola para describir a su perro.
+            Se usan para sugerir paseadores que ya llevan perros parecidos. Si das de baja un par, deja de ofrecerse y de contar para el matching.
+        </p>
+
+        <form class="wd-admin-inline-form" novalidate ng-submit="guardarPar()">
+            <div class="form-group">
+                <label for="par-primera">{{formulario.pairId ? 'Primera característica' : 'Primera característica del par nuevo'}}</label>
+                <input id="par-primera" type="text" class="form-control" maxlength="40" ng-model="formulario.primera" autocomplete="off" />
+            </div>
+            <div class="form-group">
+                <label for="par-segunda">Su opuesta</label>
+                <input id="par-segunda" type="text" class="form-control" maxlength="40" ng-model="formulario.segunda" autocomplete="off" />
+            </div>
+            <button type="submit" class="btn btn-primary" ng-disabled="guardando">{{formulario.pairId ? 'Guardar cambios' : 'Agregar par'}}</button>
+            <button type="button" class="btn btn-default" ng-if="formulario.pairId" ng-click="limpiarFormulario()">Cancelar</button>
+        </form>
+        <p class="wd-form-error" ng-if="errorFormulario" role="alert">{{errorFormulario}}</p>
+
+        <div class="wd-admin-table-wrap">
+            <table class="wd-admin-table">
+                <thead>
+                    <tr><th>Par de características</th><th>Mascotas</th><th>Estado</th><th class="wd-admin-actions-col"><span class="sr-only">Acciones</span></th></tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="par in pares track by par.pairId" ng-class="{'is-blocked': !par.active}">
+                        <td><strong>{{par.first.label}}</strong> <span class="wd-field-hint">&harr;</span> <strong>{{par.second.label}}</strong></td>
+                        <td>{{par.petCount}}</td>
+                        <td>
+                            <span class="wd-status wd-status-confirmed" ng-if="par.active">Activo</span>
+                            <span class="wd-status wd-status-cancelled" ng-if="!par.active">De baja</span>
+                        </td>
+                        <td class="wd-admin-actions-col">
+                            <button type="button" class="btn btn-default btn-sm" ng-click="editarPar(par)">Editar</button>
+                            <button type="button" class="btn btn-danger btn-sm" ng-if="par.active" ng-click="alternarPar(par)">Dar de baja</button>
+                            <button type="button" class="btn btn-default btn-sm" ng-if="!par.active" ng-click="alternarPar(par)">Reactivar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -28,3 +28,9 @@ WalkyDoggy.Web/Secrets.config
 
 # Mails de desarrollo (sin servidor SMTP se guardan aca)
 WalkyDoggy.Web/App_Data/outbox/
+
+# Contrasena del primer administrador (la genera Database/crear-administrador.ps1)
+Database/admin-inicial.txt
+
+# Imagenes adjuntas a las denuncias (solo las ve un administrador)
+WalkyDoggy.Web/App_Data/complaints/

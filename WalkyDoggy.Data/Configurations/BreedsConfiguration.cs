@@ -7,6 +7,7 @@ namespace WalkyDoggy.Data.Configurations
         public BreedsConfiguration()
         {
             Property(u => u.Name).IsRequired().HasMaxLength(100);
+            Property(u => u.Active).IsRequired();
         }
     }
 }

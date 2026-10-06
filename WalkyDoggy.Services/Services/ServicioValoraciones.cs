@@ -32,7 +32,7 @@ namespace WalkyDoggy.Services.Services
         public RatingSummaryDto ObtenerResumen(Int64 idPaseador)
         {
             var valoraciones = this.repositorioValoraciones.ObtenerTodos().
-                                                  Where(x => x.WalkerId == idPaseador).
+                                                  Where(x => x.WalkerId == idPaseador && !x.Hidden).
                                                   Select(x => new { x.Score, x.Comments }).
                                                   ToList();
 
@@ -60,7 +60,7 @@ namespace WalkyDoggy.Services.Services
             tamanoPagina = Math.Min(Math.Max(tamanoPagina, 1), TamanoMaximoPagina);
 
             var consulta = this.repositorioValoraciones.TodosConIncluidos(x => x.Customer).
-                                                Where(x => x.WalkerId == idPaseador);
+                                                Where(x => x.WalkerId == idPaseador && !x.Hidden);
             if (estrellas.HasValue)
             {
                 var estrellasBuscadas = (Double)estrellas.Value;

@@ -62,13 +62,48 @@ namespace WalkyDoggy.Web.Controllers
                     }
                     else
                     {
-                        respuesta = pedido.CreateResponse(HttpStatusCode.OK, new { success = false });
+                        //Si las credenciales son correctas pero la cuenta esta bloqueada se le explica el motivo
+                        String motivoBloqueo;
+                        if (servicioMembresia.EstaBloqueado(user.Email, user.Password, out motivoBloqueo))
+                        {
+                            respuesta = pedido.CreateResponse(HttpStatusCode.OK, new { success = false, blocked = true, reason = motivoBloqueo });
+                        }
+                        else
+                        {
+                            respuesta = pedido.CreateResponse(HttpStatusCode.OK, new { success = false });
+                        }
                     }
                 }
                 else
                     respuesta = pedido.CreateResponse(HttpStatusCode.OK, new { success = false });
 
                 return respuesta;
+            });
+        }
+
+        //Quien cambia la contraseña es el usuario que inicio sesion (cabecera Authorization); ademas tiene que confirmar la actual
+        [Route("changePassword")]
+        [HttpPost]
+        public HttpResponseMessage ChangePassword(HttpRequestMessage pedido, CambioContrasenaDto cambio)
+        {
+            return CrearRespuestaHttp(pedido, () =>
+            {
+                if (!IdentidadDelActor.EstaAutenticado(User))
+                {
+                    return pedido.CreateResponse(HttpStatusCode.Unauthorized, new[] { "Tenés que iniciar sesión." });
+                }
+                if (cambio == null)
+                {
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { "Faltan datos." });
+                }
+
+                String error;
+                if (!servicioMembresia.CambiarContrasena(User.Identity.Name, cambio.CurrentPassword, cambio.NewPassword, out error))
+                {
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                }
+
+                return pedido.CreateResponse(HttpStatusCode.OK, true);
             });
         }
 

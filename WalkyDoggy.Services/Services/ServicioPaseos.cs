@@ -35,9 +35,6 @@ namespace WalkyDoggy.Services.Services
         //El cliente puede iniciar el paseo desde unas horas antes del horario agendado, porque el horario real de retiro se acuerda por el chat
         public const Int32 HorasDeAnticipoParaIniciar = 2;
 
-        //Minutos desde la hora agendada despues de los cuales el paseador puede iniciar el paseo si el cliente no lo hizo
-        public const Int32 MinutosParaQueElPaseadorInicie = 15;
-
         public ServicioPaseos(IRepositorioEntidadBase<Error> repositorioErrores,
                                 IUnidadDeTrabajo unidadDeTrabajo,
                                 IRepositorioEntidadBase<Walk> repositorioPaseos,
@@ -380,13 +377,19 @@ namespace WalkyDoggy.Services.Services
         //El paseo empieza cuando lo inicia el CLIENTE, al momento en que el paseador llega a buscar a la mascota: asi el horario real de inicio
         //no depende de que el paseador diga que ya llego. Se puede desde HorasDeAnticipoParaIniciar horas antes del horario agendado
         //(el horario exacto de retiro se acuerda por el chat).
-        //Si el cliente no lo inicio, pasados MinutosParaQueElPaseadorInicie desde la hora agendada lo puede iniciar el paseador (queda registrado quien lo hizo).
+        //El paseador NO puede iniciarlo, ni siquiera pasado un tiempo: asi no puede dar por empezado un paseo al que nunca fue a buscar a la mascota.
         public Boolean Iniciar(BookingActionCriteria criterioAccionReserva, out String error)
         {
             error = null;
             VencerPaseosPendientes();
 
             var actor = criterioAccionReserva.Actor;
+            if (actor != WalkCancelledBy.Customer)
+            {
+                error = "El paseo lo inicia el cliente cuando llegás a buscar a la mascota.";
+                return false;
+            }
+
             var paseos = BuscarReserva(criterioAccionReserva.BookingKey);
             var esDelActor = paseos.Count > 0 &&
                             (actor == WalkCancelledBy.Walker
@@ -421,25 +424,12 @@ namespace WalkyDoggy.Services.Services
             var ahora = DateTime.Now;
             var horaAgendada = InicioDe(paseos[0]);
 
-            if (actor == WalkCancelledBy.Customer)
+            var habilitadoDesde = horaAgendada.AddHours(-HorasDeAnticipoParaIniciar);
+            if (ahora < habilitadoDesde)
             {
-                var habilitadoDesde = horaAgendada.AddHours(-HorasDeAnticipoParaIniciar);
-                if (ahora < habilitadoDesde)
-                {
-                    error = "Todavía es muy temprano para iniciar este paseo: podés hacerlo desde las " + habilitadoDesde.ToString("HH:mm") +
-                            (habilitadoDesde.Date != ahora.Date ? " del " + habilitadoDesde.ToString("dd/MM") : String.Empty) + ".";
-                    return false;
-                }
-            }
-            else
-            {
-                var habilitadoDesde = horaAgendada.AddMinutes(MinutosParaQueElPaseadorInicie);
-                if (ahora < habilitadoDesde)
-                {
-                    error = "El paseo lo inicia el cliente cuando llegás a buscar a la mascota. Si pasados " + MinutosParaQueElPaseadorInicie +
-                            " minutos de la hora agendada (" + habilitadoDesde.ToString("HH:mm") + ") no lo inició, podés iniciarlo vos.";
-                    return false;
-                }
+                error = "Todavía es muy temprano para iniciar este paseo: podés hacerlo desde las " + habilitadoDesde.ToString("HH:mm") +
+                        (habilitadoDesde.Date != ahora.Date ? " del " + habilitadoDesde.ToString("dd/MM") : String.Empty) + ".";
+                return false;
             }
 
             paseos.ForEach(x =>
@@ -449,9 +439,7 @@ namespace WalkyDoggy.Services.Services
             });
             this.unidadDeTrabajo.GuardarCambios();
 
-            this.servicioMensajes.AgregarDelSistema(criterioAccionReserva.BookingKey, actor == WalkCancelledBy.Customer
-                ? "El cliente inició el paseo a las " + ahora.ToString("HH:mm") + "."
-                : "El paseador inició el paseo a las " + ahora.ToString("HH:mm") + " (el cliente no lo había iniciado).");
+            this.servicioMensajes.AgregarDelSistema(criterioAccionReserva.BookingKey, "El cliente inició el paseo a las " + ahora.ToString("HH:mm") + ".");
             return true;
         }
 

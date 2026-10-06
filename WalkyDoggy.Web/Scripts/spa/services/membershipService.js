@@ -15,7 +15,8 @@
             registrar: registrar,
             guardarCredenciales: guardarCredenciales,
             quitarCredenciales: quitarCredenciales,
-            haySesion: haySesion
+            haySesion: haySesion,
+            actualizarContrasena: actualizarContrasena
         }
 
         function iniciarSesion(usuario, alCompletar) {
@@ -26,10 +27,11 @@
             servicioApi.post('/api/account/register', usuario, alCompletar, falloRegistro);
         }
 
-        //destino: pantalla a la que se va despues de guardar las credenciales (por defecto, el inicio)
+        //destino: pantalla a la que se va despues de guardar las credenciales (por defecto, Mis paseos para el paseador
+        //y Mis mascotas para el cliente, que es lo primero que necesita para pedir un paseo)
         function guardarCredenciales(usuario, email, destino) {
             loggedUser = usuario;
-            destinoPosterior = destino || '/';
+            destinoPosterior = destino || (usuario.roleId == '2' ? '/pets/list' : usuario.roleId == '1' ? '/admin' : '/');
             datosMembresia = $base64.encode(usuario.email + ':' + usuario.password);
             if (usuario.id == 0) {
                 var config = {
@@ -56,6 +58,11 @@
                 servicioApi.get('/api/walkers/getByUserId', config, alCargarUsuario);
             }
 
+            //Administrador: no tiene perfil de cliente ni de paseador, alcanza con los datos del login
+            if (usuario.roleId == '1') {
+                alCargarUsuario({ data: { userId: usuario.id, id: null, email: usuario.email } });
+            }
+
         }
         function alCargarUsuario(respuesta) {
 
@@ -69,6 +76,18 @@
                         authdata: datosMembresia,
                         walkerId: null,
                         customerId: respuesta.data.id
+                    }
+                };
+            }
+            else if (loggedUser.roleId == '1') {
+                $rootScope.repository = {
+                    loggedUser: {
+                        roleId: loggedUser.roleId,
+                        id: respuesta.data.userId,
+                        email: loggedUser.email,
+                        authdata: datosMembresia,
+                        walkerId: null,
+                        customerId: null
                     }
                 };
             }
@@ -90,6 +109,14 @@
             $cookieStore.put('repository', $rootScope.repository);           
             servicioNotificaciones.mostrarExito('Bienvenido ' + respuesta.data.email);
             $location.path(destinoPosterior);
+        }
+
+        //Despues de cambiar la contraseña la sesion abierta (y la cookie) tienen que usar la nueva
+        function actualizarContrasena(contrasenaNueva) {
+            datosMembresia = $base64.encode($rootScope.repository.loggedUser.email + ':' + contrasenaNueva);
+            $rootScope.repository.loggedUser.authdata = datosMembresia;
+            $http.defaults.headers.common['Authorization'] = 'Basic ' + datosMembresia;
+            $cookieStore.put('repository', $rootScope.repository);
         }
 
         function quitarCredenciales() {

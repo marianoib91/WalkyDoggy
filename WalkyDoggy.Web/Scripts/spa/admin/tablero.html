@@ -1,0 +1,127 @@
+<div ng-controller="adminTableroCtrl">
+    <div class="wd-admin-filters">
+        <div class="form-group">
+            <label for="tablero-periodo">Período</label>
+            <select id="tablero-periodo" class="form-control" ng-model="filtro.periodo" ng-options="p.valor as p.texto for p in periodos" ng-change="cambiarPeriodo()"></select>
+        </div>
+        <div class="form-group" ng-if="filtro.periodo == 'custom'">
+            <label for="tablero-desde">Desde</label>
+            <input id="tablero-desde" type="date" class="form-control" ng-model="filtro.desde" ng-change="aplicarFechas()" />
+        </div>
+        <div class="form-group" ng-if="filtro.periodo == 'custom'">
+            <label for="tablero-hasta">Hasta</label>
+            <input id="tablero-hasta" type="date" class="form-control" ng-model="filtro.hasta" ng-change="aplicarFechas()" />
+        </div>
+    </div>
+
+    <p class="wd-field-hint" ng-if="cargando && !tablero">Cargando...</p>
+
+    <div ng-if="tablero">
+        <p class="wd-field-hint">Reservas del {{textoPeriodo()}} (por día del paseo).</p>
+
+        <div class="wd-kpis">
+            <div class="wd-kpi">
+                <span class="wd-kpi-value">{{tablero.totalBookings}}</span>
+                <span class="wd-kpi-label">Reservas</span>
+            </div>
+            <div class="wd-kpi">
+                <span class="wd-kpi-value">{{tablero.cancellationRate | number:1}}%</span>
+                <span class="wd-kpi-label">Canceladas</span>
+            </div>
+            <div class="wd-kpi">
+                <span class="wd-kpi-value">{{tablero.petsWalked}}</span>
+                <span class="wd-kpi-label">Perros paseados</span>
+            </div>
+            <div class="wd-kpi">
+                <span class="wd-kpi-value">{{tablero.activeWalkers}}</span>
+                <span class="wd-kpi-label">Paseadores activos</span>
+            </div>
+            <div class="wd-kpi">
+                <span class="wd-kpi-value">{{tablero.activeCustomers}}</span>
+                <span class="wd-kpi-label">Clientes activos</span>
+            </div>
+            <div class="wd-kpi">
+                <span class="wd-kpi-value">${{tablero.totalCollected | wdMoney}}</span>
+                <span class="wd-kpi-label">Cobrado</span>
+                <span class="wd-kpi-detail">Efectivo ${{tablero.cashCollected | wdMoney}} · Mercado Pago ${{tablero.mercadoPagoCollected | wdMoney}}</span>
+            </div>
+            <div class="wd-kpi" ng-if="tablero.estimatedCommission != null">
+                <span class="wd-kpi-value">${{tablero.estimatedCommission | wdMoney}}</span>
+                <span class="wd-kpi-label">Comisión estimada</span>
+                <span class="wd-kpi-detail">{{tablero.commissionPercent}}% de lo cobrado por Mercado Pago</span>
+            </div>
+            <div class="wd-kpi">
+                <span class="wd-kpi-value" ng-if="tablero.averageRating != null">{{tablero.averageRating | number:1}} <i class="fa fa-star" aria-hidden="true"></i></span>
+                <span class="wd-kpi-value" ng-if="tablero.averageRating == null">–</span>
+                <span class="wd-kpi-label">Valoración promedio</span>
+                <span class="wd-kpi-detail">{{tablero.ratingCount}} {{tablero.ratingCount == 1 ? 'valoración' : 'valoraciones'}} · {{tablero.petReviewCount}} {{tablero.petReviewCount == 1 ? 'reseña de mascota' : 'reseñas de mascotas'}}</span>
+            </div>
+            <div class="wd-kpi" ng-class="{'is-alert': tablero.pendingComplaints > 0}">
+                <span class="wd-kpi-value">{{tablero.pendingComplaints}}</span>
+                <span class="wd-kpi-label">Denuncias pendientes</span>
+                <span class="wd-kpi-detail">{{tablero.complaintsInPeriod}} {{tablero.complaintsInPeriod == 1 ? 'llegó' : 'llegaron'}} en el período</span>
+            </div>
+            <div class="wd-kpi">
+                <span class="wd-kpi-value">{{tablero.lockedUsers}}</span>
+                <span class="wd-kpi-label">Cuentas bloqueadas</span>
+                <span class="wd-kpi-detail">{{tablero.totalCustomers}} clientes · {{tablero.totalWalkers}} paseadores en total</span>
+            </div>
+        </div>
+
+        <h3 class="wd-complaint-heading">Reservas por día</h3>
+        <p class="wd-field-hint" ng-if="tablero.totalBookings == 0">No hubo reservas en este período.</p>
+        <div ng-if="tablero.totalBookings > 0">
+            <div class="wd-chart" role="img" aria-label="Reservas por día">
+                <div class="wd-chart-col" ng-repeat="dia in tablero.byDay track by dia.date" title="{{textoDia(dia)}}">
+                    <div class="wd-chart-bar" ng-style="{height: alturaDia(dia) + '%'}" ng-if="dia.total > 0">
+                        <div class="wd-chart-cancelled" ng-style="{height: parteCancelada(dia) + '%'}"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="wd-chart-axis"><span ng-repeat="marca in marcasDelGrafico() track by $index">{{marca}}</span></div>
+            <p class="wd-field-hint"><span class="wd-chart-key"></span> Reservas · <span class="wd-chart-key is-cancelled"></span> Canceladas</p>
+        </div>
+
+        <div class="wd-dashboard-columns">
+            <div>
+                <h3 class="wd-complaint-heading">Reservas por estado</h3>
+                <ul class="wd-hbars">
+                    <li ng-repeat="estado in tablero.byStatus track by estado.key">
+                        <span class="wd-hbar-label">{{textoEstado(estado.key)}}</span>
+                        <span class="wd-hbar-track"><span class="wd-hbar-fill" ng-class="{'is-cancelled': estado.key == 'Cancelled'}" ng-style="{width: anchoBarra(estado.count, tablero.byStatus) + '%'}"></span></span>
+                        <span class="wd-hbar-count">{{estado.count}}</span>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="wd-complaint-heading">Quién canceló</h3>
+                <ul class="wd-hbars">
+                    <li ng-repeat="quien in tablero.cancelledBy track by quien.key">
+                        <span class="wd-hbar-label">{{textoCancelo(quien.key)}}</span>
+                        <span class="wd-hbar-track"><span class="wd-hbar-fill is-cancelled" ng-style="{width: anchoBarra(quien.count, tablero.cancelledBy) + '%'}"></span></span>
+                        <span class="wd-hbar-count">{{quien.count}}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 class="wd-complaint-heading">Paseadores con más reservas</h3>
+        <p class="wd-field-hint" ng-if="tablero.topWalkers.length == 0">Todavía no hay reservas en este período.</p>
+        <div class="wd-admin-table-wrap" ng-if="tablero.topWalkers.length > 0">
+            <table class="wd-admin-table">
+                <thead><tr><th>Paseador</th><th>Reservas</th><th>Valoración del período</th></tr></thead>
+                <tbody>
+                    <tr ng-repeat="paseador in tablero.topWalkers track by $index">
+                        <td><strong>{{paseador.name}}</strong></td>
+                        <td>{{paseador.bookings}}</td>
+                        <td>
+                            <wd-stars value="paseador.averageRating" ng-if="paseador.averageRating != null"></wd-stars>
+                            <span ng-if="paseador.averageRating != null"> {{paseador.averageRating | number:1}}</span>
+                            <span class="wd-field-hint" ng-if="paseador.averageRating == null">Sin valoraciones</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

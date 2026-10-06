@@ -37,6 +37,8 @@ namespace WalkyDoggy.Services.Services
         private readonly IRepositorioEntidadBase<UserRole> repositorioRolesUsuario;
         private readonly IServicioEncriptacion servicioEncriptacion;
         private readonly IServicioMembresia servicioMembresia;
+        private readonly IServicioCaracteristicas servicioCaracteristicas;
+        private List<String> codigosActivos;
         #endregion
 
         public ServicioPaseadores(IRepositorioEntidadBase<Error> repositorioErrores,
@@ -50,7 +52,8 @@ namespace WalkyDoggy.Services.Services
                                 IRepositorioEntidadBase<Price> repositorioPrecios,
                                 IRepositorioEntidadBase<UserRole> repositorioRolesUsuario,
                                 IServicioEncriptacion servicioEncriptacion,
-                                IServicioMembresia servicioMembresia) :
+                                IServicioMembresia servicioMembresia,
+                                IServicioCaracteristicas servicioCaracteristicas) :
             base(repositorioErrores, unidadDeTrabajo, repositorioPaseadores)
         {
             this.repositorioPaseadores = repositorioPaseadores;
@@ -63,6 +66,20 @@ namespace WalkyDoggy.Services.Services
             this.repositorioRolesUsuario = repositorioRolesUsuario;
             this.servicioEncriptacion = servicioEncriptacion;
             this.servicioMembresia = servicioMembresia;
+            this.servicioCaracteristicas = servicioCaracteristicas;
+        }
+
+        //Las caracteristicas que hoy estan activas en el catalogo (se consultan una sola vez por pedido)
+        private List<String> CodigosActivos()
+        {
+            return this.codigosActivos ?? (this.codigosActivos = this.servicioCaracteristicas.CodigosActivos());
+        }
+
+        //Las caracteristicas de una lista guardada que siguen activas: las dadas de baja no cuentan para el matching
+        private List<String> LeerRasgos(String guardadas)
+        {
+            var activas = CodigosActivos();
+            return PetTraits.Leer(guardadas).Where(x => activas.Contains(x)).ToList();
         }
 
         public WalkerDto Registrar(WalkerDto paseadorDto)
@@ -135,6 +152,7 @@ namespace WalkyDoggy.Services.Services
             }
 
             var estadisticas = this.repositorioValoraciones.ObtenerTodos().
+                                                Where(x => !x.Hidden).
                                                 GroupBy(x => x.WalkerId).
                                                 Select(g => new { WalkerId = g.Key, Count = g.Count(), Average = g.Average(x => x.Score) }).
                                                 ToList();
@@ -279,7 +297,7 @@ namespace WalkyDoggy.Services.Services
                     }
                 }
 
-                else if (mascotasDelCliente.Any(x => PetTraits.Leer(x.Traits).Count >= PetTraits.MinimoEnComun))
+                else if (mascotasDelCliente.Any(x => LeerRasgos(x.Traits).Count >= PetTraits.MinimoEnComun))
                 {
                     //Sin dia ni horario elegidos tambien se puede ordenar por matching: se miran los proximos dias y el paseador trae
                     //solo los horarios en los que lleva perros parecidos (el resto de sus horarios no se informa)
@@ -350,7 +368,7 @@ namespace WalkyDoggy.Services.Services
         //Informa cuantos son y cual es el que mas se parece (con cual mascota del cliente y en que caracteristicas), sin decir de quien es.
         private void AplicarCompatibilidad(Int64 idPaseador, DateTime fecha, List<AvailableTimeDto> cupos, List<Pet> mascotasDelCliente)
         {
-            var propias = mascotasDelCliente.Select(x => new { Mascota = x, Rasgos = PetTraits.Leer(x.Traits) }).
+            var propias = mascotasDelCliente.Select(x => new { Mascota = x, Rasgos = LeerRasgos(x.Traits) }).
                                              Where(x => x.Rasgos.Count >= PetTraits.MinimoEnComun).
                                              ToList();
             if (propias.Count == 0 || cupos.Count == 0)
@@ -373,7 +391,7 @@ namespace WalkyDoggy.Services.Services
 
                 foreach (var perro in perrosDelDia.Where(x => x.TimeFrom == cupo.Time).Select(x => x.Pet).GroupBy(x => x.Id).Select(x => x.First()))
                 {
-                    var rasgos = PetTraits.Leer(perro.Traits);
+                    var rasgos = LeerRasgos(perro.Traits);
 
                     //Con cual de las mascotas del cliente se parece mas
                     var masParecida = propias.Select(x => new { x.Mascota, EnComun = PetTraits.EnComun(x.Rasgos, rasgos) }).
@@ -395,7 +413,7 @@ namespace WalkyDoggy.Services.Services
                             BreedName = perro.Breed != null ? perro.Breed.Name : null,
                             SizeName = perro.Size != null ? perro.Size.Name : null,
                             SharedCount = masParecida.EnComun.Count,
-                            SharedTraits = PetTraits.Todas().Where(x => masParecida.EnComun.Contains(x)).ToList()
+                            SharedTraits = CodigosActivos().Where(x => masParecida.EnComun.Contains(x)).ToList()
                         };
                     }
                 }

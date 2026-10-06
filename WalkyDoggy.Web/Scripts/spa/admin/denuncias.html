@@ -1,0 +1,168 @@
+<div ng-controller="adminDenunciasCtrl">
+
+    <!-- Lista -->
+    <div ng-if="!detalle">
+        <p class="wd-field-hint">
+            Las denuncias que hacen los clientes y los paseadores. La persona denunciada no se entera de que existe: solo si hay una sanción (advertencia o bloqueo), y con el motivo que escribas.
+        </p>
+
+        <div class="wd-admin-filters">
+            <div class="form-group">
+                <label for="denuncias-estado">Estado</label>
+                <select id="denuncias-estado" class="form-control" ng-model="filtro.estado" ng-change="buscar()">
+                    <option value="Active">Pendientes (nuevas y en revisión)</option>
+                    <option value="Open">Nuevas</option>
+                    <option value="InReview">En revisión</option>
+                    <option value="Resolved">Resueltas</option>
+                    <option value="">Todas</option>
+                </select>
+            </div>
+        </div>
+
+        <p class="wd-field-hint" ng-if="!cargando && denuncias.length == 0">No hay denuncias en este estado.</p>
+
+        <div class="wd-admin-table-wrap" ng-if="denuncias.length > 0">
+            <table class="wd-admin-table">
+                <thead>
+                    <tr><th>Fecha</th><th>Motivo</th><th>Denunciante</th><th>Denunciado</th><th>Estado</th><th class="wd-admin-actions-col"><span class="sr-only">Acciones</span></th></tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="denuncia in denuncias track by denuncia.id">
+                        <td>{{denuncia.createdAt | date:'dd/MM/yyyy HH:mm'}}</td>
+                        <td>
+                            <strong>{{textoMotivo(denuncia.reason)}}</strong>
+                            <div class="wd-field-hint" ng-if="denuncia.images.length > 0"><i class="fa fa-picture-o" aria-hidden="true"></i> {{denuncia.images.length}} {{denuncia.images.length == 1 ? 'imagen' : 'imágenes'}}</div>
+                        </td>
+                        <td>{{denuncia.reporterName}} <span class="wd-field-hint">({{textoRol(denuncia.reporterRole)}})</span></td>
+                        <td>
+                            {{denuncia.reportedName}} <span class="wd-field-hint">({{textoRol(denuncia.reportedRole)}})</span>
+                            <div class="wd-field-hint" ng-if="denuncia.otherComplaintsAgainstReported > 0">{{denuncia.otherComplaintsAgainstReported}} {{denuncia.otherComplaintsAgainstReported == 1 ? 'denuncia más' : 'denuncias más'}}</div>
+                        </td>
+                        <td><span class="wd-status" ng-class="claseEstado(denuncia)">{{textoEstado(denuncia)}}</span></td>
+                        <td class="wd-admin-actions-col"><button type="button" class="btn btn-default btn-sm" ng-click="abrir(denuncia)">Ver</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="wd-admin-pager" ng-if="total > 0">
+            <span class="wd-field-hint">{{total}} {{total == 1 ? 'denuncia' : 'denuncias'}}</span>
+            <div>
+                <button type="button" class="btn btn-default btn-sm" ng-disabled="!hayAnterior()" ng-click="irA(pagina - 1)">Anterior</button>
+                <button type="button" class="btn btn-default btn-sm" ng-disabled="!haySiguiente()" ng-click="irA(pagina + 1)">Siguiente</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalle -->
+    <div ng-if="detalle" class="wd-complaint-detail">
+        <button type="button" class="btn btn-default btn-sm" ng-click="volver()"><i class="fa fa-angle-left" aria-hidden="true"></i> Volver a la lista</button>
+
+        <h2 class="wd-section-title wd-admin-subtitle">
+            Denuncia #{{detalle.id}}
+            <span class="wd-status" ng-class="claseEstado(detalle)">{{textoEstado(detalle)}}</span>
+        </h2>
+
+        <dl class="wd-walk-details">
+            <dt>Motivo</dt>
+            <dd><strong>{{textoMotivo(detalle.reason)}}</strong></dd>
+            <dt>Fecha</dt>
+            <dd>{{detalle.createdAt | date:'dd/MM/yyyy HH:mm'}}</dd>
+            <dt>Reserva</dt>
+            <dd>{{detalle.bookingSummary || 'No se encontró la reserva'}}</dd>
+            <dt>Denunciante</dt>
+            <dd>{{detalle.reporterName}} · {{textoRol(detalle.reporterRole)}} · {{detalle.reporterEmail}}</dd>
+            <dt>Denunciado</dt>
+            <dd>
+                {{detalle.reportedName}} · {{textoRol(detalle.reportedRole)}} · {{detalle.reportedEmail}}
+                <span class="wd-status wd-status-cancelled" ng-if="detalle.reportedIsLocked">Cuenta bloqueada</span>
+                <span class="wd-field-hint" ng-if="detalle.otherComplaintsAgainstReported > 0"> · Tiene {{detalle.otherComplaintsAgainstReported}} {{detalle.otherComplaintsAgainstReported == 1 ? 'denuncia más' : 'denuncias más'}}</span>
+            </dd>
+        </dl>
+
+        <h3 class="wd-complaint-heading">Lo que contó</h3>
+        <p class="wd-complaint-text">{{detalle.description}}</p>
+
+        <div ng-if="imagenes.length > 0">
+            <h3 class="wd-complaint-heading">Imágenes adjuntas</h3>
+            <div class="wd-complaint-thumbs">
+                <div class="wd-complaint-thumb" ng-repeat="imagen in imagenes">
+                    <a href="" ng-click="verImagen(imagen)" title="{{imagen.nombre}}: tocá para verla grande">
+                        <img ng-if="imagen.url" ng-src="{{imagen.url}}" alt="{{imagen.nombre}}" />
+                    </a>
+                    <span class="wd-field-hint" ng-if="!imagen.url && !imagen.error">Cargando...</span>
+                    <span class="wd-field-hint" ng-if="imagen.error">No se pudo cargar</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat de la reserva -->
+        <div class="wd-complaint-chat-block">
+            <button type="button" class="btn btn-default" ng-if="mensajes == null" ng-click="verChat()">
+                <i class="fa fa-comments-o" aria-hidden="true"></i> Leer el chat de la reserva
+            </button>
+            <div ng-if="mensajes != null">
+                <h3 class="wd-complaint-heading">Chat de la reserva</h3>
+                <p class="wd-field-hint">Esta lectura quedó registrada en la bitácora.</p>
+                <p class="wd-field-hint" ng-if="mensajes.length == 0">No hay mensajes.</p>
+                <ul class="wd-complaint-chat" ng-if="mensajes.length > 0">
+                    <li ng-repeat="mensaje in mensajes track by mensaje.id" ng-class="{'is-system': mensaje.senderRole == 'System'}">
+                        <div><strong>{{mensaje.senderName}}</strong> <span class="wd-field-hint">· {{mensaje.sentAt | date:'dd/MM HH:mm'}}</span></div>
+                        <div class="wd-complaint-text">{{mensaje.text}}</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Resolucion -->
+        <div class="wd-complaint-resolution" ng-if="detalle.status == 'Resolved'">
+            <h3 class="wd-complaint-heading">Resolución</h3>
+            <dl class="wd-walk-details">
+                <dt>Medida</dt>
+                <dd><strong>{{textoResolucion(detalle.resolution)}}</strong></dd>
+                <dt>Nota</dt>
+                <dd class="wd-complaint-text">{{detalle.resolutionNote}}</dd>
+                <dt>Resuelta</dt>
+                <dd>{{detalle.resolvedAt | date:'dd/MM/yyyy HH:mm'}} por {{detalle.resolvedByEmail}}</dd>
+            </dl>
+        </div>
+
+        <div class="wd-complaint-resolution" ng-if="detalle.status != 'Resolved'">
+            <button type="button" class="btn btn-default" ng-if="detalle.status == 'Open'" ng-disabled="trabajando" ng-click="ponerEnRevision()">Marcar como "en revisión"</button>
+
+            <h3 class="wd-complaint-heading">Resolver</h3>
+            <div class="wd-complaint-options" role="radiogroup" aria-label="Cómo se resuelve">
+                <label class="wd-choice" ng-class="{'is-selected': resolucion.tipo == 'NoAction'}">
+                    <input type="radio" name="resolucion" value="NoAction" ng-model="resolucion.tipo">
+                    <span class="wd-choice-body">
+                        <span class="wd-choice-title">Sin acción</span>
+                        <span class="wd-choice-text">No hay nada que sancionar. La persona denunciada no se entera.</span>
+                    </span>
+                </label>
+                <label class="wd-choice" ng-class="{'is-selected': resolucion.tipo == 'Warning'}">
+                    <input type="radio" name="resolucion" value="Warning" ng-model="resolucion.tipo">
+                    <span class="wd-choice-body">
+                        <span class="wd-choice-title">Advertencia</span>
+                        <span class="wd-choice-text">Se le avisa por mail a la persona denunciada, con tu nota como motivo.</span>
+                    </span>
+                </label>
+                <label class="wd-choice" ng-class="{'is-selected': resolucion.tipo == 'Block'}">
+                    <input type="radio" name="resolucion" value="Block" ng-model="resolucion.tipo">
+                    <span class="wd-choice-body">
+                        <span class="wd-choice-title">Bloquear la cuenta</span>
+                        <span class="wd-choice-text">Se bloquea (reversible), se cancelan sus reservas por empezar y se le avisa con tu nota como motivo.</span>
+                    </span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="resolucion-nota">Nota de la resolución</label>
+                <textarea id="resolucion-nota" class="form-control" rows="3" maxlength="500" ng-model="resolucion.nota"
+                          placeholder="Qué se decidió y por qué. Si hay sanción, es lo que lee la persona denunciada."></textarea>
+                <span class="wd-field-hint">{{(resolucion.nota || '').length}} / 500 (mínimo 5)</span>
+            </div>
+
+            <button type="button" class="btn btn-primary" ng-disabled="trabajando || !puedeResolver()" ng-click="resolver()">Resolver denuncia</button>
+        </div>
+    </div>
+</div>

@@ -31,7 +31,8 @@
                 size: 'sm',
                 controller: ['$scope', '$modalInstance', function ($scope, $modalInstance) {
                     $scope.opciones = configuracion;
-                    $scope.datos = { value: '' };
+                    //input.value permite arrancar con un texto ya escrito (por ejemplo, el nombre actual al renombrar)
+                    $scope.datos = { value: (configuracion.input && configuracion.input.value) || '' };
                     $scope.confirmar = function () { $modalInstance.close(configuracion.input ? $scope.datos.value.trim() : true); };
                     $scope.cancelar = function () { $modalInstance.dismiss('cancel'); };
                 }]

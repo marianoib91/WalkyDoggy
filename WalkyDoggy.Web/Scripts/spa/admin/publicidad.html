@@ -1,0 +1,202 @@
+<div ng-controller="adminPublicidadCtrl">
+    <p class="wd-field-hint">
+        Los comercios del rubro de las mascotas (pet shops, veterinarias, transporte de mascotas, forrajerías, peluquerías...) que se anuncian en la app.
+        Cargá el comercio una vez y después sus avisos: se muestran en el inicio de los clientes y de los paseadores, y podés limitarlos a quienes estén cerca del local.
+        Nada se borra: se pausan o se dan de baja, y las estadísticas quedan.
+    </p>
+
+    <ul class="nav nav-pills wd-admin-subtabs" role="tablist">
+        <li role="presentation" ng-class="{active: seccion == 'avisos'}"><a href="" role="tab" ng-click="cambiarSeccion('avisos')">Avisos</a></li>
+        <li role="presentation" ng-class="{active: seccion == 'comercios'}"><a href="" role="tab" ng-click="cambiarSeccion('comercios')">Comercios</a></li>
+    </ul>
+
+    <!-- ========== Avisos ========== -->
+    <div ng-if="seccion == 'avisos'">
+        <h2 class="wd-section-title">{{aviso.id ? 'Editar aviso' : 'Nuevo aviso'}}</h2>
+
+        <p class="wd-field-hint" ng-if="comerciosActivos().length == 0">Para crear un aviso primero cargá un comercio en la pestaña "Comercios".</p>
+
+        <div class="wd-ad-editor" ng-if="comerciosActivos().length > 0">
+            <form class="wd-ad-form" novalidate ng-submit="guardarAviso()">
+                <div class="form-group">
+                    <label for="aviso-comercio">Comercio</label>
+                    <select id="aviso-comercio" class="form-control" ng-model="aviso.comercio" ng-options="c.id as (c.name + ' · ' + textoCategoria(c.category)) for c in comerciosActivos()">
+                        <option value="">Elegí un comercio</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="aviso-titulo">Título</label>
+                    <input id="aviso-titulo" type="text" class="form-control" maxlength="60" ng-model="aviso.titulo" autocomplete="off" placeholder="Por ejemplo: 2x1 en alimento premium" />
+                </div>
+                <div class="form-group">
+                    <label for="aviso-texto">Texto (opcional)</label>
+                    <textarea id="aviso-texto" class="form-control" rows="3" maxlength="200" ng-model="aviso.texto" placeholder="Una o dos frases que expliquen la oferta."></textarea>
+                    <span class="wd-field-hint">{{(aviso.texto || '').length}} / 200</span>
+                </div>
+                <div class="form-group">
+                    <label for="aviso-enlace">Enlace (opcional)</label>
+                    <input id="aviso-enlace" type="url" class="form-control" maxlength="200" ng-model="aviso.enlace" autocomplete="off" placeholder="https://..." />
+                    <span class="wd-field-hint">A dónde lleva el botón "Ver más". Tiene que empezar con http:// o https://</span>
+                </div>
+                <div class="wd-ad-dates">
+                    <div class="form-group">
+                        <label for="aviso-desde">Se muestra desde</label>
+                        <input id="aviso-desde" type="date" class="form-control" ng-model="aviso.desde" />
+                    </div>
+                    <div class="form-group">
+                        <label for="aviso-hasta">hasta (inclusive)</label>
+                        <input id="aviso-hasta" type="date" class="form-control" ng-model="aviso.hasta" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="aviso-audiencia">Se le muestra a</label>
+                    <select id="aviso-audiencia" class="form-control" ng-model="aviso.audiencia" ng-options="a.valor as a.texto for a in audiencias"></select>
+                </div>
+                <div class="form-group">
+                    <label for="aviso-alcance">Alcance</label>
+                    <select id="aviso-alcance" class="form-control" ng-model="aviso.alcance" ng-options="a.valor as a.texto for a in alcances"></select>
+                    <span class="wd-field-hint" ng-if="sinUbicacion()">Este comercio no tiene ubicación en el mapa: cargala en "Comercios" para poder limitar el aviso por zona.</span>
+                    <span class="wd-field-hint" ng-if="!sinUbicacion() && aviso.alcance > 0">Solo lo ven quienes estén a {{aviso.alcance}} km o menos del comercio (se usa el domicilio del cliente o la zona del paseador).</span>
+                </div>
+                <div class="form-group">
+                    <label for="aviso-imagen">Imagen (opcional)</label>
+                    <input id="aviso-imagen" type="file" accept="image/jpeg,image/png,image/gif,image/webp" ng-file-select="alElegirImagen($files)" />
+                    <button type="button" class="btn btn-default btn-sm" ng-if="imagenParaVistaPrevia()" ng-click="sacarImagen()">Quitar la imagen</button>
+                    <span class="wd-field-hint">jpg, png, gif o webp de hasta 5 MB. Se ve mejor una imagen horizontal.</span>
+                </div>
+
+                <p class="wd-form-error" ng-if="errorAviso" role="alert">{{errorAviso}}</p>
+                <button type="submit" class="btn btn-primary" ng-disabled="guardando">{{aviso.id ? 'Guardar cambios' : 'Crear aviso'}}</button>
+                <button type="button" class="btn btn-default" ng-if="aviso.id" ng-click="limpiarAviso()">Cancelar</button>
+            </form>
+
+            <div class="wd-ad-preview">
+                <p class="wd-field-hint">Así lo ven en la app:</p>
+                <article class="wd-ad">
+                    <img class="wd-ad-image" ng-if="imagenParaVistaPrevia()" ng-src="{{imagenParaVistaPrevia()}}" alt="Vista previa" />
+                    <div class="wd-ad-body">
+                        <div class="wd-ad-business">
+                            <strong>{{comercioElegido().name || 'Nombre del comercio'}}</strong>
+                            <span class="wd-ad-category">{{comercioElegido() ? textoCategoria(comercioElegido().category) : 'Rubro'}}</span>
+                        </div>
+                        <h3 class="wd-ad-title">{{aviso.titulo || 'Título del aviso'}}</h3>
+                        <p class="wd-ad-text" ng-if="aviso.texto">{{aviso.texto}}</p>
+                        <p class="wd-ad-where" ng-if="comercioElegido() && direccionDe(comercioElegido())"><i class="fa fa-map-marker" aria-hidden="true"></i> {{direccionDe(comercioElegido())}}</p>
+                        <div class="wd-ad-actions">
+                            <span class="btn btn-default btn-sm" ng-if="aviso.enlace">Ver más</span>
+                            <span class="btn btn-default btn-sm" ng-if="comercioElegido().phone"><i class="fa fa-phone" aria-hidden="true"></i> {{comercioElegido().phone}}</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <h2 class="wd-section-title wd-admin-subtitle">Avisos cargados</h2>
+        <p class="wd-field-hint" ng-if="avisos.length == 0">Todavía no hay avisos.</p>
+        <div class="wd-admin-table-wrap" ng-if="avisos.length > 0">
+            <table class="wd-admin-table">
+                <thead>
+                    <tr><th>Aviso</th><th>Vigencia</th><th>Alcance</th><th>Estado</th><th>Vistas</th><th>Clics</th><th class="wd-admin-actions-col"><span class="sr-only">Acciones</span></th></tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="a in avisos track by a.id" ng-class="{'is-blocked': a.status == 'Paused'}">
+                        <td>
+                            <strong>{{a.title}}</strong>
+                            <div class="wd-field-hint">{{a.advertiserName}} · {{textoCategoria(a.advertiserCategory)}}</div>
+                        </td>
+                        <td>{{textoVigencia(a)}}</td>
+                        <td>
+                            {{textoAudiencia(a)}}
+                            <div class="wd-field-hint">{{a.radiusKm ? 'A ' + a.radiusKm + ' km del comercio' : 'Sin límite de zona'}}</div>
+                        </td>
+                        <td><span class="wd-status" ng-class="claseEstado(a)">{{textoEstado(a)}}</span></td>
+                        <td>{{a.impressions}}</td>
+                        <td>{{a.clicks}} <span class="wd-field-hint" ng-if="a.impressions > 0">({{a.clickRate | number:1}}%)</span></td>
+                        <td class="wd-admin-actions-col">
+                            <button type="button" class="btn btn-default btn-sm" ng-click="editarAviso(a)">Editar</button>
+                            <button type="button" class="btn btn-default btn-sm" ng-if="a.active" ng-click="alternarAviso(a)">Pausar</button>
+                            <button type="button" class="btn btn-default btn-sm" ng-if="!a.active" ng-click="alternarAviso(a)">Reanudar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ========== Comercios ========== -->
+    <div ng-if="seccion == 'comercios'">
+        <h2 class="wd-section-title">{{comercio.id ? 'Editar comercio' : 'Nuevo comercio'}}</h2>
+
+        <form class="wd-ad-form wd-advertiser-form" novalidate ng-submit="guardarComercio()">
+            <div class="form-group">
+                <label for="comercio-nombre">Nombre</label>
+                <input id="comercio-nombre" type="text" class="form-control" maxlength="80" ng-model="comercio.nombre" autocomplete="off" />
+            </div>
+            <div class="form-group">
+                <label for="comercio-categoria">Rubro</label>
+                <select id="comercio-categoria" class="form-control" ng-model="comercio.categoria" ng-options="c.codigo as c.texto for c in categorias">
+                    <option value="">Elegí un rubro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="comercio-descripcion">Descripción (opcional)</label>
+                <textarea id="comercio-descripcion" class="form-control" rows="2" maxlength="300" ng-model="comercio.descripcion"></textarea>
+            </div>
+            <div class="wd-ad-dates">
+                <div class="form-group">
+                    <label for="comercio-telefono">Teléfono (opcional)</label>
+                    <input id="comercio-telefono" type="tel" class="form-control" maxlength="30" ng-model="comercio.telefono" autocomplete="off" />
+                </div>
+                <div class="form-group">
+                    <label for="comercio-web">Página web o red social (opcional)</label>
+                    <input id="comercio-web" type="url" class="form-control" maxlength="200" ng-model="comercio.web" autocomplete="off" placeholder="https://..." />
+                </div>
+            </div>
+            <div class="form-group">
+                <div ng-repeat="clave in [comercio.clave]">
+                    <wd-address-field address="comercio.direccion" allow-no-number="true" label="Dirección del local (opcional)"
+                                      hint="Elegí una dirección de la lista o marcala en el mapa. Hace falta para poder limitar sus avisos por zona."></wd-address-field>
+                </div>
+            </div>
+
+            <p class="wd-form-error" ng-if="errorComercio" role="alert">{{errorComercio}}</p>
+            <button type="submit" class="btn btn-primary" ng-disabled="guardando">{{comercio.id ? 'Guardar cambios' : 'Agregar comercio'}}</button>
+            <button type="button" class="btn btn-default" ng-if="comercio.id" ng-click="limpiarComercio()">Cancelar</button>
+        </form>
+
+        <h2 class="wd-section-title wd-admin-subtitle">Comercios cargados</h2>
+        <p class="wd-field-hint" ng-if="comercios.length == 0">Todavía no hay comercios.</p>
+        <div class="wd-admin-table-wrap" ng-if="comercios.length > 0">
+            <table class="wd-admin-table">
+                <thead>
+                    <tr><th>Comercio</th><th>Rubro</th><th>Dirección y contacto</th><th>Avisos</th><th>Estado</th><th class="wd-admin-actions-col"><span class="sr-only">Acciones</span></th></tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="c in comercios track by c.id" ng-class="{'is-blocked': !c.active}">
+                        <td>
+                            <strong>{{c.name}}</strong>
+                            <div class="wd-field-hint wd-admin-reason" ng-if="c.description">{{c.description}}</div>
+                        </td>
+                        <td>{{textoCategoria(c.category)}}</td>
+                        <td>
+                            <div ng-if="direccionDe(c)">{{direccionDe(c)}} <i class="fa fa-map-marker" ng-if="c.latitude" title="Ubicado en el mapa" aria-hidden="true"></i></div>
+                            <div class="wd-field-hint" ng-if="!direccionDe(c)">Sin dirección</div>
+                            <div class="wd-field-hint" ng-if="c.phone">{{c.phone}}</div>
+                        </td>
+                        <td>{{c.runningAdCount}} <span class="wd-field-hint">de {{c.adCount}}</span></td>
+                        <td>
+                            <span class="wd-status wd-status-confirmed" ng-if="c.active">Activo</span>
+                            <span class="wd-status wd-status-cancelled" ng-if="!c.active">De baja</span>
+                        </td>
+                        <td class="wd-admin-actions-col">
+                            <button type="button" class="btn btn-default btn-sm" ng-if="c.active" ng-click="nuevoAvisoPara(c)">Nuevo aviso</button>
+                            <button type="button" class="btn btn-default btn-sm" ng-click="editarComercio(c)">Editar</button>
+                            <button type="button" class="btn btn-danger btn-sm" ng-if="c.active" ng-click="alternarComercio(c)">Dar de baja</button>
+                            <button type="button" class="btn btn-default btn-sm" ng-if="!c.active" ng-click="alternarComercio(c)">Reactivar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
