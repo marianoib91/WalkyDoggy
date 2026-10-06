@@ -8,6 +8,7 @@ using WalkyDoggy.Data.Infrastructure;
 using WalkyDoggy.Data.Repositories;
 using WalkyDoggy.Entities;
 using WalkyDoggy.Services.Contracts;
+using WalkyDoggy.Services.Utilities;
 using WalkyDoggy.Web.Infrastructure.Core;
 
 namespace WalkyDoggy.Web.Controllers
@@ -94,7 +95,10 @@ namespace WalkyDoggy.Web.Controllers
             }
 
             var respuesta = pedido.CreateResponse(HttpStatusCode.Redirect);
-            respuesta.Headers.Location = new Uri(pedido.RequestUri, VirtualPathUtility.ToAbsolute("~/") + "#/walks/requested?payment=" + resultado);
+            //Un hospedaje (clave "h" + id) vuelve a su pantalla; un paseo, a "Paseos solicitados"
+            Int64 idHospedaje;
+            var destino = AyudanteReservas.EsClaveDeHospedaje(claveReserva, out idHospedaje) ? "#/stays?payment=" : "#/walks/requested?payment=";
+            respuesta.Headers.Location = new Uri(pedido.RequestUri, VirtualPathUtility.ToAbsolute("~/") + destino + resultado);
             return respuesta;
         }
 

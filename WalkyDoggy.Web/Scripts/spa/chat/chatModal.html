@@ -14,7 +14,10 @@
         <div ng-repeat="mensaje in mensajes">
             <div class="wd-chat-day" ng-if="cambiaElDia($index)">{{mensaje.sentAt | date:'dd/MM/yyyy'}}</div>
             <div class="wd-chat-msg" ng-class="claseDe(mensaje)">
-                <div class="wd-chat-bubble">{{mensaje.text}}</div>
+                <div class="wd-chat-line">
+                    <img class="wd-chat-photo" ng-if="mensaje.senderRole != 'System'" ng-src="{{fotoDe(mensaje)}}" alt="{{nombreDe(mensaje)}}" title="{{nombreDe(mensaje)}}" />
+                    <div class="wd-chat-bubble">{{mensaje.text}}</div>
+                </div>
                 <div class="wd-chat-meta">
                     {{mensaje.sentAt | date:'HH:mm'}}<span ng-if="esMio(mensaje)"> · {{mensaje.read ? 'visto' : 'enviado'}}</span>
                 </div>

@@ -36,11 +36,12 @@
                     </dl>
                     <p class="wd-field-hint" ng-if="esMercadoPago(reserva)">
                         {{reserva.walkerName}} ya terminó el paseo. Pagá con Mercado Pago: el dinero va directo a su cuenta.
+                        ¿No te funciona? Pagale en efectivo o por transferencia: él lo registra como cobrado y el paseo queda cerrado.
                     </p>
                     <p class="wd-field-hint" ng-if="!esMercadoPago(reserva)">
                         {{reserva.walkerName}} ya terminó el paseo. Pagale <strong>${{reserva.total | wdMoney}}</strong> en efectivo; cuando confirme que lo recibió, el paseo queda cerrado.
                     </p>
-                    <p class="wd-field-hint" ng-if="!esMercadoPago(reserva) && reserva.walkerPayoutAccount">
+                    <p class="wd-field-hint" ng-if="reserva.walkerPayoutAccount">
                         También podés transferirle al alias o CBU/CVU <strong>{{reserva.walkerPayoutAccount}}</strong>.
                     </p>
 
@@ -66,7 +67,6 @@
                 </div>
                 <div class="wd-walk-actions">
                     <button type="button" class="btn btn-primary" ng-if="esMercadoPago(reserva)" ng-disabled="trabajando" ng-click="pagar(reserva)">Pagar ${{reserva.total | wdMoney}}</button>
-                    <button type="button" class="btn btn-default" ng-if="esMercadoPago(reserva)" ng-disabled="trabajando" ng-click="verificarPago(reserva)">Ya pagué, verificar</button>
                     <button type="button" class="btn btn-default" ng-if="puedeDenunciar(reserva)" ng-click="denunciar(reserva)">
                         <i class="fa fa-flag-o" aria-hidden="true"></i> Denunciar
                     </button>

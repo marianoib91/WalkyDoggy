@@ -30,6 +30,13 @@ namespace WalkyDoggy.Application.Dtos
         public String Text { get; set; }
     }
 
+    public class ChatParticipantDto
+    {
+        public String Name { get; set; }
+
+        public String ProfileImage { get; set; }
+    }
+
     //Los mensajes de una reserva y si todavia se puede escribir
     public class ChatDto
     {
@@ -37,5 +44,10 @@ namespace WalkyDoggy.Application.Dtos
 
         //Se puede escribir mientras la reserva este confirmada y no cerrada (cobrada)
         public Boolean CanWrite { get; set; }
+
+        //Quienes chatean (nombre y foto de perfil), para mostrarlos junto a los mensajes
+        public ChatParticipantDto Walker { get; set; }
+
+        public ChatParticipantDto Customer { get; set; }
     }
 }

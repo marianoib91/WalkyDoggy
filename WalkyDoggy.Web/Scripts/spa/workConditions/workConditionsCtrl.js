@@ -22,6 +22,10 @@
         $scope.paseador = null;
         $scope.form = { amount: null, maxPets: 3, description: '' };
         $scope.cantidadesDePerros = [1, 2, 3, 4, 5];
+        $scope.cantidadesDePerrosHospedaje = [1, 2, 3, 4, 5, 6];
+        
+        //Oferta de hospedaje: perros que se quedan varias noches en la casa del paseador (precio por noche y por perro, cuantos a la vez, como es el lugar)
+        $scope.oferta = { enabled: false, pricePerNight: null, maxDogs: 1, description: "" };
         $scope.guardando = false;
         $scope.cargado = false;
 
@@ -48,6 +52,11 @@
                         }
                     }
                 });
+            });
+
+            servicioApi.get('/api/stays/offer', { params: { walkerId: idPaseador } }, function (resultado) {
+                $scope.oferta = resultado.data;
+                $scope.oferta.description = $scope.oferta.description || '';
             });
 
             servicioApi.get('/api/walkers/getByUserId', { params: { userId: $rootScope.repository.loggedUser.id } }, function (resultado) {
@@ -152,6 +161,17 @@
                 return;
             }
 
+            if ($scope.oferta.enabled) {
+                if (!(Number($scope.oferta.pricePerNight) > 0)) {
+                    servicioNotificaciones.mostrarError('Indicá el precio por noche y por perro del hospedaje.');
+                    return;
+                }
+                if (($scope.oferta.description || '').trim().length < 10) {
+                    servicioNotificaciones.mostrarError('Contá cómo es el lugar donde cuidás a los perros (al menos 10 caracteres).');
+                    return;
+                }
+            }
+
             var franjas = [];
             angular.forEach($scope.dias, function (dia) {
                 angular.forEach(franjasDe(dia), function (range) {
@@ -166,8 +186,20 @@
                 $scope.paseador.description = $scope.form.description.trim();
 
                 servicioApi.post('/api/walkers/update', $scope.paseador, function () {
-                    $scope.guardando = false;
-                    servicioNotificaciones.mostrarExito('Condiciones laborales guardadas.');
+                    //Por ultimo, la oferta de hospedaje
+                    servicioApi.post('/api/stays/saveOffer', {
+                        walkerId: idPaseador,
+                        enabled: $scope.oferta.enabled,
+                        pricePerNight: $scope.oferta.pricePerNight ? Number($scope.oferta.pricePerNight) : null,
+                        maxDogs: Number($scope.oferta.maxDogs),
+                        description: $scope.oferta.description
+                    }, function (resultado) {
+                        $scope.guardando = false;
+                        $scope.oferta = resultado.data;
+                        $scope.oferta.description = $scope.oferta.description || '';
+                        servicioNotificaciones.mostrarExito('Condiciones laborales guardadas.');
+                        $rootScope.irAlInicio();
+                    }, alFallarGuardado);
                 }, alFallarGuardado);
             }, alFallarGuardado);
         };

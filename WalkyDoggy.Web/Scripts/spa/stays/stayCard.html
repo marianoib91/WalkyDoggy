@@ -1,0 +1,126 @@
+<article class="wd-stay-card" ng-controller="tarjetaHospedajeCtrl" ng-class="{'wd-walk-past': hospedaje.status == 'Collected' || hospedaje.status == 'Cancelled'}">
+    <div class="wd-stay-head">
+        <img class="wd-avatar wd-avatar-sm" ng-src="{{(esPaseador ? hospedaje.customerImage : hospedaje.walkerImage) || '/Content/images/avatar-person.svg'}}" alt="" />
+        <div class="wd-stay-who">
+            <strong>{{esPaseador ? hospedaje.customerName : hospedaje.walkerName}}</strong>
+            <span class="wd-field-hint" ng-if="hospedaje.status == 'Upcoming' || hospedaje.status == 'InProgress' || hospedaje.status == 'ToCollect'">
+                <i class="fa fa-phone" aria-hidden="true"></i> {{esPaseador ? hospedaje.customerPhone : hospedaje.walkerPhone}}
+            </span>
+        </div>
+        <span class="wd-status" ng-class="claseEstado(hospedaje)">{{textoEstado(hospedaje)}}</span>
+    </div>
+
+    <div class="wd-stay-pets">
+        <span class="wd-stay-pet" ng-repeat="mascota in hospedaje.pets">
+            <img class="wd-avatar wd-avatar-xs" ng-src="{{mascota.profileImage || '/Content/images/avatar-pet.svg'}}" alt="" /> {{mascota.name}}
+        </span>
+    </div>
+
+    <p class="wd-stay-dates">
+        <i class="fa fa-calendar" aria-hidden="true"></i>
+        {{fecha(hospedaje.checkIn)}} <i class="fa fa-long-arrow-right" aria-hidden="true"></i> {{fecha(hospedaje.checkOut)}}
+        <span class="wd-field-hint">· {{textoNoches(hospedaje)}} · {{textoPerros(hospedaje.dogsCount)}}</span>
+    </p>
+    <p class="wd-stay-total">
+        <strong>{{dinero(hospedaje.total)}}</strong>
+        <span class="wd-field-hint">({{dinero(hospedaje.pricePerNight)}} por noche y por perro · {{textoPago(hospedaje)}}, a pagar al terminar)</span>
+    </p>
+    <p class="wd-field-hint" ng-if="hospedaje.details"><i class="fa fa-sticky-note-o" aria-hidden="true"></i> {{hospedaje.details}}</p>
+    <p class="wd-field-hint" ng-if="hospedaje.status == 'Cancelled'">
+        Cancelado por {{hospedaje.cancelledBy == 'Walker' ? 'el cuidador' : hospedaje.cancelledBy == 'Customer' ? 'el cliente' : hospedaje.cancelledBy == 'System' ? 'falta de respuesta' : 'el administrador'}}.
+    </p>
+    <p class="wd-field-hint" ng-if="hospedaje.ratingStars">
+        {{esPaseador ? 'Valoración del cliente' : 'Tu valoración'}}: <wd-stars value="hospedaje.ratingStars"></wd-stars>
+    </p>
+
+    <!-- El cliente ve como pagar cuando el cuidador devolvio a los perros -->
+    <div class="wd-stay-pay" ng-if="!esPaseador && hospedaje.status == 'ToCollect'">
+        <strong>Para pagar: {{dinero(hospedaje.total)}}</strong>
+
+        <div ng-if="esMercadoPago(hospedaje)">
+            <p class="wd-field-hint" ng-if="hospedaje.paymentStatus == 'Pending'">Pagás online: el dinero va directo a la cuenta de {{hospedaje.walkerName}}.</p>
+            <p class="wd-field-hint" ng-if="hospedaje.paymentStatus == 'Paid'">Ya pagaste. Falta que {{hospedaje.walkerName}} lo confirme.</p>
+            <div class="wd-card-actions" ng-if="hospedaje.paymentStatus == 'Pending'">
+                <button type="button" class="btn btn-primary" ng-disabled="trabajando" ng-click="pagar(hospedaje)">Pagar con Mercado Pago</button>
+            </div>
+            <!-- Si Mercado Pago no funciona, se paga de otra forma y el cuidador registra el cobro, como en los demas pagos -->
+            <p class="wd-field-hint" ng-if="hospedaje.paymentStatus == 'Pending'">
+                ¿No te funciona Mercado Pago? Pagale a {{hospedaje.walkerName}} en efectivo<span ng-if="hospedaje.walkerPayoutAccount"> o transferile al alias o CBU/CVU <strong>{{hospedaje.walkerPayoutAccount}}</strong></span>:
+                él lo registra como cobrado.
+            </p>
+            <div class="wd-card-actions" ng-if="hospedaje.paymentStatus == 'Pending' && hospedaje.walkerPayoutAccount">
+                <button type="button" class="btn btn-default" ng-click="copiar(hospedaje.walkerPayoutAccount, 'el alias')"><i class="fa fa-clipboard" aria-hidden="true"></i> Copiar alias</button>
+                <button type="button" class="btn btn-default" ng-click="copiar(hospedaje.total, 'el monto')"><i class="fa fa-clipboard" aria-hidden="true"></i> Copiar monto</button>
+            </div>
+        </div>
+
+        <div ng-if="!esMercadoPago(hospedaje)">
+            <p class="wd-field-hint" ng-if="!hospedaje.walkerPayoutAccount">Pagale en efectivo a {{hospedaje.walkerName}} (coordinen por el chat).</p>
+            <p class="wd-field-hint" ng-if="hospedaje.walkerPayoutAccount">Pagale en efectivo a {{hospedaje.walkerName}} o transferile al alias o CBU/CVU <strong>{{hospedaje.walkerPayoutAccount}}</strong>.</p>
+            <div class="wd-card-actions" ng-if="hospedaje.walkerPayoutAccount">
+                <button type="button" class="btn btn-default" ng-click="copiar(hospedaje.walkerPayoutAccount, 'el alias')"><i class="fa fa-clipboard" aria-hidden="true"></i> Copiar alias</button>
+                <button type="button" class="btn btn-default" ng-click="copiar(hospedaje.total, 'el monto')"><i class="fa fa-clipboard" aria-hidden="true"></i> Copiar monto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- El cliente valora al cuidador -->
+    <div class="wd-inline-rating" ng-if="puedeValorar(hospedaje)">
+        <div class="wd-inline-rating-title">¿Cómo fue el hospedaje con {{hospedaje.walkerName}}?</div>
+        <div class="wd-rating-picker" role="radiogroup" aria-label="Estrellas" ng-mouseleave="pasarSobre(0)">
+            <button type="button" class="wd-rating-star" ng-repeat="n in [1, 2, 3, 4, 5]" role="radio" aria-checked="{{borrador.stars === n}}"
+                    aria-label="{{n}} {{n === 1 ? 'estrella' : 'estrellas'}}" ng-mouseenter="pasarSobre(n)" ng-click="elegirEstrellas(n)">
+                <i class="fa" ng-class="estrellasMostradas() >= n ? 'fa-star' : 'fa-star-o'" aria-hidden="true"></i>
+            </button>
+            <span class="wd-rating-label">{{etiquetaEstrellas(estrellasMostradas())}}</span>
+        </div>
+        <div class="wd-inline-rating-comment" ng-if="borrador.stars">
+            <textarea class="form-control" rows="3" maxlength="500" ng-model="borrador.comment" aria-label="Comentario"
+                      placeholder="Contá cómo fue la experiencia con {{hospedaje.walkerName}} (opcional)"></textarea>
+            <div class="wd-inline-rating-footer">
+                <span class="wd-field-hint">{{(borrador.comment || '').length}} / 500</span>
+                <button type="button" class="btn btn-primary" ng-disabled="borrador.enviando" ng-click="enviarValoracion(hospedaje)">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- El cuidador reseña a cada perro -->
+    <div class="wd-inline-rating wd-inline-rating-con-foto" ng-repeat="mascota in mascotasSinResenar(hospedaje) track by mascota.id">
+        <img class="wd-avatar wd-avatar-sm wd-inline-rating-foto" ng-src="{{mascota.profileImage || '/Content/images/avatar-pet.svg'}}" alt="Foto de {{mascota.name}}" />
+        <div class="wd-inline-rating-title">¿Cómo se portó {{mascota.name}}? <span class="wd-field-hint">Tu reseña ayuda a decidir a otros cuidadores.</span></div>
+        <div class="wd-rating-picker" role="radiogroup" aria-label="Estrellas para {{mascota.name}}" ng-mouseleave="pasarSobreMascota(mascota, 0)">
+            <button type="button" class="wd-rating-star" ng-repeat="n in [1, 2, 3, 4, 5]" role="radio" aria-checked="{{borradorDe(mascota).stars === n}}"
+                    aria-label="{{n}} {{n === 1 ? 'estrella' : 'estrellas'}}" ng-mouseenter="pasarSobreMascota(mascota, n)" ng-click="elegirEstrellasDeMascota(mascota, n)">
+                <i class="fa" ng-class="estrellasDeMascota(mascota) >= n ? 'fa-star' : 'fa-star-o'" aria-hidden="true"></i>
+            </button>
+            <span class="wd-rating-label">{{etiquetaEstrellas(estrellasDeMascota(mascota))}}</span>
+        </div>
+        <div class="wd-inline-rating-comment" ng-if="borradorDe(mascota).stars">
+            <textarea class="form-control" rows="3" maxlength="500" ng-model="borradoresDeMascotas[mascota.id].comment" aria-label="Reseña de {{mascota.name}}"
+                      placeholder="Contá cómo fue cuidar a {{mascota.name}} (opcional)"></textarea>
+            <div class="wd-inline-rating-footer">
+                <span class="wd-field-hint">{{(borradoresDeMascotas[mascota.id].comment || '').length}} / 500</span>
+                <button type="button" class="btn btn-primary" ng-disabled="borradorDe(mascota).enviando" ng-click="enviarResena(hospedaje, mascota)">Enviar</button>
+            </div>
+        </div>
+    </div>
+    <p class="wd-field-hint" ng-repeat="mascota in mascotasResenadas(hospedaje) track by mascota.id">Ya reseñaste a {{mascota.name}}.</p>
+
+    <div class="wd-card-actions">
+        <button type="button" class="btn btn-default" ng-if="hospedaje.status != 'Pending' || hospedaje.chatMessages > 0" ng-click="abrirChat(hospedaje)">
+            <i class="fa fa-comments-o" aria-hidden="true"></i> Chat
+            <span class="wd-badge" ng-if="hospedaje.chatUnread > 0">{{hospedaje.chatUnread}}</span>
+        </button>
+
+        <!-- Cuidador -->
+        <button type="button" class="btn btn-primary" ng-if="esPaseador && hospedaje.status == 'Pending'" ng-disabled="trabajando" ng-click="confirmar(hospedaje)">Confirmar</button>
+        <button type="button" class="btn btn-danger" ng-if="esPaseador && hospedaje.status == 'Pending'" ng-disabled="trabajando" ng-click="rechazar(hospedaje)">Rechazar</button>
+        <button type="button" class="btn btn-primary" ng-if="esPaseador && puedeRecibir(hospedaje)" ng-disabled="trabajando" ng-click="recibirPerros(hospedaje)">Recibí a los perros</button>
+        <button type="button" class="btn btn-primary" ng-if="esPaseador && hospedaje.status == 'InProgress'" ng-disabled="trabajando" ng-click="devolverPerros(hospedaje)">Devolví a los perros</button>
+        <button type="button" class="btn btn-primary" ng-if="esPaseador && puedeConfirmarCobro(hospedaje)" ng-disabled="trabajando" ng-click="confirmarCobro(hospedaje)">Recibí el pago</button>
+        <button type="button" class="btn btn-danger" ng-if="esPaseador && hospedaje.status == 'Upcoming'" ng-disabled="trabajando" ng-click="cancelarComoCuidador(hospedaje)">Cancelar</button>
+
+        <!-- Cliente -->
+        <button type="button" class="btn btn-danger" ng-if="!esPaseador && puedeCancelarCliente(hospedaje)" ng-disabled="trabajando" ng-click="cancelarComoCliente(hospedaje)">Cancelar</button>
+    </div>
+</article>

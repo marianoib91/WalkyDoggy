@@ -6,6 +6,20 @@
             <p class="wd-page-subtitle" ng-if="mascotas.length==0">Todavía no cargaste ninguna mascota.</p>
         </div>
     </div>
+    <div class="wd-suggestion" ng-if="sugerencia">
+        <div class="wd-suggestion-icon"><i class="fa fa-calendar-check-o" aria-hidden="true"></i></div>
+        <div class="wd-suggestion-body">
+            <strong>{{textoSugerencia(sugerencia)}}
+                <svg class="wd-ai-mark" viewBox="0 0 24 24" aria-label="Sugerencia inteligente" role="img"><title>Sugerencia inteligente</title><path d="M10 3l1.9 5.1L17 10l-5.1 1.9L10 17l-1.9-5.1L3 10l5.1-1.9z"/><path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"/><path d="M18.5 3l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z"/></svg>
+            </strong>
+            <span>¿Lo reservamos para el {{sugerencia.nextDate | date:'dd/MM'}}?</span>
+            <small>{{evidenciaSugerencia(sugerencia)}}</small>
+        </div>
+        <div class="wd-suggestion-actions">
+            <button type="button" class="btn btn-primary" ng-click="reservarSugerencia(sugerencia)">Buscar paseador</button>
+            <button type="button" class="btn btn-link" ng-click="descartarSugerencia(sugerencia)">Ahora no</button>
+        </div>
+    </div>
     <div class="wd-pet-grid">
         <article class="wd-pet-card" ng-repeat="mascota in mascotas">
             <div class="wd-pet-head">

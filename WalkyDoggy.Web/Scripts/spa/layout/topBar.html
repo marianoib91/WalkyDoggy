@@ -47,6 +47,14 @@
                 </li>
             </ul>
             <ul class="nav navbar-nav" ng-show="roleId==2 || roleId==3">
+                <li ng-if="roleId==2">
+                    <a class="topbar-button" href="#/stays">
+                        Hospedaje
+                        <div class="topbar-icon">
+                            <i class="fa fa-home fa-fw pull-right"></i>
+                        </div>
+                    </a>
+                </li>
                 <li>
                     <a class="topbar-button" href="#/friends">
                         Comercios amigos
@@ -91,7 +99,7 @@
             <ul class="nav navbar-nav" ng-if="roleId==3">
                 <li>
                     <a class="topbar-button" href="#/">
-                        Mis paseos
+                        Turnos
                         <div class="topbar-icon">
                             <i class="fa fa-calendar pull-right">
                             </i>
@@ -120,9 +128,12 @@
             </ul>-->
             <ul class="nav navbar-nav navbar-right" ng-show="userData.haySesion">
                 <li class="userinfo dropdown">
-                    <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-
-                        <i class="fa fa-user fa-fw"></i>
+                    <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" title="Mi cuenta">
+                        <span class="wd-user-photo">
+                            <img ng-if="perfilBarra.foto" ng-src="{{perfilBarra.foto}}" alt="" />
+                            <i ng-if="!perfilBarra.foto" class="fa fa-user fa-fw" aria-hidden="true"></i>
+                        </span>
+                        <span class="wd-user-name" ng-if="perfilBarra.nombre">Hola, {{perfilBarra.nombre}}</span>
                         <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">

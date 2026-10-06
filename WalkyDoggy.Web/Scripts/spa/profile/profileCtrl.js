@@ -136,8 +136,10 @@
         function alActualizarUsuario(respuesta) {
             if (respuesta.status == 200) {
                 servicioNotificaciones.mostrarExito('Perfil actualizado con éxito');
-                // $location.path('/');
-                console.log();
+
+                //La barra superior muestra el nombre y la foto: se actualizan, y se vuelve al inicio del rol
+                $rootScope.$broadcast('perfil:actualizado');
+                $rootScope.irAlInicio();
             }
             else {
                 servicioNotificaciones.mostrarError('No se pudo actualizar el perfil. Intente nuevamente');

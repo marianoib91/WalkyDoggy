@@ -42,6 +42,7 @@
                 $scope.errorDeCarga = null;
                 $scope.mensajes = resultado.data.messages;
                 $scope.puedeEscribir = resultado.data.canWrite;
+                $scope.participantes = { Walker: resultado.data.walker, Customer: resultado.data.customer };
                 $scope.cargado = true;
 
                 //Se baja al ultimo mensaje solo cuando llegan mensajes nuevos
@@ -64,6 +65,17 @@
                 }
             });
         }
+
+        //Foto y nombre de quien escribio cada mensaje (el paseador o el cliente)
+        $scope.fotoDe = function (mensaje) {
+            var persona = $scope.participantes && $scope.participantes[mensaje.senderRole];
+            return (persona && persona.profileImage) || '/Content/images/avatar-person.svg';
+        };
+
+        $scope.nombreDe = function (mensaje) {
+            var persona = $scope.participantes && $scope.participantes[mensaje.senderRole];
+            return persona ? persona.name : '';
+        };
 
         $scope.esMio = function (mensaje) {
             return mensaje.senderRole === datos.rol;

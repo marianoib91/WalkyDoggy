@@ -12,6 +12,12 @@
         var idPaseador = $routeParams.walkerId;
         var borrador = $rootScope.borradorPaseo;
         var retiroElegido = $rootScope.retiroElegido;
+
+        //Lo que habia cargado en este paso antes de ir a mirar otra cosa (por ejemplo, volver a los resultados): se recupera si es del mismo paseador
+        //y mas nuevo que la ultima busqueda (si se eligio otro horario en los resultados, manda lo nuevo)
+        var borradorPaso1 = $rootScope.borradorPaso1;
+        var borradorPrevio = (borrador && borrador.walkerId == idPaseador) ? borrador
+            : (borradorPaso1 && borradorPaso1.walkerId == idPaseador && borradorPaso1.ts > ((retiroElegido && retiroElegido.ts) || 0)) ? borradorPaso1 : null;
         var numeroDePedido = 0;
         //Horario con el que se llega (de la busqueda o del paso 2). Se aplica cuando ya llego la lista de horarios del dia:
         //si se carga antes, el desplegable no lo muestra aunque el modelo lo tenga.
@@ -49,12 +55,12 @@
         }
 
         //Si se vuelve del paso 2 se conserva lo que ya se habia elegido
-        if (borrador && borrador.walkerId == idPaseador) {
-            $scope.paseo.date = moment(borrador.date, 'YYYY-MM-DD');
-            horaPropuesta = borrador.timeFrom;
+        if (borradorPrevio) {
+            $scope.paseo.date = moment(borradorPrevio.date, 'YYYY-MM-DD');
+            horaPropuesta = borradorPrevio.timeFrom;
 
-            if (borrador.pickup) {
-                $scope.retiroActual = angular.copy(borrador.pickup);
+            if (borradorPrevio.pickup) {
+                $scope.retiroActual = angular.copy(borradorPrevio.pickup);
             }
         } else if (retiroElegido) {
             if (retiroElegido.pickup) {
@@ -67,6 +73,22 @@
                 horaPropuesta = retiroElegido.hora;
             }
         }
+
+        $scope.$on('$destroy', function () {
+            if (!$scope.paseo.date) {
+                return;
+            }
+
+            var seleccionadas = angular.isArray($scope.mascotas) ? $scope.mascotas.filter(function (mascota) { return mascota.selectedPet; }) : [];
+            $rootScope.borradorPaso1 = {
+                walkerId: idPaseador,
+                date: moment($scope.paseo.date).format('YYYY-MM-DD'),
+                timeFrom: $scope.paseo.timeFrom,
+                pickup: $scope.retiroActual,
+                pets: seleccionadas.map(function (mascota) { return { id: mascota.id }; }),
+                ts: Date.now()
+            };
+        });
 
         iniciar();
 
@@ -136,8 +158,8 @@
         function alCargarMascotas(resultado) {
             $scope.mascotas = resultado.data;
 
-            if (borrador && borrador.walkerId == idPaseador) {
-                var idsSeleccionados = borrador.pets.map(function (mascota) { return mascota.id; });
+            if (borradorPrevio) {
+                var idsSeleccionados = borradorPrevio.pets.map(function (mascota) { return mascota.id; });
                 angular.forEach($scope.mascotas, function (mascota) {
                     mascota.selectedPet = idsSeleccionados.indexOf(mascota.id) !== -1;
                 });
@@ -340,6 +362,9 @@
                     //Los datos elegidos viajan al paso 2 para confirmar la reserva
                     $rootScope.borradorPaseo = {
                         walkerId: idPaseador,
+                        //Lo que ya se habia escrito en el paso 2 (aclaraciones y forma de pago) si se vuelve a pasar por ahi
+                        detalles: borrador && borrador.walkerId == idPaseador ? borrador.detalles : undefined,
+                        pagoMetodo: borrador && borrador.walkerId == idPaseador ? borrador.pagoMetodo : undefined,
                         date: fecha,
                         timeFrom: $scope.paseo.timeFrom,
                         pickup: retiro,

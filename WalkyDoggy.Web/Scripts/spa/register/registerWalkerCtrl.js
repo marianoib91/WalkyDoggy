@@ -16,6 +16,17 @@
         $scope.paseador = { serviceRadiusKm: 5, maxPetsAtOnce: 3 };
         $scope.cantidadesDePerros = [1, 2, 3, 4, 5];
 
+        //Si se sale del registro (por ejemplo, con el boton Atras del navegador o yendo a otra pantalla) y se vuelve, se recupera lo cargado y el paso en que estaba.
+        //Queda solo en memoria (no se guarda en el navegador) y se descarta al terminar el registro.
+        var terminado = false;
+        if ($rootScope.borradorRegistroPaseador) {
+            $scope.paseador = $rootScope.borradorRegistroPaseador.paseador;
+            $scope.paso = $rootScope.borradorRegistroPaseador.paso;
+        }
+        $scope.$on('$destroy', function () {
+            $rootScope.borradorRegistroPaseador = terminado ? null : { paseador: $scope.paseador, paso: $scope.paso };
+        });
+
         $scope.siguiente = function () {
             if ($scope.paso === 1 && $scope.paseador.password != $scope.paseador.confirmPassword) {
                 servicioNotificaciones.mostrarError('Las contraseñas no coinciden');
@@ -54,6 +65,7 @@
 
         function alRegistrar(resultado) {
             if (resultado.status == 200) {
+                terminado = true;
                 //Al terminar el registro se lo lleva a la pantalla de bienvenida
                 servicioMembresia.guardarCredenciales(resultado.data, $scope.paseador.firstName, '/walker-welcome');
             }

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Huella de pata en el verde de WalkyDoggy (#166A4F), la misma del logo de la barra superior -->
+  <g fill="#166A4F">
+    <ellipse cx="14" cy="28" rx="7" ry="9.5" transform="rotate(-20 14 28)"/>
+    <ellipse cx="24" cy="14" rx="6" ry="10"/>
+    <ellipse cx="40" cy="14" rx="6" ry="10"/>
+    <ellipse cx="50" cy="28" rx="7" ry="9.5" transform="rotate(20 50 28)"/>
+    <path d="M32 29c-9 0-18 10-18 19 0 6 4 9 9 9 3 0 6-1.500 9-1.500s6 1.500 9 1.500c5 0 9-3 9-9 0-9-9-19-18-19z"/>
+  </g>
+</svg>

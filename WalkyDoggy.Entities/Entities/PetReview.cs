@@ -9,7 +9,8 @@ namespace WalkyDoggy.Entities
         public Int64 Id { get; set; }
 
         //El paseo (una fila por mascota) que se reseña
-        public Int64 WalkId { get; set; }
+        //Null cuando la valoracion es de un hospedaje (la clave del hospedaje es "h" + id en BookingKey)
+        public Int64? WalkId { get; set; }
 
         public Int64 PetId { get; set; }
 

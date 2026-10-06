@@ -74,6 +74,35 @@
         </section>
 
         <section class="wd-form-section">
+            <h2 class="wd-form-section-title">Hospedaje de perros</h2>
+            <label class="wd-switch">
+                <input type="checkbox" ng-model="oferta.enabled" />
+                <span>Ofrezco cuidar perros varias noches en mi casa</span>
+            </label>
+            <p class="wd-field-hint" ng-if="!oferta.enabled">Mientras esté desactivado, no aparecés en las búsquedas de hospedaje de los clientes. Los pedidos que ya tengas se siguen gestionando en Turnos.</p>
+            <div class="wd-form-grid" ng-if="oferta.enabled">
+                <div class="form-group">
+                    <label for="ofertaPrecio">Precio por noche y por perro</label>
+                    <div class="input-group wd-rate-input">
+                        <span class="input-group-addon">$</span>
+                        <input id="ofertaPrecio" type="number" min="1" max="1000000" class="form-control" ng-model="oferta.pricePerNight" placeholder="Por ejemplo, 5000" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="ofertaPerros">¿Cuántos perros cuidás a la vez?</label>
+                    <select id="ofertaPerros" class="form-control wd-rate-input" ng-model="oferta.maxDogs"
+                            ng-options="n as (n == 1 ? '1 perro' : n + ' perros') for n in cantidadesDePerrosHospedaje"></select>
+                </div>
+                <div class="form-group wd-span-2">
+                    <label for="ofertaDescripcion">Contá cómo es el lugar</label>
+                    <textarea id="ofertaDescripcion" class="form-control" rows="3" maxlength="500" ng-model="oferta.description"
+                              placeholder="Casa con patio, sin otros animales, salidas a la plaza dos veces por día..."></textarea>
+                    <p class="wd-field-hint">{{(oferta.description || '').length}} / 500. Los perros se quedan en tu casa; la entrega y el retiro se acuerdan por el chat con cada cliente. Se cobra por noche y por perro, al terminar.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="wd-form-section">
             <h2 class="wd-form-section-title">Sobre vos</h2>
             <div class="form-group">
                 <label for="inputDescription">Descripción</label>

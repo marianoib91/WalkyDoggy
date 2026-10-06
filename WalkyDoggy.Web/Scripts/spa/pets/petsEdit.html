@@ -1,4 +1,5 @@
 <div class="pets-edit">
+    <p class="wd-back-row"><button type="button" class="btn btn-default wd-back-btn" ng-click="volverAtras('/pets/list')"><i class="fa fa-arrow-left" aria-hidden="true"></i> Volver</button></p>
     <div class="wd-page-header">
         <div>
             <h1 class="wd-page-title" ng-if="idMascota!=0">Editar mascota</h1>
@@ -102,7 +103,7 @@
                 <p class="wd-field-hint" ng-if="cantidadRasgos() < minimoEnComun">Marcá al menos {{minimoEnComun}} para que podamos encontrarle compañeros parecidos.</p>
             </section>
             <div class="wd-form-footer">
-                <a class="btn btn-default" href="#/pets/list" style="margin-right:12px">Cancelar</a>
+                <button type="button" class="btn btn-default" ng-click="volverAtras('/pets/list')" style="margin-right:12px">Cancelar</button>
                 <button class="btn btn-primary" type="submit">Guardar cambios</button>
             </div>
         </div>

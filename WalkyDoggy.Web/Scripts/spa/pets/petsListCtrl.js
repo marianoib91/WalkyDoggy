@@ -26,7 +26,68 @@
             servicioApi.get('/api/customers/getByUserId', { params: { userId: $scope.idUsuario } }, function (resultado) {
                 $scope.cliente = resultado.data;
             });
+
+            //Si en su historial hay un dia y horario que se repite, se le sugiere reservarlo (204 = sin patron claro)
+            servicioApi.get('/api/predictions/nextBooking', { params: { customerId: $scope.idCliente } }, function (resultado) {
+                if (resultado.status === 200 && resultado.data && !sugerenciaDescartada(resultado.data)) {
+                    $scope.sugerencia = resultado.data;
+                }
+            });
         }
+
+        /* ---------- Sugerencia de reserva ---------- */
+
+        var DIAS = ['domingos', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábados'];
+
+        function claveDescarte(sugerencia) {
+            return 'wd-sugerencia-' + $scope.idCliente + '-' + sugerencia.nextDate;
+        }
+
+        function sugerenciaDescartada(sugerencia) {
+            try {
+                return !!window.localStorage.getItem(claveDescarte(sugerencia));
+            } catch (e) {
+                return false;
+            }
+        }
+
+        //"Rex y Luna" / "Rex, Luna y Lola"
+        function unir(nombres) {
+            return nombres.length > 1 ? nombres.slice(0, -1).join(', ') + ' y ' + nombres[nombres.length - 1] : nombres[0];
+        }
+
+        $scope.diaSugerido = function (sugerencia) {
+            return DIAS[sugerencia.dayOfWeek];
+        };
+
+        $scope.textoSugerencia = function (sugerencia) {
+            var verbo = sugerencia.petNames.length > 1 ? 'suelen' : 'suele';
+            return unir(sugerencia.petNames) + ' ' + verbo + ' salir los ' + DIAS[sugerencia.dayOfWeek] + ' a las ' + sugerencia.time + '.';
+        };
+
+        $scope.evidenciaSugerencia = function (sugerencia) {
+            return 'Se ve en tus últimas ' + sugerencia.total + ' reservas: ' + sugerencia.matches + ' fueron los ' + DIAS[sugerencia.dayOfWeek] + '.';
+        };
+
+        //Lleva a la busqueda con el proximo dia que corresponde, el horario y las mascotas ya elegidos
+        $scope.reservarSugerencia = function (sugerencia) {
+            var fecha = moment(sugerencia.nextDate, 'YYYY-MM-DD').toDate();
+            $rootScope.busquedaPaseo = {
+                idCliente: $scope.idCliente,
+                retiro: { modo: 'home', otro: {} },
+                busqueda: { fecha: fecha, hora: sugerencia.time },
+                idsMascotas: sugerencia.petIds
+            };
+            $location.path('/');
+        };
+
+        //"Ahora no": no se vuelve a mostrar para esa fecha
+        $scope.descartarSugerencia = function (sugerencia) {
+            try {
+                window.localStorage.setItem(claveDescarte(sugerencia), '1');
+            } catch (e) { }
+            $scope.sugerencia = null;
+        };
 
         function alCargarMascotas(resultado) {
             $scope.mascotas = resultado.data;

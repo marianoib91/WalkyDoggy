@@ -1,0 +1,122 @@
+<div class="wd-stays">
+    <div class="wd-page-header">
+        <div>
+            <h1 class="wd-page-title">Hospedaje</h1>
+            <p class="wd-page-subtitle">Si te vas de viaje, tus perros pueden quedarse varias noches en la casa de un cuidador de confianza.</p>
+        </div>
+    </div>
+
+    <div class="wd-filter-chips" role="tablist">
+        <button type="button" class="wd-filter-chip" ng-class="{'is-active': pestana == 'buscar'}" ng-click="pestana = 'buscar'">
+            <i class="fa fa-search" aria-hidden="true"></i> Buscar cuidador
+        </button>
+        <button type="button" class="wd-filter-chip" ng-class="{'is-active': pestana == 'mis'}" ng-click="pestana = 'mis'">
+            <i class="fa fa-home" aria-hidden="true"></i> Mis hospedajes <span class="wd-filter-count">{{hospedajes.length}}</span>
+            <span class="wd-badge" ng-if="porPagar.length > 0" title="Para pagar">{{porPagar.length}}</span>
+        </button>
+    </div>
+
+    <!-- Buscar -->
+    <div ng-if="pestana == 'buscar'">
+        <section class="wd-stay-offer">
+            <h2 class="wd-section-title">¿Qué perros se quedan?</h2>
+            <p class="wd-field-hint" ng-if="mascotas.length == 0">Primero cargá tus mascotas en <a href="#/pets/list">Mis mascotas</a>.</p>
+            <div class="wd-stay-pets-pick">
+                <label class="wd-stay-pick" ng-repeat="mascota in mascotas" ng-class="{'is-selected': mascota.seleccionada}">
+                    <input type="checkbox" ng-model="mascota.seleccionada" ng-change="cambiarBusqueda()" />
+                    <img class="wd-avatar wd-avatar-sm" ng-src="{{mascota.profileImage || '/Content/images/avatar-pet.svg'}}" alt="" />
+                    <span>{{mascota.name}}</span>
+                </label>
+            </div>
+
+            <h2 class="wd-section-title">¿Cuándo?</h2>
+            <div class="wd-form-grid">
+                <div class="form-group">
+                    <label for="hospIngreso">Ingreso</label>
+                    <input id="hospIngreso" type="date" class="form-control" min="{{hoy}}" ng-model="busqueda.ingreso" ng-change="cambiarBusqueda()" />
+                </div>
+                <div class="form-group">
+                    <label for="hospSalida">Salida</label>
+                    <input id="hospSalida" type="date" class="form-control" min="{{hoy}}" ng-model="busqueda.salida" ng-change="cambiarBusqueda()" />
+                </div>
+                <div class="form-group wd-span-2">
+                    <label for="hospDetalles">Indicaciones para el cuidador <span class="wd-field-hint">(opcional)</span></label>
+                    <textarea id="hospDetalles" class="form-control" rows="2" maxlength="500" ng-model="busqueda.detalles"
+                              placeholder="Comida, medicación, miedos, rutina..."></textarea>
+                </div>
+            </div>
+            <p class="wd-field-hint" ng-if="noches() > 0">{{noches()}} {{noches() == 1 ? 'noche' : 'noches'}}. La entrega se acuerda por el chat con el cuidador y se paga al terminar.</p>
+            <button type="button" class="btn btn-primary" ng-disabled="buscando" ng-click="buscar()">{{buscando ? 'Buscando...' : 'Buscar cuidadores'}}</button>
+        </section>
+
+        <section ng-if="cuidadores !== null">
+            <h2 class="wd-section-title">Cuidadores con lugar</h2>
+            <p class="wd-field-hint" ng-if="cuidadores.length == 0">No hay cuidadores con lugar para esas fechas y esa cantidad de perros. Probá con otras fechas.</p>
+            <div class="wd-stay-list">
+                <article class="wd-stay-card" ng-repeat="cuidador in cuidadores">
+                    <div class="wd-stay-head">
+                        <img class="wd-avatar wd-avatar-sm" ng-src="{{cuidador.profileImage || '/Content/images/avatar-person.svg'}}" alt="" />
+                        <div class="wd-stay-who">
+                            <strong>{{cuidador.name}}</strong>
+                            <span class="wd-field-hint">
+                                {{cuidador.cityName}}<span ng-if="cuidador.distanceKm != null"> · a {{cuidador.distanceKm}} km</span>
+                                <span ng-if="cuidador.ratingCount > 0"> · <i class="fa fa-star" aria-hidden="true"></i> {{cuidador.rating}} ({{cuidador.ratingCount}})</span>
+                            </span>
+                        </div>
+                        <strong class="wd-stay-price">{{dinero(cuidador.total)}}</strong>
+                    </div>
+                    <p class="wd-stay-text" ng-if="cuidador.boardingDescription">{{cuidador.boardingDescription}}</p>
+                    <p class="wd-field-hint">
+                        {{dinero(cuidador.pricePerNight)}} por noche y por perro · {{cuidador.nights}} {{cuidador.nights == 1 ? 'noche' : 'noches'}} · {{textoPerros(cuidador.dogs)}}.
+                        Cuida hasta {{cuidador.maxDogs}} a la vez.
+                    </p>
+
+                    <!-- Como se va a pagar: se elige antes de hacer el pedido, igual que en los paseos -->
+                    <div class="wd-stay-pay-choice" role="radiogroup" aria-label="Forma de pago">
+                        <strong>Forma de pago</strong>
+                        <label class="wd-stay-radio">
+                            <input type="radio" ng-model="cuidador.pago" value="Cash" /> Efectivo
+                            <span class="wd-field-hint">Le pagás en mano cuando te devuelve a los perros.</span>
+                        </label>
+                        <label class="wd-stay-radio" ng-class="{'is-disabled': !cuidador.mercadoPagoLinked}">
+                            <input type="radio" ng-model="cuidador.pago" value="MercadoPago" ng-disabled="!cuidador.mercadoPagoLinked" /> Mercado Pago
+                            <span class="wd-field-hint" ng-if="cuidador.mercadoPagoLinked">Pagás online al terminar; el dinero va directo a su cuenta.</span>
+                            <span class="wd-field-hint" ng-if="!cuidador.mercadoPagoLinked">No disponible: este cuidador todavía no vinculó su cuenta.</span>
+                        </label>
+                    </div>
+
+                    <div class="wd-card-actions">
+                        <a class="btn btn-default" ng-href="#/walkers/{{cuidador.walkerId}}">Ver perfil</a>
+                        <button type="button" class="btn btn-primary" ng-disabled="trabajando" ng-click="solicitar(cuidador)">Pedir hospedaje</button>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </div>
+
+    <!-- Mis hospedajes -->
+    <div ng-if="pestana == 'mis'">
+        <p class="wd-field-hint" ng-if="!cargado">Cargando...</p>
+        <p class="wd-field-hint" ng-if="cargado && hospedajes.length == 0">Todavía no pediste ningún hospedaje.</p>
+
+        <section ng-if="porPagar.length > 0">
+            <h2 class="wd-section-title">Para pagar</h2>
+            <div class="wd-stay-list">
+                <div ng-repeat="hospedaje in porPagar track by hospedaje.id" ng-include="'scripts/spa/stays/stayCard.html'"></div>
+            </div>
+        </section>
+        <section ng-if="vigentes.length + pendientes.length > 0">
+            <h2 class="wd-section-title">En espera, confirmados y en curso</h2>
+            <div class="wd-stay-list">
+                <div ng-repeat="hospedaje in pendientes track by hospedaje.id" ng-include="'scripts/spa/stays/stayCard.html'"></div>
+                <div ng-repeat="hospedaje in vigentes track by hospedaje.id" ng-include="'scripts/spa/stays/stayCard.html'"></div>
+            </div>
+        </section>
+        <section ng-if="cerrados.length > 0">
+            <h2 class="wd-section-title">Finalizados y cancelados</h2>
+            <div class="wd-stay-list">
+                <div ng-repeat="hospedaje in cerrados track by hospedaje.id" ng-include="'scripts/spa/stays/stayCard.html'"></div>
+            </div>
+        </section>
+    </div>
+</div>

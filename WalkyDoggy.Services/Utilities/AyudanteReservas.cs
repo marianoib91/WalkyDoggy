@@ -14,6 +14,13 @@ namespace WalkyDoggy.Services.Utilities
             return paseo.BookingCode.HasValue ? paseo.BookingCode.Value.ToString("N") : "w" + paseo.Id;
         }
 
+        //La clave de un hospedaje es "h" + id (las de los paseos son "w" + id o un codigo hexadecimal, asi que no se pisan)
+        public static Boolean EsClaveDeHospedaje(String claveReserva, out Int64 idHospedaje)
+        {
+            idHospedaje = 0;
+            return !String.IsNullOrEmpty(claveReserva) && claveReserva.StartsWith("h") && Int64.TryParse(claveReserva.Substring(1), out idHospedaje);
+        }
+
         public static List<Walk> Buscar(IQueryable<Walk> paseos, String claveReserva)
         {
             if (!String.IsNullOrEmpty(claveReserva) && claveReserva.StartsWith("w"))

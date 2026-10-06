@@ -1,4 +1,5 @@
 <div class="step1">
+    <p class="wd-back-row"><button type="button" class="btn btn-default wd-back-btn" ng-click="volverAtras('/')"><i class="fa fa-arrow-left" aria-hidden="true"></i> Volver</button></p>
     <div class="wd-page-header">
         <div>
             <h1 class="wd-page-title">Reservar paseo</h1>
@@ -125,7 +126,7 @@
             </section>
 
             <div class="wd-form-footer">
-                <a class="btn btn-default" href="#/" style="margin-right:12px">Cancelar</a>
+                <button type="button" class="btn btn-default" ng-click="volverAtras('/')" style="margin-right:12px">Volver</button>
                 <button type="submit" class="btn btn-primary" ng-disabled="!tieneHorario || fueraDeZona">Continuar</button>
             </div>
         </div>

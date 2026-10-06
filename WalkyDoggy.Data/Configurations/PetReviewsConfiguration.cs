@@ -6,7 +6,6 @@ namespace WalkyDoggy.Data.Configurations
     {
         public PetReviewsConfiguration()
         {
-            Property(u => u.WalkId).IsRequired();
             Property(u => u.PetId).IsRequired();
             Property(u => u.WalkerId).IsRequired();
             Property(u => u.BookingKey).IsRequired().HasMaxLength(40);

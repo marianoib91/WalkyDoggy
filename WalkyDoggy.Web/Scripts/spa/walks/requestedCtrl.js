@@ -71,11 +71,11 @@
             if (resultado === 'approved') {
                 servicioNotificaciones.mostrarExito('¡Pago recibido! El dinero ya está en la cuenta de tu paseador.');
             } else if (resultado === 'pending') {
-                servicioNotificaciones.mostrarError('Tu pago todavía no se acreditó. Cuando se confirme lo vas a ver acá; si ya pagaste, tocá "Ya pagué, verificar".');
+                servicioNotificaciones.mostrarError('Tu pago todavía no se acreditó. Cuando se confirme lo vas a ver acá. Si Mercado Pago no te funciona, pagale a tu paseador de otra forma y él lo registra.');
             } else if (resultado === 'failed') {
                 servicioNotificaciones.mostrarError('El pago no se pudo completar. Podés intentarlo de nuevo con el botón "Pagar".');
             } else {
-                servicioNotificaciones.mostrarError('No pudimos verificar el pago. Si ya pagaste, tocá "Ya pagué, verificar".');
+                servicioNotificaciones.mostrarError('No pudimos verificar el pago. Si ya pagaste, no hace falta hacer nada más: tu paseador lo confirma. Si no, pagale de otra forma y él lo registra.');
             }
 
             $location.search({}).replace();
@@ -319,24 +319,6 @@
             }, function (error) {
                 $scope.trabajando = false;
                 servicioNotificaciones.mostrarError(mensajeDeError(error, 'No se pudo iniciar el pago.'));
-            });
-        };
-
-        //Por si el cliente pago pero no volvio a la app despues de pagar
-        $scope.verificarPago = function (reserva) {
-            $scope.trabajando = true;
-
-            servicioApi.post('/api/payments/sync', { bookingKey: reserva.bookingKey, customerId: idCliente }, function (resultado) {
-                $scope.trabajando = false;
-                if (resultado.data.result === 'approved') {
-                    servicioNotificaciones.mostrarExito('Encontramos tu pago. El dinero ya está en la cuenta de tu paseador.');
-                } else {
-                    servicioNotificaciones.mostrarError('Todavía no encontramos un pago aprobado para este paseo.');
-                }
-                iniciar();
-            }, function (error) {
-                $scope.trabajando = false;
-                servicioNotificaciones.mostrarError(mensajeDeError(error, 'No se pudo verificar el pago.'));
             });
         };
     }

@@ -272,11 +272,16 @@ namespace WalkyDoggy.Services.Services
             //(darlos por finalizados o confirmar que se cobraron) y los cobrados en la ultima semana
             var hoy = DateTime.Now.Date;
             var limiteRecibidos = hoy.AddDays(-7);
+
+            //Los cancelados de los ultimos dias tambien se devuelven: el paseador los ve en "Turnos finalizados"
+            var limiteCancelados = hoy.AddDays(-30);
             var paseos = IncluirDatosDeReserva().
-                        Where(x => x.WalkerId == idPaseador && x.Status != WalkStatus.Cancelled &&
-                                   (x.Date >= hoy ||
-                                    (x.Status == WalkStatus.Confirmed &&
-                                     (x.ReceivedAt == null || x.ReceivedAt >= limiteRecibidos)))).
+                        Where(x => x.WalkerId == idPaseador &&
+                                   ((x.Status == WalkStatus.Cancelled && x.Date >= limiteCancelados) ||
+                                    (x.Status != WalkStatus.Cancelled &&
+                                     (x.Date >= hoy ||
+                                      (x.Status == WalkStatus.Confirmed &&
+                                       (x.ReceivedAt == null || x.ReceivedAt >= limiteRecibidos)))))).
                         ToList();
 
             return ArmarReservas(paseos, "Walker").
@@ -510,12 +515,8 @@ namespace WalkyDoggy.Services.Services
                 return false;
             }
 
-            //Con Mercado Pago el pago tiene que figurar como pagado; en efectivo se confirma directamente
-            if (paseos[0].PaymentMethod == PaymentMethods.MercadoPago && paseos.Any(x => x.PaymentStatus != PaymentStatuses.Paid))
-            {
-                error = "El cliente todavía no pagó con Mercado Pago.";
-                return false;
-            }
+            //Siempre lo confirma el paseador, con cualquier forma de pago: si Mercado Pago no funciona (o el cliente pago en mano o por transferencia),
+            //el cobro se registra igual. Que el pago por Mercado Pago figure como acreditado no es condicion.
 
             paseos.ForEach(x =>
             {

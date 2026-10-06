@@ -71,6 +71,8 @@
     <Compile Include="Contracts\IServicioPaseosAdmin.cs" />
     <Compile Include="Contracts\IServicioPublicidad.cs" />
     <Compile Include="Contracts\IServicioTablero.cs" />
+    <Compile Include="Contracts\IServicioHospedajes.cs" />
+    <Compile Include="Contracts\IServicioPrediccion.cs" />
     <Compile Include="Contracts\IServicioCatalogos.cs" />
     <Compile Include="Contracts\IServicioFavoritos.cs" />
     <Compile Include="Contracts\IServicioResenasMascotas.cs" />
@@ -100,6 +102,8 @@
     <Compile Include="Services\ServicioPaseosAdmin.cs" />
     <Compile Include="Services\ServicioPublicidad.cs" />
     <Compile Include="Services\ServicioTablero.cs" />
+    <Compile Include="Services\ServicioHospedajes.cs" />
+    <Compile Include="Services\ServicioPrediccion.cs" />
     <Compile Include="Services\ServicioCatalogos.cs" />
     <Compile Include="Services\ServicioFavoritos.cs" />
     <Compile Include="Services\ServicioResenasMascotas.cs" />

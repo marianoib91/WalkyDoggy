@@ -38,9 +38,10 @@
             //Paseador
             if ($scope.roleId == '3') {
                 cargarReservas();
+                cargarHospedajes();
 
                 //Se actualiza solo cada tanto para ver mensajes nuevos y cambios de estado
-                var temporizador = $interval(cargarReservas, segundosEntreActualizaciones * 1000);
+                var temporizador = $interval(function () { cargarReservas(); cargarHospedajes(); }, segundosEntreActualizaciones * 1000);
                 $scope.$on('$destroy', function () {
                     $interval.cancel(temporizador);
                 });
@@ -50,10 +51,21 @@
                 servicioApi.get('/api/walkers/getByUserId', { params: { userId: idUsuario } }, function (resultado) {
                     $scope.perfilPaseador = resultado.data;
                 });
+
+                //Los dias en que suele tener mas reservas (204 = todavia hay pocas para estimar)
+                servicioApi.get('/api/predictions/walkerDemand', { params: { walkerId: $scope.idPaseador } }, function (resultado) {
+                    if (resultado.status === 200 && resultado.data) {
+                        $scope.demanda = resultado.data;
+                    }
+                });
             }
         }
 
         /* ---------- Paseador: solicitudes, paseos y cobros ---------- */
+
+        $scope.nombreDia = function (dia) {
+            return nombresDias[dia];
+        };
 
         //Montos al estilo argentino (4321.5 -> 4.321,50)
         function formatearMonto(monto) {
@@ -64,12 +76,74 @@
             return moment(reserva.date).hour(Number(reserva.timeFrom.split(':')[0])).minute(0).second(0).toDate();
         }
 
+        /* ---------- Turnos: pestañas y totales (paseos + hospedajes) ---------- */
+
+        //Pendientes (esperan la respuesta del paseador), confirmados (todavia sin terminar) y finalizados (terminados, cobrados o cancelados)
+        $scope.pestana = 'pendientes';
+        $scope.limiteHistorial = 20;
+
+        $scope.cambiarPestana = function (pestana) {
+            $scope.pestana = pestana;
+        };
+
+        $scope.verMasHistorial = function () {
+            $scope.limiteHistorial += 20;
+        };
+
+        $scope.cargado = function () {
+            return $scope.reservasCargadas && $scope.hospedajesCargados;
+        };
+
+        $scope.totalPendientes = function () {
+            return ($scope.pendientes || []).length + ($scope.hPendientes || []).length;
+        };
+
+        $scope.totalConfirmados = function () {
+            return ($scope.proximos || []).length + ($scope.enCurso || []).length + ($scope.hProximos || []).length + ($scope.hEnCurso || []).length;
+        };
+
+        $scope.totalPorCobrar = function () {
+            return ($scope.porCobrar || []).length + ($scope.hPorCobrar || []).length;
+        };
+
+        $scope.totalFinalizados = function () {
+            return $scope.totalPorCobrar() + ($scope.cobrados || []).length + ($scope.cancelados || []).length + ($scope.hHistorial || []).length;
+        };
+
+        $scope.textoQuienCancelo = function (reserva) {
+            return reserva.cancelledBy === 'Walker' ? 'Vos'
+                 : reserva.cancelledBy === 'Customer' ? 'El cliente'
+                 : reserva.cancelledBy === 'System' ? 'Se canceló sola: no se respondió a tiempo'
+                 : 'El administrador';
+        };
+
+        /* ---------- Hospedajes (las tarjetas son tarjetaHospedajeCtrl; recargan la lista con esta funcion) ---------- */
+
+        $scope.recargarHospedajes = cargarHospedajes;
+
+        function cargarHospedajes() {
+            servicioApi.get('/api/stays/getForWalker', { params: { walkerId: $scope.idPaseador } }, function (resultado) {
+                var por = function (estados) {
+                    return resultado.data.filter(function (hospedaje) { return estados.indexOf(hospedaje.status) !== -1; });
+                };
+
+                $scope.hPendientes = por(['Pending']);
+                $scope.hProximos = por(['Upcoming']);
+                $scope.hEnCurso = por(['InProgress']);
+                $scope.hPorCobrar = por(['ToCollect']);
+                $scope.hHistorial = por(['Collected', 'Cancelled']);
+                $scope.hospedajesCargados = true;
+            });
+        }
+
         function cargarReservas() {
             servicioApi.get('/api/walks/getBookingsForWalker', { params: { walkerId: $scope.idPaseador } }, function (resultado) {
-                var pendientes = [], proximos = [], enCurso = [], porCobrar = [], cobrados = [];
+                var pendientes = [], proximos = [], enCurso = [], porCobrar = [], cobrados = [], cancelados = [];
 
                 angular.forEach(resultado.data, function (reserva) {
-                    if (reserva.status === 'Pending') {
+                    if (reserva.status === 'Cancelled') {
+                        cancelados.push(reserva);
+                    } else if (reserva.status === 'Pending') {
                         pendientes.push(reserva);
                     } else if (reserva.status === 'Confirmed') {
                         if (reserva.receivedAt) {
@@ -86,10 +160,12 @@
 
                 $scope.pendientes = pendientes;
                 $scope.proximos = proximos;
-                $scope.turnosProximos = agruparEnTurnos(proximos.concat(pendientes));
+                $scope.turnosPendientes = agruparEnTurnos(pendientes);
+                $scope.turnosConfirmados = agruparEnTurnos(proximos);
                 $scope.enCurso = enCurso;
                 $scope.porCobrar = porCobrar;
                 $scope.cobrados = cobrados.sort(function (a, b) { return new Date(b.receivedAt) - new Date(a.receivedAt); });
+                $scope.cancelados = cancelados.sort(function (a, b) { return inicioDe(b) - inicioDe(a); });
                 $scope.reservasCargadas = true;
             });
         }
@@ -178,7 +254,7 @@
                 return 'Mercado Pago · el cliente ya pagó, el dinero está en tu cuenta';
             }
             return reserva.finishedAt
-                ? 'Mercado Pago · esperando que el cliente pague'
+                ? 'Mercado Pago · cuando te paguen (por la app o de otra forma), confirmalo'
                 : 'Mercado Pago · el cliente te paga online cuando termines el paseo';
         };
 
@@ -186,12 +262,12 @@
             if (reserva.paymentMethod !== 'MercadoPago') {
                 return 'Cobrar en efectivo';
             }
-            return reserva.paymentStatus === 'Paid' ? 'Pagado' : 'Esperando el pago';
+            return reserva.paymentStatus === 'Paid' ? 'Pagado' : 'Para cobrar';
         };
 
-        //En efectivo se confirma directamente; con Mercado Pago, cuando el cliente ya pago
-        $scope.puedeRecibir = function (reserva) {
-            return reserva.paymentMethod !== 'MercadoPago' || reserva.paymentStatus === 'Paid';
+        //El paseador siempre confirma el cobro, con cualquier forma de pago (si Mercado Pago no funciona, el cliente le paga de otra forma)
+        $scope.puedeRecibir = function () {
+            return true;
         };
 
         /* ---------- Chat con el cliente ---------- */

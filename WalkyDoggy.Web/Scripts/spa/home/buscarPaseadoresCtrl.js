@@ -41,7 +41,7 @@
         $scope.ordenarPor = 'rating';
 
         //Filtros: cuantos perros a la vez lleva como maximo el paseador (1 = paseo individual), solo favoritos y solo con perros parecidos
-        $scope.filtros = { perros: '', soloFavoritos: false, soloParecidos: false };
+        $scope.filtros = { perros: '', soloFavoritos: false};
         $scope.opcionesPerros = [
             { valor: '', texto: 'Cualquiera' },
             { valor: 1, texto: 'Solo 1 perro (paseo individual)' },
@@ -73,6 +73,8 @@
                 if (!$scope.domicilioUbicado && !anterior) {
                     $scope.retiro.modo = 'other';
                 }
+                $scope.clienteCargado = true;
+                intentarRestaurarResultados();
             });
 
             //Las mascotas del cliente: se eligen cuales pasean (y con ellas se busca el matching entre mascotas)
@@ -84,6 +86,7 @@
                 angular.forEach($scope.mascotas, function (mascota) {
                     mascota.seleccionada = anterior ? anterior.idsMascotas.indexOf(mascota.id) !== -1 : $scope.mascotas.length === 1;
                 });
+                intentarRestaurarResultados();
             });
 
             //Se avisa si hay paseos terminados que todavia no pago
@@ -92,6 +95,31 @@
                     return reserva.status === 'Confirmed' && reserva.finishedAt && reserva.paymentStatus === 'Pending';
                 }).length;
             });
+        }
+
+        /* ---------- Ir a ver un perfil y volver sin perder la busqueda ---------- */
+
+        //Antes de ir al perfil de un paseador se anota que se estaba mirando la lista de resultados (con su orden y filtros)
+        $scope.recordarResultados = function () {
+            guardarBusqueda();
+            $rootScope.busquedaPaseo.restaurar = { ordenarPor: $scope.ordenarPor, filtros: angular.copy($scope.filtros) };
+        };
+
+        //Al volver, con las mascotas y el domicilio ya cargados, se repite la busqueda y se deja la lista como estaba
+        function intentarRestaurarResultados() {
+            var pendiente = anterior && anterior.restaurar;
+            if (!pendiente || !$scope.mascotasCargadas || !$scope.clienteCargado) {
+                return;
+            }
+
+            anterior.restaurar = null;
+            if (mascotasElegidas().length === 0 || !direccionElegida()) {
+                return;
+            }
+
+            $scope.continuar();
+            $scope.ordenarPor = pendiente.ordenarPor;
+            $scope.filtros = pendiente.filtros;
         }
 
         /* ---------- Direccion de retiro ---------- */
@@ -198,7 +226,7 @@
 
             //Siempre se empieza ordenando por valoracion; despues se puede cambiar el orden
             $scope.ordenarPor = 'rating';
-            $scope.filtros = { perros: '', soloFavoritos: false, soloParecidos: false };
+            $scope.filtros = { perros: '', soloFavoritos: false};
 
             $scope.paso = 2;
             $scope.buscado = false;
@@ -276,8 +304,7 @@
             var maximoPerros = Number($scope.filtros.perros);
             var lista = $scope.paseadores.filter(function (paseador) {
                 return (!maximoPerros || paseador.maxPetsAtOnce <= maximoPerros) &&
-                       (!$scope.filtros.soloFavoritos || servicioFavoritos.esFavorito(paseador.id)) &&
-                       (!$scope.filtros.soloParecidos || paseador.matchingPets > 0);
+                       (!$scope.filtros.soloFavoritos || servicioFavoritos.esFavorito(paseador.id));
             });
             lista.sort(function (a, b) {
                 if (ordenarPor === 'distance') {
@@ -470,12 +497,15 @@
             //Sin un horario tocado, se propone lo que se busco; si solo se busco la hora, el primer dia en que el paseador tiene lugar a esa hora
             var propuesto = cupo || (!$scope.busqueda.fecha && $scope.busqueda.hora && paseador.availableTimes && paseador.availableTimes[0]) || null;
             $rootScope.retiroElegido = {
+                ts: Date.now(),
                 pickup: direccion,
                 fecha: propuesto ? propuesto.date : ($scope.busqueda.fecha ? moment($scope.busqueda.fecha).format('YYYY-MM-DD') : null),
                 hora: propuesto ? propuesto.time : ($scope.busqueda.hora || null),
                 idsMascotas: mascotasElegidas().map(function (mascota) { return mascota.id; })
             };
 
+            //Si desde el paso 1 se vuelve atras, se recupera la lista de resultados como estaba (orden, filtros, mascotas)
+            $scope.recordarResultados();
             $location.path('/walks/step-1').search({ walkerId: paseador.id });
         };
     }

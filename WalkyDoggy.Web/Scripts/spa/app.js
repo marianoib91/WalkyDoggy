@@ -38,6 +38,11 @@
              controller: "comerciosAmigosCtrl",
              resolve: { isAuthenticated: estaAutenticado }
          })
+         .when("/stays", {
+             templateUrl: "scripts/spa/stays/stays.html",
+             controller: "hospedajeCtrl",
+             resolve: { isAuthenticated: estaAutenticado }
+         })
          .when("/admin", {
              templateUrl: "scripts/spa/admin/admin.html",
              controller: "adminCtrl",
@@ -95,9 +100,31 @@
         .otherwise({ redirectTo: "/error/404" });
     }
 
-    run.$inject = ['$rootScope', '$location', '$cookieStore', '$http'];
+    run.$inject = ['$rootScope', '$location', '$cookieStore', '$http', '$window'];
 
-    function run($rootScope, $location, $cookieStore, $http) {
+    function run($rootScope, $location, $cookieStore, $http, $window) {
+        //"Volver" de las pantallas de detalle (perfil de un paseador, ficha de una mascota): vuelve a la pantalla de la que se vino,
+        //que recupera lo que ya estaba cargado. Si no se vino de otra pantalla de la app (por ejemplo, se abrio el enlace directo), va a la direccion indicada.
+        var hayPantallaAnterior = false;
+        $rootScope.$on('$routeChangeSuccess', function (evento, actual, anterior) {
+            hayPantallaAnterior = !!anterior;
+        });
+        $rootScope.volverAtras = function (rutaPorDefecto) {
+            if (hayPantallaAnterior) {
+                $window.history.back();
+            } else {
+                $location.path(rutaPorDefecto || '/');
+            }
+        };
+
+        //Despues de guardar cambios (perfil, condiciones laborales, contraseña, mascota) se lleva a la pantalla de inicio del rol:
+        //el cliente a Mis mascotas, el paseador a Turnos y el administrador a su panel. Asi se ve que los datos efectivamente se guardaron.
+        $rootScope.irAlInicio = function () {
+            var usuario = $rootScope.repository && $rootScope.repository.loggedUser;
+            var destino = !usuario ? '/public' : usuario.roleId == '2' ? '/pets/list' : usuario.roleId == '1' ? '/admin' : '/';
+            $location.search({}).path(destino);
+        };
+
         // handle page refreshes
         $rootScope.repository = $cookieStore.get('repository') || {};
         if ($rootScope.repository.loggedUser) {

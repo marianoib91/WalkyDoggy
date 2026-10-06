@@ -59,6 +59,15 @@ namespace WalkyDoggy.Entities
 
         public DateTime? MercadoPagoLinkedAt { get; set; }
 
+        //Hospedaje: el paseador puede ofrecer cuidar perros varias noches en su casa (precio por noche y por perro, perros a la vez y como es el lugar)
+        public Boolean BoardingEnabled { get; set; }
+
+        public Decimal? BoardingPricePerNight { get; set; }
+
+        public Int32 BoardingMaxDogs { get; set; }
+
+        public String BoardingDescription { get; set; }
+
         public User User { get; set; }
 
         public City City { get; set; }

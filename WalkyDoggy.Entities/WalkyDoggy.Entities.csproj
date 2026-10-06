@@ -68,6 +68,8 @@
     <Compile Include="Entities\ICatalogItem.cs" />
     <Compile Include="Entities\PetTraitDefinition.cs" />
     <Compile Include="Entities\FavoriteWalker.cs" />
+    <Compile Include="Entities\Stay.cs" />
+    <Compile Include="Entities\StayPet.cs" />
     <Compile Include="Entities\PetReview.cs" />
     <Compile Include="Entities\Ranking.cs" />
     <Compile Include="Entities\Role.cs" />

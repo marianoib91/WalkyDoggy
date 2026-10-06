@@ -1,0 +1,83 @@
+            <article class="wd-turn">
+                <header class="wd-turn-head">
+                    <h3 class="wd-turn-when">{{textoFecha(turno.reserva)}}, {{textoHorario(turno.reserva)}}</h3>
+                    <span class="wd-status wd-status-confirmed">{{textoCantidadPerros(turno)}}</span>
+                    <span class="wd-status wd-status-pending" ng-if="cantidadPorConfirmar(turno) > 0">{{cantidadPorConfirmar(turno)}} por confirmar</span>
+                    <span class="wd-badge" ng-if="mensajesSinLeerDelTurno(turno) > 0" title="Mensajes sin leer">{{mensajesSinLeerDelTurno(turno)}}</span>
+                </header>
+                <div class="wd-turn-pet" ng-repeat="cliente in turno.clientes track by cliente.clave" ng-class="{'is-open': clientesAbiertos[cliente.clave], 'is-pending': esPendiente(cliente)}">
+                    <div class="wd-turn-row">
+                        <div class="wd-turn-pets">
+                            <img class="wd-avatar wd-avatar-sm" ng-repeat="mascota in cliente.reserva.pets track by mascota.id" ng-src="{{mascota.profileImage || '/Content/images/avatar-pet.svg'}}" alt="Foto de {{mascota.name}}" title="{{mascota.name}}" />
+                        </div>
+                        <div class="wd-turn-main">
+                            <strong class="wd-turn-name">{{nombresMascotas(cliente.reserva)}} <span class="wd-status wd-status-pending wd-turn-tag" ng-if="esPendiente(cliente)">Por confirmar</span></strong>
+                            <span class="wd-turn-address">{{cliente.reserva.location}}</span>
+                            <span class="wd-turn-owner">{{cliente.reserva.customerFullName}}
+                                <a class="wd-turn-link" ng-if="cliente.reserva.latitude && cliente.reserva.longitude"
+                                   ng-href="https://www.google.com/maps/dir/?api=1&destination={{cliente.reserva.latitude}},{{cliente.reserva.longitude}}"
+                                   target="_blank" rel="noopener">· Cómo llegar</a>
+                            </span>
+                        </div>
+                        <div class="wd-turn-decision" ng-if="esPendiente(cliente)">
+                            <button type="button" class="btn btn-danger" ng-disabled="trabajando" ng-click="rechazar(cliente.reserva)">Rechazar</button>
+                            <button type="button" class="btn btn-primary" ng-disabled="trabajando" ng-click="confirmar(cliente.reserva)">Confirmar</button>
+                        </div>
+                        <div class="wd-turn-decision" ng-if="!esPendiente(cliente)">
+                            <button type="button" class="btn btn-default" ng-if="tieneChat(cliente.reserva)" ng-click="abrirChat(cliente.reserva)">
+                                <i class="fa fa-comments-o" aria-hidden="true"></i> Chat <span class="wd-badge" ng-if="cliente.reserva.unreadMessages > 0">{{cliente.reserva.unreadMessages}}</span>
+                            </button>
+                        </div>
+                        <button type="button" class="wd-turn-toggle" ng-click="alternarCliente(cliente)" aria-expanded="{{!!clientesAbiertos[cliente.clave]}}"
+                                aria-label="{{clientesAbiertos[cliente.clave] ? 'Ocultar' : 'Ver'}} los datos de {{nombresMascotas(cliente.reserva)}}">
+                            <i class="fa fa-angle-down" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="wd-turn-detail" ng-if="clientesAbiertos[cliente.clave]">
+                        <dl class="wd-walk-details">
+                            <dt>Dueño</dt>
+                            <dd>{{cliente.reserva.customerFullName}}</dd>
+                            <dt ng-if="cliente.reserva.details">Aclaraciones</dt>
+                            <dd ng-if="cliente.reserva.details">{{cliente.reserva.details}}</dd>
+                            <dt>Pago</dt>
+                            <dd>{{textoPago(cliente.reserva)}} · <strong>${{cliente.reserva.total | wdMoney}}</strong></dd>
+                        </dl>
+                        <div class="wd-pet-reviews" ng-repeat="mascota in cliente.reserva.pets track by mascota.id">
+                            <div class="wd-pet-review-head">
+                                <strong>{{mascota.name}}</strong>
+                                <span ng-if="mascota.reviewCount > 0">
+                                    <wd-stars value="mascota.reviewAverage"></wd-stars>
+                                    <strong>{{textoPromedio(mascota.reviewAverage)}}</strong>
+                                    ({{mascota.reviewCount}} {{mascota.reviewCount == 1 ? 'reseña' : 'reseñas'}})
+                                    <span class="wd-review-alert" ng-if="esAlertaDeResenas(mascota)">
+                                        <i class="fa fa-exclamation-triangle" aria-hidden="true"></i> {{mascota.negativeReviews}} {{mascota.negativeReviews == 1 ? 'negativa' : 'negativas'}}
+                                    </span>
+                                    <span class="wd-field-hint" ng-if="!esAlertaDeResenas(mascota) && mascota.negativeReviews > 0">· {{mascota.negativeReviews}} {{mascota.negativeReviews == 1 ? 'negativa' : 'negativas'}}</span>
+                                </span>
+                                <span class="wd-field-hint" ng-if="mascota.reviewCount == 0">Sin reseñas de otros paseadores todavía</span>
+                                <a href="" class="wd-link-sm" ng-if="mascota.reviewCount > 0" ng-click="alternarResenas(mascota)">{{resenasAbiertas[mascota.id] ? 'Ocultar reseñas' : 'Ver reseñas'}}</a>
+                            </div>
+                            <ul class="wd-review-list" ng-if="resenasAbiertas[mascota.id]">
+                                <li class="wd-field-hint" ng-if="!resenasDe[mascota.id]">Cargando...</li>
+                                <li ng-repeat="resena in resenasDe[mascota.id]" ng-class="{'is-mine': resena.isMine}">
+                                    <div class="wd-review-top">
+                                        <wd-stars value="resena.stars"></wd-stars>
+                                        <strong class="wd-review-who">{{resena.isMine ? 'Tu reseña' : resena.walkerName}}</strong>
+                                        <span class="wd-field-hint">· {{resena.date | date:'dd/MM/yyyy'}}</span>
+                                    </div>
+                                    <p class="wd-review-text" ng-if="resena.comment">{{resena.comment}}</p>
+                                    <p class="wd-field-hint" ng-if="!resena.comment">Sin comentario.</p>
+                                </li>
+                            </ul>
+                        </div>
+                        <p class="wd-field-hint" ng-if="esPendiente(cliente)">Al confirmar la solicitud se habilita el chat con el cliente, para acordar el horario en que pasás a buscar a la mascota.</p>
+                        <p class="wd-field-hint" ng-if="!esPendiente(cliente)">Cuando llegues, el cliente inicia el paseo desde su pantalla: queda registrado el horario real.</p>
+                        <div class="wd-walk-actions wd-turn-actions" ng-if="!esPendiente(cliente)">
+                            <button type="button" class="btn btn-default" ng-click="denunciar(cliente.reserva)">
+                                <i class="fa fa-flag-o" aria-hidden="true"></i> Denunciar
+                            </button>
+                            <button type="button" class="btn btn-danger" ng-click="cancelarConfirmado(cliente.reserva)">Cancelar{{cliente.reserva.pets.length > 1 ? ' reserva' : ''}}</button>
+                        </div>
+                    </div>
+                </div>
+            </article>

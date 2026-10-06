@@ -2351,8 +2351,8 @@ button.wd-pet-add {
 .wd-search-summary dt { font-weight: 500; color: #5B6470; }
 .wd-search-summary dd { margin: 0; }
 
-.wd-match-filter.is-active { border-color: #E3A008; background-color: #FFFBEB; color: #7A5A00; }
-.wd-match-filter .fa { color: #E3A008; }
+
+
 
 .wd-optional { font-size: 14px; font-weight: 400; color: #5B6470; }
 
@@ -2604,3 +2604,88 @@ button.wd-pet-add {
 .wd-friend-promos-title .fa { color: #E3A008; }
 .wd-friend-promo { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
 .wd-friend-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 4px; }
+
+/* Sugerencia de reserva (Mis mascotas) */
+.wd-suggestion { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding: 14px 16px; border-radius: 12px; background-color: #EEF6FF; border: 1px solid #CFE3FA; }
+.wd-suggestion-icon { font-size: 26px; color: #2F6FB3; }
+.wd-suggestion-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.wd-suggestion-body small { color: #5B6B7B; }
+.wd-suggestion-actions { display: flex; align-items: center; gap: 4px; }
+@media (max-width: 600px) {
+    .wd-suggestion { flex-wrap: wrap; }
+    .wd-suggestion-actions { width: 100%; }
+}
+
+/* Marca de sugerencia inteligente (estrellitas) */
+.wd-ai-mark { width: 21px; height: 21px; margin-left: 4px; vertical-align: -3px; fill: #7C4DDB; }
+.wd-suggestion-body em { font-style: normal; color: #5B6B7B; }
+.wd-suggestion-body > span { display: block; }
+
+/* Hospedaje */
+.wd-avatar-xs { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; vertical-align: middle; }
+.wd-stays .wd-section-title { margin: 24px 0 10px; }
+.wd-stay-offer { margin: 16px 0; padding: 16px; border: 1px solid #E4E7EB; border-radius: 12px; background-color: #ffffff; }
+.wd-stay-offer .wd-section-title:first-child { margin-top: 0; }
+.wd-switch { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; font-weight: 500; cursor: pointer; }
+.wd-switch input { width: 18px; height: 18px; }
+.wd-stay-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.wd-stay-card { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border: 1px solid #E4E7EB; border-radius: 12px; background-color: #ffffff; }
+.wd-stay-card p { margin: 0; }
+.wd-stay-head { display: flex; align-items: center; gap: 10px; }
+.wd-stay-who { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.wd-stay-price { font-size: 18px; }
+.wd-stay-pets { display: flex; flex-wrap: wrap; gap: 6px; }
+.wd-stay-pet { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 4px; border-radius: 999px; background-color: #F3F5F7; font-size: 14px; }
+.wd-stay-dates .fa { color: #166A4F; }
+.wd-stay-pay { margin-top: 4px; padding: 10px 12px; border-radius: 10px; background-color: #FFFBEB; }
+.wd-stay-pets-pick { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+.wd-stay-pick { display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 6px 12px 6px 8px; border: 1px solid #E4E7EB; border-radius: 999px; cursor: pointer; font-weight: 500; }
+.wd-stay-pick.is-selected { border-color: #166A4F; background-color: #E7F4EE; }
+.wd-stay-pick input { margin: 0; }
+.wd-stay-text { font-size: 14px; color: #3C4650; }
+.wd-stay-head .wd-avatar { width: 48px; height: 48px; flex: 0 0 48px; }
+.wd-stay-pick .wd-avatar { width: 32px; height: 32px; }
+.wd-stay-who strong { overflow-wrap: anywhere; }
+
+/* Chat: foto de perfil junto a cada mensaje */
+.wd-chat-line { display: flex; align-items: flex-end; gap: 8px; max-width: 100%; }
+.wd-chat-msg.is-mine .wd-chat-line { flex-direction: row-reverse; }
+.wd-chat-msg.is-system .wd-chat-line { justify-content: center; }
+.wd-chat-photo { flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background-color: #E7E9EC; }
+.wd-chat-line .wd-chat-bubble { max-width: calc(82% - 40px); }
+.wd-chat-msg.is-system .wd-chat-line .wd-chat-bubble { max-width: 94%; }
+.wd-chat-msg.is-mine .wd-chat-meta { padding-right: 44px; }
+.wd-chat-msg.is-theirs .wd-chat-meta { padding-left: 44px; }
+.wd-stay-pay-choice { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; padding: 10px 12px; border-radius: 10px; background-color: #F6F8FA; }
+.wd-stay-radio { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0; font-weight: 500; cursor: pointer; }
+.wd-stay-radio.is-disabled { opacity: 0.6; cursor: not-allowed; }
+.wd-stay-radio input { margin: 0; }
+
+/* Turnos del paseador */
+.wd-turnos-tabs { margin: 8px 0 16px; }
+.wd-empty-state { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 24px 0; padding: 28px 16px; border: 1px dashed #D5DAE0; border-radius: 12px; text-align: center; color: #5B6470; }
+.wd-empty-state .fa { font-size: 28px; color: #166A4F; }
+.wd-empty-state strong { color: #14181F; }
+
+/* Boton "Volver" de las pantallas de detalle */
+.wd-back-row { margin: 0 0 12px; }
+.wd-back-btn .fa { margin-right: 6px; }
+
+/* Usuario de la barra superior: foto de perfil y "Hola, nombre" */
+.navbar-default .navbar-nav > li.userinfo > a.dropdown-toggle {
+    width: auto;
+    max-width: 260px;
+    height: 44px;
+    margin: 14px 0 14px 8px;
+    padding: 0 14px 0 4px;
+    gap: 8px;
+    border-radius: 999px;
+}
+.wd-user-photo { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 36px; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; background-color: #DDE1E6; }
+.wd-user-photo img { width: 100%; height: 100%; object-fit: cover; }
+.wd-user-photo .fa { font-size: 18px; }
+.wd-user-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 500; }
+.navbar-default .navbar-nav > li.userinfo > a.dropdown-toggle .caret { display: inline-block; margin-left: 2px; }
+@media (max-width: 767px) {
+    .navbar-default .navbar-nav > li.userinfo > a.dropdown-toggle { max-width: none; }
+}

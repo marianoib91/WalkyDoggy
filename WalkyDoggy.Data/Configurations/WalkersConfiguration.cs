@@ -19,6 +19,8 @@ namespace WalkyDoggy.Data.Configurations
             Property(u => u.ServiceRadiusKm).IsRequired();
             Property(u => u.MaxPetsAtOnce).IsRequired();
             Property(u => u.PayoutAccount).HasMaxLength(120);
+            Property(u => u.BoardingPricePerNight).HasPrecision(10, 2);
+            Property(u => u.BoardingDescription).HasMaxLength(500);
         }
     }
 }

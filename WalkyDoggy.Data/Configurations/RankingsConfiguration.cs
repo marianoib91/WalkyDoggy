@@ -6,7 +6,6 @@ namespace WalkyDoggy.Data.Configurations
     {
         public RankingsConfiguration()
         {
-            Property(u => u.WalkId).IsRequired();
             Property(u => u.WalkerId).IsRequired();
             Property(u => u.CustomerId).IsRequired();
             Property(u => u.BookingKey).IsRequired().HasMaxLength(40);

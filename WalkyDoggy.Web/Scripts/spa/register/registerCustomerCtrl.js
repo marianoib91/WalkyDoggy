@@ -7,7 +7,12 @@
 
     function registroClienteCtrl($scope, servicioApi, servicioMembresia, servicioNotificaciones, $rootScope, $location) {
 
-        $scope.cliente = {};
+        //Si se sale del registro y se vuelve, se recupera lo cargado (solo en memoria; se descarta al terminar)
+        var terminado = false;
+        $scope.cliente = $rootScope.borradorRegistroCliente || {};
+        $scope.$on('$destroy', function () {
+            $rootScope.borradorRegistroCliente = terminado ? null : $scope.cliente;
+        });
 
 
 
@@ -25,6 +30,7 @@
 
         function alRegistrar(resultado) {
             if (resultado.status == 200) {
+                terminado = true;
                 servicioMembresia.guardarCredenciales(resultado.data, $scope.cliente.firstName);
             }
             else {

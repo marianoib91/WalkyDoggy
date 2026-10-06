@@ -21,25 +21,58 @@ namespace WalkyDoggy.Services.Services
 
         private readonly IRepositorioEntidadBase<Message> repositorioMensajes;
         private readonly IRepositorioEntidadBase<Walk> repositorioPaseos;
+        private readonly IRepositorioEntidadBase<Stay> repositorioHospedajes;
         private readonly IUnidadDeTrabajo unidadDeTrabajo;
 
         public ServicioMensajes(IRepositorioEntidadBase<Message> repositorioMensajes,
                                 IRepositorioEntidadBase<Walk> repositorioPaseos,
+                                IRepositorioEntidadBase<Stay> repositorioHospedajes,
                                 IUnidadDeTrabajo unidadDeTrabajo)
         {
             this.repositorioMensajes = repositorioMensajes;
             this.repositorioPaseos = repositorioPaseos;
+            this.repositorioHospedajes = repositorioHospedajes;
             this.unidadDeTrabajo = unidadDeTrabajo;
+        }
+
+        //Las claves de hospedaje son "h" + id (las de los paseos son "w" + id o un codigo hexadecimal, asi que no se pisan)
+        private static Boolean EsClaveDeHospedaje(String clave, out Int64 id)
+        {
+            id = 0;
+            return !String.IsNullOrEmpty(clave) && clave.StartsWith("h") && Int64.TryParse(clave.Substring(1), out id);
+        }
+
+        //El hospedaje de la clave si quien pregunta es su cuidador o su cliente; si no, null
+        private Stay BuscarHospedajeDelActor(Int64 id, String actor, Int64 idActor)
+        {
+            var hospedaje = this.repositorioHospedajes.TodosConIncluidos(x => x.Walker, x => x.Customer).FirstOrDefault(x => x.Id == id);
+            if (hospedaje == null)
+            {
+                return null;
+            }
+
+            if (actor == RolPaseador && hospedaje.WalkerId == idActor) { return hospedaje; }
+            if (actor == RolCliente && hospedaje.CustomerId == idActor) { return hospedaje; }
+            return null;
+        }
+
+        //Se puede escribir mientras el hospedaje este confirmado y todavia no se haya cobrado
+        private static Boolean SePuedeEscribirEnHospedaje(Stay hospedaje)
+        {
+            return hospedaje.Status == WalkStatus.Confirmed && !hospedaje.ReceivedAt.HasValue;
         }
 
         public ChatDto ObtenerChat(String claveReserva, String actor, Int64 idActor, Int64 despuesDeId, out String error)
         {
             error = null;
 
-            var paseos = BuscarReservaDelActor(claveReserva, actor, idActor);
-            if (paseos == null)
+            Int64 idHospedaje;
+            var esHospedaje = EsClaveDeHospedaje(claveReserva, out idHospedaje);
+            var hospedaje = esHospedaje ? BuscarHospedajeDelActor(idHospedaje, actor, idActor) : null;
+            var paseos = esHospedaje ? new List<Walk>() : BuscarReservaDelActor(claveReserva, actor, idActor);
+            if (esHospedaje ? hospedaje == null : paseos == null)
             {
-                error = "La reserva no existe.";
+                error = esHospedaje ? "El hospedaje no existe." : "La reserva no existe.";
                 return null;
             }
 
@@ -48,9 +81,10 @@ namespace WalkyDoggy.Services.Services
                                               OrderBy(x => x.Id).
                                               ToList();
 
-            if (mensajes.Count == 0 && paseos.All(x => x.Status == WalkStatus.Pending))
+            var pendiente = esHospedaje ? hospedaje.Status == WalkStatus.Pending : paseos.All(x => x.Status == WalkStatus.Pending);
+            if (mensajes.Count == 0 && pendiente)
             {
-                error = "El chat se habilita cuando el paseador confirma la reserva.";
+                error = esHospedaje ? "El chat se habilita cuando el cuidador confirma el hospedaje." : "El chat se habilita cuando el paseador confirma la reserva.";
                 return null;
             }
 
@@ -66,7 +100,11 @@ namespace WalkyDoggy.Services.Services
             return new ChatDto
             {
                 Messages = mensajes.Where(x => x.Id > despuesDeId).Select(x => ADto(x)).ToList(),
-                CanWrite = SePuedeEscribir(paseos)
+                CanWrite = esHospedaje ? SePuedeEscribirEnHospedaje(hospedaje) : SePuedeEscribir(paseos),
+                Walker = esHospedaje ? Participante(hospedaje.Walker == null ? null : hospedaje.Walker.FirstName, hospedaje.Walker == null ? null : hospedaje.Walker.LastName, hospedaje.Walker == null ? null : hospedaje.Walker.ProfileImage)
+                                     : Participante(paseos[0].Walker == null ? null : paseos[0].Walker.FirstName, paseos[0].Walker == null ? null : paseos[0].Walker.LastName, paseos[0].Walker == null ? null : paseos[0].Walker.ProfileImage),
+                Customer = esHospedaje ? Participante(hospedaje.Customer == null ? null : hospedaje.Customer.FirstName, hospedaje.Customer == null ? null : hospedaje.Customer.LastName, hospedaje.Customer == null ? null : hospedaje.Customer.ProfileImage)
+                                       : Participante(paseos[0].Pet.Customer == null ? null : paseos[0].Pet.Customer.FirstName, paseos[0].Pet.Customer == null ? null : paseos[0].Pet.Customer.LastName, paseos[0].Pet.Customer == null ? null : paseos[0].Pet.Customer.ProfileImage)
             };
         }
 
@@ -80,10 +118,13 @@ namespace WalkyDoggy.Services.Services
                 return null;
             }
 
-            var paseos = BuscarReservaDelActor(solicitud.BookingKey, solicitud.Actor, solicitud.ActorId);
-            if (paseos == null)
+            Int64 idHospedaje;
+            var esHospedaje = EsClaveDeHospedaje(solicitud.BookingKey, out idHospedaje);
+            var hospedaje = esHospedaje ? BuscarHospedajeDelActor(idHospedaje, solicitud.Actor, solicitud.ActorId) : null;
+            var paseos = esHospedaje ? new List<Walk>() : BuscarReservaDelActor(solicitud.BookingKey, solicitud.Actor, solicitud.ActorId);
+            if (esHospedaje ? hospedaje == null : paseos == null)
             {
-                error = "La reserva no existe.";
+                error = esHospedaje ? "El hospedaje no existe." : "La reserva no existe.";
                 return null;
             }
 
@@ -99,14 +140,14 @@ namespace WalkyDoggy.Services.Services
                 return null;
             }
 
-            if (paseos.All(x => x.Status == WalkStatus.Pending))
+            if (esHospedaje ? hospedaje.Status == WalkStatus.Pending : paseos.All(x => x.Status == WalkStatus.Pending))
             {
-                error = "El chat se habilita cuando el paseador confirma la reserva.";
+                error = esHospedaje ? "El chat se habilita cuando el cuidador confirma el hospedaje." : "El chat se habilita cuando el paseador confirma la reserva.";
                 return null;
             }
-            if (!SePuedeEscribir(paseos))
+            if (esHospedaje ? !SePuedeEscribirEnHospedaje(hospedaje) : !SePuedeEscribir(paseos))
             {
-                error = "El chat de esta reserva está cerrado.";
+                error = esHospedaje ? "El chat de este hospedaje está cerrado." : "El chat de esta reserva está cerrado.";
                 return null;
             }
 
@@ -167,7 +208,7 @@ namespace WalkyDoggy.Services.Services
         //Los paseos de la reserva, si quien pregunta es el paseador o el cliente de esa reserva; si no, null
         private List<Walk> BuscarReservaDelActor(String claveReserva, String actor, Int64 idActor)
         {
-            var paseos = AyudanteReservas.Buscar(this.repositorioPaseos.TodosConIncluidos(x => x.Pet), claveReserva);
+            var paseos = AyudanteReservas.Buscar(this.repositorioPaseos.TodosConIncluidos(x => x.Pet, x => x.Pet.Customer, x => x.Walker), claveReserva);
             if (paseos.Count == 0)
             {
                 return null;
@@ -183,6 +224,15 @@ namespace WalkyDoggy.Services.Services
             }
 
             return null;
+        }
+
+        private static ChatParticipantDto Participante(String nombre, String apellido, String foto)
+        {
+            return new ChatParticipantDto
+            {
+                Name = ((nombre ?? String.Empty) + " " + (apellido ?? String.Empty)).Trim(),
+                ProfileImage = foto
+            };
         }
 
         private static MessageDto ADto(Message mensaje)

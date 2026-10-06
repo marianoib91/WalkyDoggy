@@ -138,6 +138,14 @@ namespace WalkyDoggy.Web.App_Start
             .As<IServicioTablero>()
             .InstancePerRequest();
 
+            builder.RegisterType<ServicioHospedajes>()
+            .As<IServicioHospedajes>()
+            .InstancePerRequest();
+
+            builder.RegisterType<ServicioPrediccion>()
+            .As<IServicioPrediccion>()
+            .InstancePerRequest();
+
             builder.RegisterType<ServicioDenuncias>()
             .As<IServicioDenuncias>()
             .InstancePerRequest();

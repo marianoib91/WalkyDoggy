@@ -19,16 +19,19 @@ namespace WalkyDoggy.Services.Services
         private readonly IRepositorioEntidadBase<PetReview> repositorioResenas;
         private readonly IRepositorioEntidadBase<Walk> repositorioPaseos;
         private readonly IRepositorioEntidadBase<Walker> repositorioPaseadores;
+        private readonly IRepositorioEntidadBase<Stay> repositorioHospedajes;
         private readonly IUnidadDeTrabajo unidadDeTrabajo;
 
         public ServicioResenasMascotas(IRepositorioEntidadBase<PetReview> repositorioResenas,
                                        IRepositorioEntidadBase<Walk> repositorioPaseos,
                                        IRepositorioEntidadBase<Walker> repositorioPaseadores,
+                                       IRepositorioEntidadBase<Stay> repositorioHospedajes,
                                        IUnidadDeTrabajo unidadDeTrabajo)
         {
             this.repositorioResenas = repositorioResenas;
             this.repositorioPaseos = repositorioPaseos;
             this.repositorioPaseadores = repositorioPaseadores;
+            this.repositorioHospedajes = repositorioHospedajes;
             this.unidadDeTrabajo = unidadDeTrabajo;
         }
 
@@ -53,6 +56,49 @@ namespace WalkyDoggy.Services.Services
             {
                 error = "El comentario puede tener hasta " + LargoMaximoComentario + " caracteres.";
                 return false;
+            }
+
+            //Un hospedaje: el cuidador reseña a cada perro que cuido, cuando los devolvio
+            Int64 idHospedaje;
+            if (AyudanteReservas.EsClaveDeHospedaje(solicitud.BookingKey, out idHospedaje))
+            {
+                var hospedaje = this.repositorioHospedajes.TodosConIncluidos(x => x.Pets).FirstOrDefault(x => x.Id == idHospedaje);
+                if (hospedaje == null || hospedaje.WalkerId != solicitud.WalkerId)
+                {
+                    error = "El hospedaje no existe.";
+                    return false;
+                }
+                if (!hospedaje.Pets.Any(p => p.PetId == solicitud.PetId))
+                {
+                    error = "Esa mascota no estaba en el hospedaje.";
+                    return false;
+                }
+                if (hospedaje.Status != WalkStatus.Confirmed || !hospedaje.FinishedAt.HasValue)
+                {
+                    error = "Solo podés reseñar a una mascota cuando devolviste a los perros.";
+                    return false;
+                }
+
+                var claveHospedaje = solicitud.BookingKey;
+                var idMascotaHospedaje = solicitud.PetId;
+                if (this.repositorioResenas.ObtenerTodos().Any(x => x.BookingKey == claveHospedaje && x.PetId == idMascotaHospedaje))
+                {
+                    error = "Ya reseñaste a esta mascota en este hospedaje.";
+                    return false;
+                }
+
+                this.repositorioResenas.Agregar(new PetReview
+                {
+                    WalkId = null,
+                    PetId = solicitud.PetId,
+                    WalkerId = hospedaje.WalkerId,
+                    BookingKey = claveHospedaje,
+                    Date = DateTime.Now,
+                    Stars = solicitud.Stars,
+                    Comments = comentario.Length == 0 ? null : comentario
+                });
+                this.unidadDeTrabajo.GuardarCambios();
+                return true;
             }
 
             var paseos = AyudanteReservas.Buscar(this.repositorioPaseos.TodosConIncluidos(x => x.Pet), solicitud.BookingKey);
@@ -130,7 +176,7 @@ namespace WalkyDoggy.Services.Services
         public HashSet<Int64> ObtenerPaseosResenados(IEnumerable<Int64> idsPaseos, Int64 idPaseador)
         {
             var ids = idsPaseos.Distinct().ToList();
-            return new HashSet<Int64>(this.repositorioResenas.BuscarPor(x => ids.Contains(x.WalkId) && x.WalkerId == idPaseador).Select(x => x.WalkId).ToList());
+            return new HashSet<Int64>(this.repositorioResenas.BuscarPor(x => x.WalkId.HasValue && ids.Contains(x.WalkId.Value) && x.WalkerId == idPaseador).Select(x => x.WalkId.Value).ToList());
         }
 
         private static PetReviewSummaryDto Resumir(Int64 idMascota, List<PetReview> resenas)

@@ -18,14 +18,17 @@ namespace WalkyDoggy.Services.Services
 
         private readonly IRepositorioEntidadBase<Ranking> repositorioValoraciones;
         private readonly IRepositorioEntidadBase<Walk> repositorioPaseos;
+        private readonly IRepositorioEntidadBase<Stay> repositorioHospedajes;
         private readonly IUnidadDeTrabajo unidadDeTrabajo;
 
         public ServicioValoraciones(IRepositorioEntidadBase<Ranking> repositorioValoraciones,
                                 IRepositorioEntidadBase<Walk> repositorioPaseos,
+                                IRepositorioEntidadBase<Stay> repositorioHospedajes,
                                 IUnidadDeTrabajo unidadDeTrabajo)
         {
             this.repositorioValoraciones = repositorioValoraciones;
             this.repositorioPaseos = repositorioPaseos;
+            this.repositorioHospedajes = repositorioHospedajes;
             this.unidadDeTrabajo = unidadDeTrabajo;
         }
 
@@ -121,6 +124,43 @@ namespace WalkyDoggy.Services.Services
             {
                 error = "El comentario puede tener hasta " + LargoMaximoComentario + " caracteres.";
                 return false;
+            }
+
+            //Un hospedaje se valora igual que un paseo, cuando el cuidador devolvio a los perros
+            Int64 idHospedaje;
+            if (AyudanteReservas.EsClaveDeHospedaje(solicitud.BookingKey, out idHospedaje))
+            {
+                var hospedaje = this.repositorioHospedajes.ObtenerTodos().FirstOrDefault(x => x.Id == idHospedaje);
+                if (hospedaje == null || hospedaje.CustomerId != solicitud.CustomerId)
+                {
+                    error = "El hospedaje no existe.";
+                    return false;
+                }
+                if (hospedaje.Status != WalkStatus.Confirmed || !hospedaje.FinishedAt.HasValue)
+                {
+                    error = "Solo podés valorar un hospedaje cuando el cuidador devolvió a los perros.";
+                    return false;
+                }
+
+                var claveHospedaje = solicitud.BookingKey;
+                if (this.repositorioValoraciones.ObtenerTodos().Any(x => x.BookingKey == claveHospedaje))
+                {
+                    error = "Ya valoraste este hospedaje.";
+                    return false;
+                }
+
+                this.repositorioValoraciones.Agregar(new Ranking
+                {
+                    WalkId = null,
+                    WalkerId = hospedaje.WalkerId,
+                    CustomerId = solicitud.CustomerId,
+                    BookingKey = claveHospedaje,
+                    Date = DateTime.Now,
+                    Score = solicitud.Stars,
+                    Comments = comentario.Length == 0 ? null : comentario
+                });
+                this.unidadDeTrabajo.GuardarCambios();
+                return true;
             }
 
             var paseos = AyudanteReservas.Buscar(this.repositorioPaseos.TodosConIncluidos(x => x.Pet), solicitud.BookingKey);

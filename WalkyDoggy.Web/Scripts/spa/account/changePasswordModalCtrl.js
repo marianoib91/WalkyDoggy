@@ -3,9 +3,9 @@
 
     app.controller('cambiarContrasenaModalCtrl', cambiarContrasenaModalCtrl);
 
-    cambiarContrasenaModalCtrl.$inject = ['$scope', '$modalInstance', 'servicioApi', 'servicioMembresia', 'servicioNotificaciones'];
+    cambiarContrasenaModalCtrl.$inject = ['$scope', '$modalInstance', 'servicioApi', 'servicioMembresia', 'servicioNotificaciones', '$rootScope'];
 
-    function cambiarContrasenaModalCtrl($scope, $modalInstance, servicioApi, servicioMembresia, servicioNotificaciones) {
+    function cambiarContrasenaModalCtrl($scope, $modalInstance, servicioApi, servicioMembresia, servicioNotificaciones, $rootScope) {
         $scope.datos = { actual: '', nueva: '', repetida: '' };
         $scope.error = '';
         $scope.guardando = false;
@@ -45,6 +45,7 @@
                 servicioMembresia.actualizarContrasena($scope.datos.nueva);
                 servicioNotificaciones.mostrarExito('Cambiaste tu contraseña.');
                 $modalInstance.close();
+                $rootScope.irAlInicio();
             }, function (error) {
                 $scope.guardando = false;
                 $scope.error = error.data && error.data[0] ? error.data[0] : 'No se pudo cambiar la contraseña. Intentá de nuevo.';

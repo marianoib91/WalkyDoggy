@@ -159,6 +159,7 @@
     <Content Include="Content\images\pet-public.svg" />
     <Content Include="Content\images\avatar-person.svg" />
     <Content Include="Content\images\avatar-pet.svg" />
+    <Content Include="Content\images\favicon.svg" />
     <Content Include="Content\images\profile-image.png" />
     <Content Include="Content\images\profile2.jpg" />
     <Content Include="Content\images\raty\star-half-big.png" />
@@ -198,6 +199,10 @@
     <Content Include="Scripts\spa\admin\tablero.html" />
     <Content Include="Scripts\spa\friends\friends.html" />
     <Content Include="Scripts\spa\friends\friendsCtrl.js" />
+    <Content Include="Scripts\spa\stays\staysCtrl.js" />
+    <Content Include="Scripts\spa\stays\stayCardCtrl.js" />
+    <Content Include="Scripts\spa\stays\stays.html" />
+    <Content Include="Scripts\spa\stays\stayCard.html" />
     <Content Include="Scripts\spa\admin\adminPublicidadCtrl.js" />
     <Content Include="Scripts\spa\admin\publicidad.html" />
     <Content Include="Scripts\spa\directives\publicidad.directive.js" />
@@ -271,6 +276,7 @@
     <Content Include="Scripts\vendors\sweetalert.min.js" />
     <Content Include="Scripts\vendors\ui-bootstrap-tpls-0.13.1.js" />
     <Content Include="Scripts\spa\home\index.html" />
+    <Content Include="Scripts\spa\home\turnoPaseos.html" />
     <Content Include="Scripts\vendors\angular-route.js" />
     <Content Include="Scripts\vendors\angular.js" />
     <Content Include="Scripts\vendors\bootstrap.js" />
@@ -314,6 +320,8 @@
     <Compile Include="Controllers\ComplaintsController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\TraitsController.cs" />
+    <Compile Include="Controllers\StaysController.cs" />
+    <Compile Include="Controllers\PredictionsController.cs" />
     <Compile Include="Infrastructure\Core\ControladorAdminBase.cs" />
     <Compile Include="Controllers\FavoritesController.cs" />
     <Compile Include="Controllers\PetReviewsController.cs" />

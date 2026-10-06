@@ -17,9 +17,15 @@
 
         $scope.borrador = borrador;
         $scope.paseador = null;
-        $scope.detalles = '';
+        $scope.detalles = borrador.detalles || '';
         $scope.guardando = false;
-        $scope.pago = { method: 'Cash' };
+        $scope.pago = { method: borrador.pagoMetodo || 'Cash' };
+
+        //Si se vuelve al paso 1 y despues otra vez a este, lo escrito y la forma de pago elegida se conservan
+        $scope.$on('$destroy', function () {
+            borrador.detalles = $scope.detalles;
+            borrador.pagoMetodo = $scope.pago.method;
+        });
 
         //Mercado Pago solo se ofrece si el paseador vinculo su cuenta (se sabe al cargar su detalle)
         $scope.mpHabilitado = false;
