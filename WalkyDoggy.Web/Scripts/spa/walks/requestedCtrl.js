@@ -3,11 +3,13 @@
 
     app.controller('paseosSolicitadosCtrl', paseosSolicitadosCtrl);
 
-    paseosSolicitadosCtrl.$inject = ['$scope', 'servicioApi', 'servicioNotificaciones', 'servicioConfirmacion', 'servicioValoraciones', '$rootScope', '$location'];
+    paseosSolicitadosCtrl.$inject = ['$scope', 'servicioApi', 'servicioNotificaciones', 'servicioConfirmacion', 'servicioChat', '$rootScope', '$location', '$interval', 'servicioDenuncias'];
 
-    function paseosSolicitadosCtrl($scope, servicioApi, servicioNotificaciones, servicioConfirmacion, servicioValoraciones, $rootScope, $location) {
+    function paseosSolicitadosCtrl($scope, servicioApi, servicioNotificaciones, servicioConfirmacion, servicioChat, $rootScope, $location, $interval, servicioDenuncias) {
         var nombresDias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         var idCliente = $rootScope.repository.loggedUser.customerId;
+        var etiquetasDeEstrellas = ['Muy malo', 'Malo', 'Regular', 'Bueno', 'Excelente'];
+        var horasDeAnticipoParaIniciar = 2;
 
         $scope.cargado = false;
         $scope.porPagar = [];
@@ -17,6 +19,12 @@
 
         iniciar();
         mostrarResultadoPago();
+
+        //Se actualiza solo cada tanto para ver mensajes nuevos y cambios de estado (por ejemplo, cuando el paseador confirma o termina el paseo)
+        var temporizador = $interval(iniciar, 20000);
+        $scope.$on('$destroy', function () {
+            $interval.cancel(temporizador);
+        });
 
         function iniciar() {
             servicioApi.get('/api/walks/getBookingsForCustomer', { params: { customerId: idCliente } }, function (resultado) {
@@ -86,6 +94,51 @@
             return reserva.pets.map(function (mascota) { return mascota.name; }).join(', ');
         };
 
+        //El horario REAL del paseo: el que se registra al iniciarlo (el cliente, al llegar el paseador) y al terminarlo (el paseador)
+        $scope.textoPaseoReal = function (reserva) {
+            if (!reserva.startedAt) {
+                return '';
+            }
+            var inicio = moment(reserva.startedAt);
+            if (!reserva.finishedAt) {
+                return 'Inició a las ' + inicio.format('HH:mm');
+            }
+            var fin = moment(reserva.finishedAt);
+            return inicio.format('HH:mm') + ' a ' + fin.format('HH:mm') + ' (' + fin.diff(inicio, 'minutes') + ' min)';
+        };
+
+        //El chat se habilita cuando el paseador confirma la reserva; despues de cobrada queda de solo lectura
+        $scope.tieneChat = function (reserva) {
+            return reserva.status === 'Confirmed' || reserva.messageCount > 0;
+        };
+
+        $scope.abrirChat = function (reserva) {
+            var actualizar = function () { iniciar(); };
+
+            servicioChat.abrir({
+                bookingKey: reserva.bookingKey,
+                rol: 'Customer',
+                actorId: idCliente,
+                titulo: 'Chat con ' + reserva.walkerName,
+                subtitulo: $scope.nombresMascotas(reserva) + ' · ' + $scope.textoFecha(reserva) + ', ' + reserva.timeFrom
+            }).then(actualizar, actualizar);
+        };
+
+        //Solo se denuncia sobre un paseo que el paseador confirmo (la denuncia la ve solo un administrador)
+        $scope.puedeDenunciar = function (reserva) {
+            return reserva.status === 'Confirmed';
+        };
+
+        $scope.denunciar = function (reserva) {
+            servicioDenuncias.abrir({
+                bookingKey: reserva.bookingKey,
+                actor: 'Customer',
+                actorId: idCliente,
+                titulo: 'Denunciar a ' + reserva.walkerName,
+                subtitulo: $scope.nombresMascotas(reserva) + ' · ' + $scope.textoFecha(reserva) + ', ' + reserva.timeFrom
+            }).then(angular.noop, angular.noop);
+        };
+
         $scope.textoEstado = function (reserva) {
             if (reserva.status === 'Pending') {
                 return 'Esperando confirmación';
@@ -97,7 +150,8 @@
                 if (reserva.finishedAt) {
                     return reserva.paymentStatus === 'Paid' ? 'Pagado, falta que lo confirme el paseador' : 'Para pagar';
                 }
-                return reserva.start <= new Date() ? 'En curso' : 'Confirmado';
+                //El paseo esta en curso desde que se inicia (no desde la hora agendada)
+                return reserva.startedAt ? 'En curso' : 'Confirmado';
             }
             if (reserva.cancelledBy === 'Walker') {
                 return 'Cancelado por el paseador';
@@ -134,7 +188,8 @@
         /* ---------- Cancelar ---------- */
 
         $scope.puedeCancelar = function (reserva) {
-            return reserva.status !== 'Cancelled' && reserva.start > new Date();
+            //Se puede cancelar hasta que se inicia el paseo
+            return (reserva.status === 'Pending' || reserva.status === 'Confirmed') && !reserva.startedAt && !reserva.finishedAt;
         };
 
         $scope.cancelar = function (reserva) {
@@ -163,14 +218,87 @@
             return reserva.status === 'Confirmed' && !!reserva.finishedAt && !reserva.ratingStars;
         };
 
-        $scope.valorar = function (reserva) {
-            servicioValoraciones.preguntar({ walkerName: reserva.walkerName, petNames: $scope.nombresMascotas(reserva) }).then(function (valoracion) {
-                var pedido = { bookingKey: reserva.bookingKey, customerId: idCliente, stars: valoracion.stars, comment: valoracion.comment };
-                servicioApi.post('/api/ratings/rate', pedido, function () {
-                    servicioNotificaciones.mostrarExito('¡Gracias por tu valoración!');
+        //Lo que el cliente va escribiendo en cada paseo (estrellas, comentario), por reserva: se conserva aunque la lista se actualice sola
+        $scope.borradores = {};
+
+        function borradorDe(reserva) {
+            return $scope.borradores[reserva.bookingKey] || ($scope.borradores[reserva.bookingKey] = { stars: 0, hover: 0, comment: '', enviando: false });
+        }
+
+        //Se tocan las estrellitas y recien ahi se habilita el comentario y el boton de enviar
+        $scope.elegirEstrellas = function (reserva, estrellas) {
+            borradorDe(reserva).stars = estrellas;
+        };
+
+        $scope.pasarSobre = function (reserva, estrellas) {
+            borradorDe(reserva).hover = estrellas;
+        };
+
+        $scope.estrellasMostradas = function (reserva) {
+            var borrador = borradorDe(reserva);
+            return borrador.hover || borrador.stars;
+        };
+
+        $scope.etiquetaEstrellas = function (estrellas) {
+            return estrellas ? etiquetasDeEstrellas[estrellas - 1] : 'Tocá las estrellas para valorar';
+        };
+
+        $scope.enviarValoracion = function (reserva) {
+            var borrador = borradorDe(reserva);
+            if (!borrador.stars || borrador.enviando) {
+                return;
+            }
+
+            var pedido = { bookingKey: reserva.bookingKey, customerId: idCliente, stars: borrador.stars, comment: (borrador.comment || '').trim() };
+            borrador.enviando = true;
+            servicioApi.post('/api/ratings/rate', pedido, function () {
+                delete $scope.borradores[reserva.bookingKey];
+                servicioNotificaciones.mostrarExito('¡Gracias por tu valoración!');
+                iniciar();
+            }, function (error) {
+                borrador.enviando = false;
+                servicioNotificaciones.mostrarError(mensajeDeError(error, 'No se pudo enviar la valoración.'));
+                iniciar();
+            });
+        };
+
+        /* ---------- Iniciar el paseo ---------- */
+
+        //El cliente inicia el paseo cuando el paseador llega a buscar a la mascota; se habilita unas horas antes de la hora agendada
+        function habilitadoDesde(reserva) {
+            return moment(inicioDe(reserva)).subtract(horasDeAnticipoParaIniciar, 'hours');
+        }
+
+        $scope.puedeIniciar = function (reserva) {
+            return !moment().isBefore(habilitadoDesde(reserva));
+        };
+
+        $scope.textoDesdeCuandoIniciar = function (reserva) {
+            var desde = habilitadoDesde(reserva);
+            return desde.format('HH:mm') + (desde.isSame(moment(), 'day') ? '' : ' del ' + desde.format('DD/MM'));
+        };
+
+        $scope.textoQuienInicio = function (reserva) {
+            return reserva.startedBy === 'Walker' ? 'lo inició el paseador' : 'lo iniciaste vos';
+        };
+
+        $scope.iniciarPaseo = function (reserva) {
+            servicioConfirmacion.preguntar({
+                title: '¿Ya llegó el paseador?',
+                text: 'Al iniciar el paseo queda registrado el horario real de retiro (' + moment().format('HH:mm') + '). Hacelo cuando ' + reserva.walkerName + ' esté ahí para buscar a ' + $scope.nombresMascotas(reserva) + '. Después ya no se puede cancelar.',
+                confirmLabel: 'Sí, iniciar paseo',
+                cancelLabel: 'Volver'
+            }).then(function () {
+                var accion = { bookingKey: reserva.bookingKey, actor: 'Customer', actorId: idCliente };
+
+                $scope.trabajando = true;
+                servicioApi.post('/api/walks/start', accion, function () {
+                    $scope.trabajando = false;
+                    servicioNotificaciones.mostrarExito('Paseo iniciado. Cuando ' + reserva.walkerName + ' lo termine, vas a poder pagarlo y valorarlo.');
                     iniciar();
                 }, function (error) {
-                    servicioNotificaciones.mostrarError(mensajeDeError(error, 'No se pudo enviar la valoración.'));
+                    $scope.trabajando = false;
+                    servicioNotificaciones.mostrarError(mensajeDeError(error, 'No se pudo iniciar el paseo.'));
                     iniciar();
                 });
             });

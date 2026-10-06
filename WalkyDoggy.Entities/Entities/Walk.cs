@@ -43,6 +43,12 @@ namespace WalkyDoggy.Entities
         //Pending | Paid | Received (ver PaymentStatuses)
         public String PaymentStatus { get; set; }
 
+        //El momento REAL en que empezo el paseo (null mientras no empiece). Lo inicia el cliente cuando el paseador llega a buscar a la mascota.
+        public DateTime? StartedAt { get; set; }
+
+        //Customer | Walker: quien inicio el paseo (el paseador solo puede hacerlo si el cliente no lo inicio pasados unos minutos de la hora agendada)
+        public String StartedBy { get; set; }
+
         //El paseador dio por finalizado el paseo (devolvio a la mascota). Desde ese momento el cliente puede pagar.
         public DateTime? FinishedAt { get; set; }
 

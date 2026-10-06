@@ -1,0 +1,23 @@
+<section class="wd-ads" ng-if="avisos.length > 0" aria-label="Publicidad">
+    <h2 class="wd-section-title">{{titulo}} <span class="wd-ads-badge">Publicidad</span> <a class="wd-link-sm wd-ads-all" href="#/friends">Ver todos los comercios</a></h2>
+    <div class="wd-ads-grid">
+        <article class="wd-ad" ng-repeat="aviso in avisos track by aviso.id">
+            <img class="wd-ad-image" ng-if="aviso.imageUrl" ng-src="{{aviso.imageUrl}}" alt="{{aviso.title}}" />
+            <div class="wd-ad-body">
+                <div class="wd-ad-business">
+                    <strong>{{aviso.advertiserName}}</strong>
+                    <span class="wd-ad-category">{{textoCategoria(aviso.category)}}</span>
+                </div>
+                <h3 class="wd-ad-title">{{aviso.title}}</h3>
+                <p class="wd-ad-text" ng-if="aviso.text">{{aviso.text}}</p>
+                <p class="wd-ad-where" ng-if="aviso.address || aviso.distanceKm != null">
+                    <i class="fa fa-map-marker" aria-hidden="true"></i> {{aviso.address}}<span ng-if="aviso.address && textoDistancia(aviso)"> · </span>{{textoDistancia(aviso)}}
+                </p>
+                <div class="wd-ad-actions">
+                    <button type="button" class="btn btn-default btn-sm" ng-if="aviso.linkUrl" ng-click="abrir(aviso)">Ver más</button>
+                    <a class="btn btn-default btn-sm" ng-if="aviso.phone" ng-href="tel:{{aviso.phone}}"><i class="fa fa-phone" aria-hidden="true"></i> {{aviso.phone}}</a>
+                </div>
+            </div>
+        </article>
+    </div>
+</section>

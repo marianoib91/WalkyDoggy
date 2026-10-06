@@ -2,7 +2,7 @@
     <div class="wd-page-header">
         <div>
             <h1 class="wd-page-title">Paseos solicitados</h1>
-            <p class="wd-page-subtitle">Seguí el estado de tus reservas. Cada paseo tiene que ser confirmado por el paseador y se paga cuando termina.</p>
+            <p class="wd-page-subtitle">Seguí el estado de tus reservas. Cada paseo tiene que ser confirmado por el paseador, se paga cuando termina y después podés valorarlo.</p>
         </div>
         <a class="btn btn-primary btn-lg" href="#/">
             <i class="fa fa-plus" aria-hidden="true"></i>
@@ -15,7 +15,7 @@
     <section ng-if="porPagar.length > 0">
         <h2 class="wd-section-title">Para pagar <span class="wd-count">{{porPagar.length}}</span></h2>
         <div class="wd-walker-list">
-            <article class="wd-walker-card" ng-repeat="reserva in porPagar">
+            <article class="wd-walker-card" ng-repeat="reserva in porPagar track by reserva.bookingKey">
                 <img class="wd-avatar" ng-src="{{reserva.walkerProfileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{reserva.walkerName}}" />
                 <div class="wd-walker-info">
                     <div class="wd-walker-name-row">
@@ -29,6 +29,8 @@
                         <dd>{{nombresMascotas(reserva)}}</dd>
                         <dt>Pago</dt>
                         <dd>{{textoPago(reserva)}} · <strong>${{reserva.total | wdMoney}}</strong></dd>
+                        <dt ng-if="reserva.startedAt">Paseo real</dt>
+                        <dd ng-if="reserva.startedAt">{{textoPaseoReal(reserva)}}</dd>
                         <dt ng-if="reserva.ratingStars">Tu valoración</dt>
                         <dd ng-if="reserva.ratingStars"><wd-stars value="reserva.ratingStars"></wd-stars></dd>
                     </dl>
@@ -41,11 +43,36 @@
                     <p class="wd-field-hint" ng-if="!esMercadoPago(reserva) && reserva.walkerPayoutAccount">
                         También podés transferirle al alias o CBU/CVU <strong>{{reserva.walkerPayoutAccount}}</strong>.
                     </p>
+
+                    <div class="wd-inline-rating" ng-if="puedeValorar(reserva)">
+                        <div class="wd-inline-rating-title">¿Cómo fue el paseo con {{reserva.walkerName}}?</div>
+                        <div class="wd-rating-picker" role="radiogroup" aria-label="Estrellas" ng-mouseleave="pasarSobre(reserva, 0)">
+                            <button type="button" class="wd-rating-star" ng-repeat="n in [1, 2, 3, 4, 5]" role="radio" aria-checked="{{borradores[reserva.bookingKey].stars === n}}"
+                                    aria-label="{{n}} {{n === 1 ? 'estrella' : 'estrellas'}}" ng-mouseenter="pasarSobre(reserva, n)" ng-click="elegirEstrellas(reserva, n)">
+                                <i class="fa" ng-class="estrellasMostradas(reserva) >= n ? 'fa-star' : 'fa-star-o'" aria-hidden="true"></i>
+                            </button>
+                            <span class="wd-rating-label">{{etiquetaEstrellas(estrellasMostradas(reserva))}}</span>
+                        </div>
+                        <div class="wd-inline-rating-comment" ng-if="borradores[reserva.bookingKey].stars">
+                            <label class="sr-only" for="comentario-{{reserva.bookingKey}}">Comentario (opcional)</label>
+                            <textarea id="comentario-{{reserva.bookingKey}}" class="form-control" rows="3" maxlength="500" ng-model="borradores[reserva.bookingKey].comment"
+                                      placeholder="Contá cómo fue la experiencia con {{reserva.walkerName}} (opcional)"></textarea>
+                            <div class="wd-inline-rating-footer">
+                                <span class="wd-field-hint">{{(borradores[reserva.bookingKey].comment || '').length}} / 500</span>
+                                <button type="button" class="btn btn-primary" ng-disabled="borradores[reserva.bookingKey].enviando" ng-click="enviarValoracion(reserva)">Enviar</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="wd-walk-actions">
                     <button type="button" class="btn btn-primary" ng-if="esMercadoPago(reserva)" ng-disabled="trabajando" ng-click="pagar(reserva)">Pagar ${{reserva.total | wdMoney}}</button>
                     <button type="button" class="btn btn-default" ng-if="esMercadoPago(reserva)" ng-disabled="trabajando" ng-click="verificarPago(reserva)">Ya pagué, verificar</button>
-                    <button type="button" class="btn btn-default" ng-if="puedeValorar(reserva)" ng-click="valorar(reserva)"><i class="fa fa-star" aria-hidden="true"></i> Valorar al paseador</button>
+                    <button type="button" class="btn btn-default" ng-if="puedeDenunciar(reserva)" ng-click="denunciar(reserva)">
+                        <i class="fa fa-flag-o" aria-hidden="true"></i> Denunciar
+                    </button>
+                    <button type="button" class="btn btn-default" ng-if="tieneChat(reserva)" ng-click="abrirChat(reserva)">
+                        <i class="fa fa-comments-o" aria-hidden="true"></i> Chat <span class="wd-badge" ng-if="reserva.unreadMessages > 0">{{reserva.unreadMessages}}</span>
+                    </button>
                 </div>
             </article>
         </div>
@@ -54,7 +81,7 @@
     <section ng-if="proximos.length > 0">
         <h2 class="wd-section-title">Próximos</h2>
         <div class="wd-walker-list">
-            <article class="wd-walker-card" ng-repeat="reserva in proximos">
+            <article class="wd-walker-card" ng-repeat="reserva in proximos track by reserva.bookingKey">
                 <img class="wd-avatar" ng-src="{{reserva.walkerProfileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{reserva.walkerName}}" />
                 <div class="wd-walker-info">
                     <div class="wd-walker-name-row">
@@ -66,6 +93,8 @@
                         <dd>{{textoFecha(reserva)}}</dd>
                         <dt>Horario</dt>
                         <dd>{{textoHorario(reserva)}}</dd>
+                        <dt ng-if="reserva.startedAt">Inicio real</dt>
+                        <dd ng-if="reserva.startedAt"><strong>{{textoPaseoReal(reserva)}}</strong> <span class="wd-field-hint">· {{textoQuienInicio(reserva)}}</span></dd>
                         <dt>Mascotas</dt>
                         <dd>{{nombresMascotas(reserva)}}</dd>
                         <dt>Retiro en</dt>
@@ -73,9 +102,23 @@
                         <dt>Pago</dt>
                         <dd>{{textoPago(reserva)}} · <strong>${{reserva.total | wdMoney}}</strong></dd>
                     </dl>
+                    <p class="wd-field-hint" ng-if="reserva.status == 'Confirmed' && !reserva.startedAt">
+                        Pónganse de acuerdo con {{reserva.walkerName}} por el chat en el horario exacto en que pasa a buscar a tu mascota.
+                        Cuando llegue, tocá "Iniciar paseo": así queda registrado el horario real de retiro.
+                        <span ng-if="!puedeIniciar(reserva)">Vas a poder iniciarlo desde las {{textoDesdeCuandoIniciar(reserva)}}.</span>
+                    </p>
                 </div>
-                <div class="wd-walk-actions" ng-if="puedeCancelar(reserva)">
-                    <button type="button" class="btn btn-danger" ng-click="cancelar(reserva)">Cancelar</button>
+                <div class="wd-walk-actions">
+                    <button type="button" class="btn btn-primary" ng-if="reserva.status == 'Confirmed' && !reserva.startedAt" ng-disabled="trabajando || !puedeIniciar(reserva)" ng-click="iniciarPaseo(reserva)">
+                        <i class="fa fa-play" aria-hidden="true"></i> Iniciar paseo
+                    </button>
+                    <button type="button" class="btn btn-default" ng-if="tieneChat(reserva)" ng-click="abrirChat(reserva)">
+                        <i class="fa fa-comments-o" aria-hidden="true"></i> Chat <span class="wd-badge" ng-if="reserva.unreadMessages > 0">{{reserva.unreadMessages}}</span>
+                    </button>
+                    <button type="button" class="btn btn-default" ng-if="puedeDenunciar(reserva)" ng-click="denunciar(reserva)">
+                        <i class="fa fa-flag-o" aria-hidden="true"></i> Denunciar
+                    </button>
+                    <button type="button" class="btn btn-danger" ng-if="puedeCancelar(reserva)" ng-click="cancelar(reserva)">Cancelar</button>
                 </div>
             </article>
         </div>
@@ -84,7 +127,7 @@
     <section ng-if="historial.length > 0">
         <h2 class="wd-section-title">Historial</h2>
         <div class="wd-walker-list">
-            <article class="wd-walker-card wd-walk-past" ng-repeat="reserva in historial">
+            <article class="wd-walker-card wd-walk-past" ng-repeat="reserva in historial track by reserva.bookingKey">
                 <img class="wd-avatar wd-avatar-sm" ng-src="{{reserva.walkerProfileImage || '/Content/images/avatar-person.svg'}}" alt="Foto de {{reserva.walkerName}}" />
                 <div class="wd-walker-info">
                     <div class="wd-walker-name-row">
@@ -98,12 +141,39 @@
                         <dd>{{nombresMascotas(reserva)}}</dd>
                         <dt ng-if="reserva.status != 'Cancelled'">Pago</dt>
                         <dd ng-if="reserva.status != 'Cancelled'">{{textoPago(reserva)}} · <strong>${{reserva.total | wdMoney}}</strong></dd>
+                        <dt ng-if="reserva.startedAt">Paseo real</dt>
+                        <dd ng-if="reserva.startedAt">{{textoPaseoReal(reserva)}}</dd>
                         <dt ng-if="reserva.ratingStars">Tu valoración</dt>
                         <dd ng-if="reserva.ratingStars"><wd-stars value="reserva.ratingStars"></wd-stars></dd>
                     </dl>
+
+                    <div class="wd-inline-rating" ng-if="puedeValorar(reserva)">
+                        <div class="wd-inline-rating-title">¿Cómo fue el paseo con {{reserva.walkerName}}?</div>
+                        <div class="wd-rating-picker" role="radiogroup" aria-label="Estrellas" ng-mouseleave="pasarSobre(reserva, 0)">
+                            <button type="button" class="wd-rating-star" ng-repeat="n in [1, 2, 3, 4, 5]" role="radio" aria-checked="{{borradores[reserva.bookingKey].stars === n}}"
+                                    aria-label="{{n}} {{n === 1 ? 'estrella' : 'estrellas'}}" ng-mouseenter="pasarSobre(reserva, n)" ng-click="elegirEstrellas(reserva, n)">
+                                <i class="fa" ng-class="estrellasMostradas(reserva) >= n ? 'fa-star' : 'fa-star-o'" aria-hidden="true"></i>
+                            </button>
+                            <span class="wd-rating-label">{{etiquetaEstrellas(estrellasMostradas(reserva))}}</span>
+                        </div>
+                        <div class="wd-inline-rating-comment" ng-if="borradores[reserva.bookingKey].stars">
+                            <label class="sr-only" for="comentario-h-{{reserva.bookingKey}}">Comentario (opcional)</label>
+                            <textarea id="comentario-h-{{reserva.bookingKey}}" class="form-control" rows="3" maxlength="500" ng-model="borradores[reserva.bookingKey].comment"
+                                      placeholder="Contá cómo fue la experiencia con {{reserva.walkerName}} (opcional)"></textarea>
+                            <div class="wd-inline-rating-footer">
+                                <span class="wd-field-hint">{{(borradores[reserva.bookingKey].comment || '').length}} / 500</span>
+                                <button type="button" class="btn btn-primary" ng-disabled="borradores[reserva.bookingKey].enviando" ng-click="enviarValoracion(reserva)">Enviar</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="wd-walk-actions" ng-if="puedeValorar(reserva)">
-                    <button type="button" class="btn btn-default" ng-click="valorar(reserva)"><i class="fa fa-star" aria-hidden="true"></i> Valorar al paseador</button>
+                <div class="wd-walk-actions" ng-if="tieneChat(reserva) || puedeDenunciar(reserva)">
+                    <button type="button" class="btn btn-default" ng-if="tieneChat(reserva)" ng-click="abrirChat(reserva)">
+                        <i class="fa fa-comments-o" aria-hidden="true"></i> Chat <span class="wd-badge" ng-if="reserva.unreadMessages > 0">{{reserva.unreadMessages}}</span>
+                    </button>
+                    <button type="button" class="btn btn-default" ng-if="puedeDenunciar(reserva)" ng-click="denunciar(reserva)">
+                        <i class="fa fa-flag-o" aria-hidden="true"></i> Denunciar
+                    </button>
                 </div>
             </article>
         </div>

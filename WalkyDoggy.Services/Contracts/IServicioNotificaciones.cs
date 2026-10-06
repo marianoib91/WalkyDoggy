@@ -17,5 +17,20 @@ namespace WalkyDoggy.Services.Contracts
 
         //A la otra parte: la reserva se cancelo (cancelledBy: Walker, Customer o System)
         void ReservaCancelada(IEnumerable<Walk> paseos, String canceladoPor);
+
+        //A la otra parte: un administrador bloqueo la cuenta de uno de los dos (rolBloqueado: Walker o Customer) y se cancelo la reserva
+        void ReservaCanceladaPorBloqueo(IEnumerable<Walk> paseos, String rolBloqueado);
+
+        //A las dos partes: un administrador cancelo la reserva, por este motivo
+        void ReservaCanceladaPorAdministrador(IEnumerable<Walk> paseos, String motivo);
+
+        //A la persona: un administrador bloqueo su cuenta, por este motivo
+        void CuentaBloqueada(String email, String motivo);
+
+        //A la persona: un administrador revisó una denuncia sobre ella y le manda una advertencia, por este motivo (sin decir quien denuncio)
+        void AdvertenciaPorDenuncia(String email, String motivo);
+
+        //A la persona: un administrador volvio a habilitar su cuenta
+        void CuentaDesbloqueada(String email);
     }
 }

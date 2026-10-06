@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Http;
+using WalkyDoggy.Application.Constants;
 using WalkyDoggy.Application.Dtos;
 using WalkyDoggy.Data.Infrastructure;
 using WalkyDoggy.Data.Repositories;
@@ -21,10 +22,14 @@ namespace WalkyDoggy.Web.Controllers
         private readonly IRepositorioEntidadBase<Pet> repositorioMascotas;
         private readonly IServicioMembresia servicioMembresia;
         private readonly IServicioMascotas servicioMascotas;
+        private readonly IServicioCaracteristicas servicioCaracteristicas;
+        private readonly IServicioCatalogos servicioCatalogos;
 
         public PetsController(IRepositorioEntidadBase<Pet> repositorioMascotas,
                                  IServicioMembresia servicioMembresia,
                                  IServicioMascotas servicioMascotas,
+                                 IServicioCaracteristicas servicioCaracteristicas,
+                                 IServicioCatalogos servicioCatalogos,
                                  IRepositorioEntidadBase<Error> repositorioErrores,
                                  IUnidadDeTrabajo unidadDeTrabajo)
             : base(repositorioErrores, unidadDeTrabajo)
@@ -32,6 +37,22 @@ namespace WalkyDoggy.Web.Controllers
             this.repositorioMascotas = repositorioMascotas;
             this.servicioMembresia = servicioMembresia;
             this.servicioMascotas = servicioMascotas;
+            this.servicioCaracteristicas = servicioCaracteristicas;
+            this.servicioCatalogos = servicioCatalogos;
+        }
+
+        //Controla las caracteristicas marcadas (existen, una sola por par), la raza y el tamaño (existen y no estan dados de baja)
+        //y deja las caracteristicas ordenadas. Devuelve el motivo del error, o null si esta bien.
+        private String ValidarCaracteristicas(PetDto mascotaDto)
+        {
+            String normalizadas;
+            var error = this.servicioCaracteristicas.Validar(mascotaDto.Traits, out normalizadas);
+            if (error == null)
+            {
+                mascotaDto.Traits = normalizadas;
+                this.servicioCatalogos.RazaYTamanoDisponibles(mascotaDto.Id, mascotaDto.BreedId, mascotaDto.SizeId, out error);
+            }
+            return error;
         }
 
         [HttpPost]
@@ -41,12 +62,17 @@ namespace WalkyDoggy.Web.Controllers
             return CrearRespuestaHttp(pedido, () =>
             {
                 HttpResponseMessage respuesta = null;
+                String error;
 
                 if (!ModelState.IsValid)
                 {
                     respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         ModelState.Keys.SelectMany(k => ModelState[k].Errors)
                               .Select(m => m.ErrorMessage).ToArray());
+                }
+                else if ((error = ValidarCaracteristicas(mascotaDto)) != null)
+                {
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
                 }
                 else
                 {
@@ -65,12 +91,17 @@ namespace WalkyDoggy.Web.Controllers
             return CrearRespuestaHttp(pedido, () =>
             {
                 HttpResponseMessage respuesta = null;
+                String error;
 
                 if (!ModelState.IsValid)
                 {
                     respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest,
                         ModelState.Keys.SelectMany(k => ModelState[k].Errors)
                               .Select(m => m.ErrorMessage).ToArray());
+                }
+                else if ((error = ValidarCaracteristicas(mascotaDto)) != null)
+                {
+                    respuesta = pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
                 }
                 else
                 {

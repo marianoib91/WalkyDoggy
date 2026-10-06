@@ -71,13 +71,57 @@ namespace WalkyDoggy.Application.Dtos
 
         //Horarios libres del dia buscado, con los lugares que le quedan en cada uno (solo al buscar paseadores por dia)
         public List<AvailableTimeDto> AvailableTimes { get; set; }
+
+        //Matching entre mascotas (solo al buscar por dia con las mascotas del cliente): los datos de su mejor horario
+        public Int32 MatchingPets { get; set; }
+
+        public Int32 MatchScore { get; set; }
+
+        public List<String> SharedTraits { get; set; }
+
+        //El perro mas parecido que lleva en ese mejor horario
+        public PetMatchDto BestMatch { get; set; }
+    }
+
+    //El perro de otro cliente que mas se parece a una mascota del cliente que busca (solo el perro: no se informa de quien es)
+    public class PetMatchDto
+    {
+        //La mascota del cliente con la que coincide (importa cuando busco con mas de una)
+        public Int64 YourPetId { get; set; }
+
+        public String YourPetName { get; set; }
+
+        public String PetName { get; set; }
+
+        public String BreedName { get; set; }
+
+        public String SizeName { get; set; }
+
+        public Int32 SharedCount { get; set; }
+
+        public List<String> SharedTraits { get; set; }
     }
 
     //Un horario con lugares libres de un paseador
     public class AvailableTimeDto
     {
+        //Dia del horario (yyyy-MM-dd)
+        public String Date { get; set; }
+
         public String Time { get; set; }
 
         public Int32 FreeSpots { get; set; }
+
+        //Cuantos perros de otros clientes que el paseador lleva en ese horario tienen caracteristicas parecidas a las de las mascotas del cliente
+        public Int32 MatchingPets { get; set; }
+
+        //Cuantas caracteristicas tiene en comun el perro que mas se parece (0 si no hay ninguno parecido)
+        public Int32 MatchScore { get; set; }
+
+        //Las caracteristicas (codigos) que comparten todos los perros parecidos de ese horario
+        public List<String> SharedTraits { get; set; }
+
+        //El perro que mas se parece en ese horario y con cual de las mascotas del cliente (null si no hay ninguno parecido). No se informa de quien es.
+        public PetMatchDto BestMatch { get; set; }
     }
 }

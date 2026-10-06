@@ -60,6 +60,26 @@
                         </select>
                         <p class="wd-field-hint" ng-if="paseo.date && !cargandoHorarios && horarios.length==0">No quedan horarios disponibles ese día. Probá con otra fecha.</p>
                     </div>
+                    <div class="wd-suggested wd-span-2" ng-if="sugeridos.length > 0">
+                        <div class="wd-times-title"><i class="fa fa-star" aria-hidden="true"></i> Horarios sugeridos <span class="wd-field-hint">· ese día {{paseador.firstName}} ya lleva perros parecidos a {{nombresParaSugerir()}}; tocá uno para elegirlo</span></div>
+                        <ul class="wd-suggested-list">
+                            <li ng-repeat="cupo in sugeridos" ng-class="{'is-picked': paseo.timeFrom == cupo.time}">
+                                <button type="button" class="wd-time-chip is-suggested" ng-click="elegirHorario(cupo.time)">
+                                    <i class="fa fa-star" aria-hidden="true"></i> {{cupo.time}}
+                                </button>
+                                <span class="wd-suggested-text">
+                                    <strong>{{cupo.bestMatch.petName}}</strong><span ng-if="textoPerro(cupo.bestMatch)"> ({{textoPerro(cupo.bestMatch)}})</span>
+                                    <span ng-if="variasMascotas()"> se parece a <strong>{{cupo.bestMatch.yourPetName}}</strong></span>
+                                    <span ng-if="!variasMascotas()"> se parece a tu mascota</span>
+                                    en {{cupo.bestMatch.sharedCount}} características: {{textoRasgos(cupo.bestMatch.sharedTraits)}}.
+                                    <span class="wd-field-hint" ng-if="cupo.matchingPets > 1">Y {{cupo.matchingPets - 1}} {{cupo.matchingPets - 1 == 1 ? 'perro más' : 'perros más'}} con 2 o más en común.</span>
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                    <p class="wd-field-hint wd-span-2" ng-if="faltanRasgos()">
+                        Marcá al menos 2 características de tus mascotas en <a href="#/pets/list">Mis mascotas</a> y te sugerimos los horarios en los que {{paseador.firstName}} lleva perros parecidos.
+                    </p>
                 </div>
             </section>
 

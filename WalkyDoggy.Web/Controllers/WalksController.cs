@@ -159,6 +159,29 @@ namespace WalkyDoggy.Web.Controllers
             });
         }
 
+        //El paseo lo inicia el cliente cuando el paseador llega a buscar a la mascota (o el paseador, pasados 15 minutos de la hora agendada): queda registrado el horario real
+        [HttpPost]
+        [Route("start")]
+        public HttpResponseMessage Start(HttpRequestMessage pedido, BookingActionCriteria criterioAccionReserva)
+        {
+            return CrearRespuestaHttp(pedido, () =>
+            {
+                HttpResponseMessage denegado;
+                if (!VerificarActor(pedido, criterioAccionReserva, out denegado))
+                {
+                    return denegado;
+                }
+
+                String error;
+                if (!this.servicioPaseos.Iniciar(criterioAccionReserva, out error))
+                {
+                    return pedido.CreateResponse(HttpStatusCode.BadRequest, new[] { error });
+                }
+
+                return pedido.CreateResponse(HttpStatusCode.OK, true);
+            });
+        }
+
         //El paseador da por finalizado el paseo (ya devolvio a la mascota): desde ahi el cliente puede pagarlo
         [HttpPost]
         [Route("finish")]

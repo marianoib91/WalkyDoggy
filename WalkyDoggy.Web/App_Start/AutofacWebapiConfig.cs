@@ -122,6 +122,50 @@ namespace WalkyDoggy.Web.App_Start
             .As<IServicioPagos>()
             .InstancePerRequest();
 
+            builder.RegisterType<ServicioResenasMascotas>()
+            .As<IServicioResenasMascotas>()
+            .InstancePerRequest();
+
+            builder.RegisterType<ServicioPublicidad>()
+            .As<IServicioPublicidad>()
+            .InstancePerRequest();
+
+            builder.RegisterType<ServicioPaseosAdmin>()
+            .As<IServicioPaseosAdmin>()
+            .InstancePerRequest();
+
+            builder.RegisterType<ServicioTablero>()
+            .As<IServicioTablero>()
+            .InstancePerRequest();
+
+            builder.RegisterType<ServicioDenuncias>()
+            .As<IServicioDenuncias>()
+            .InstancePerRequest();
+
+            builder.RegisterType<ServicioModeracion>()
+            .As<IServicioModeracion>()
+            .InstancePerRequest();
+
+            builder.RegisterType<ServicioCaracteristicas>()
+            .As<IServicioCaracteristicas>()
+            .InstancePerRequest();
+
+            builder.RegisterType<ServicioCatalogos>()
+            .As<IServicioCatalogos>()
+            .InstancePerRequest();
+
+            builder.RegisterType<ServicioAdministracion>()
+            .As<IServicioAdministracion>()
+            .InstancePerRequest();
+
+            builder.RegisterType<ServicioFavoritos>()
+            .As<IServicioFavoritos>()
+            .InstancePerRequest();
+
+            builder.RegisterType<ServicioMensajes>()
+            .As<IServicioMensajes>()
+            .InstancePerRequest();
+
             builder.RegisterType<ServicioValoraciones>()
             .As<IServicioValoraciones>()
             .InstancePerRequest();

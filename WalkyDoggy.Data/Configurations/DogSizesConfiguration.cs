@@ -8,6 +8,7 @@ namespace WalkyDoggy.Data.Configurations
         {
 
             Property(u => u.Name).IsRequired().HasMaxLength(100);
+            Property(u => u.Active).IsRequired();
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
+using WalkyDoggy.Application.Constants;
 using WalkyDoggy.Data.Infrastructure;
 using WalkyDoggy.Data.Repositories;
 using WalkyDoggy.Entities;
@@ -39,11 +40,27 @@ namespace WalkyDoggy.Services
             {
                 contextoMembresia.User = usuario;
                 var identidad = new GenericIdentity(email);
-                contextoMembresia.Principal = new GenericPrincipal(identidad, new String[] { "Admin" });
+                //Antes todos los usuarios figuraban con el rol "Admin"; ahora el principal lleva los roles reales
+                var roles = usuario.UserRoles.Select(x => x.RoleId == Roles.Admin ? "Admin" : x.RoleId == Roles.Walker ? "Walker" : "Customer").ToArray();
+                contextoMembresia.Principal = new GenericPrincipal(identidad, roles);
             }
 
             return contextoMembresia;
         }
+        public Boolean EstaBloqueado(String email, String contrasena, out String motivo)
+        {
+            motivo = null;
+            var usuario = repositorioUsuarios.ObtenerTodos().Where(x => x.Email == email).FirstOrDefault();
+
+            if (usuario == null || !usuario.IsLocked || !esContrasenaValida(usuario, contrasena))
+            {
+                return false;
+            }
+
+            motivo = usuario.BlockReason;
+            return true;
+        }
+
         public User CrearUsuario(UserDto usuarioDto)
         {
             /* var existingUser = userRepository.GetAll().Where(x => x.Email == userDto.Email).FirstOrDefault();
@@ -86,6 +103,38 @@ namespace WalkyDoggy.Services
             {
                 return false;
             }
+        }
+
+        public Boolean CambiarContrasena(String email, String contrasenaActual, String contrasenaNueva, out String error)
+        {
+            error = null;
+            var usuario = repositorioUsuarios.ObtenerTodos().FirstOrDefault(x => x.Email == email);
+
+            if (usuario == null || String.IsNullOrEmpty(contrasenaActual) || !esUsuarioValido(usuario, contrasenaActual))
+            {
+                error = "La contraseña actual no es correcta.";
+                return false;
+            }
+
+            if (String.IsNullOrEmpty(contrasenaNueva) || contrasenaNueva.Length < 6 || contrasenaNueva.Length > 50)
+            {
+                error = "La contraseña nueva debe tener entre 6 y 50 caracteres.";
+                return false;
+            }
+
+            if (contrasenaNueva == contrasenaActual)
+            {
+                error = "La contraseña nueva tiene que ser distinta de la actual.";
+                return false;
+            }
+
+            //Se genera una sal nueva para que el hash no se repita
+            usuario.Salt = servicioEncriptacion.CrearSal();
+            usuario.HashedPassword = servicioEncriptacion.EncriptarContrasena(contrasenaNueva, usuario.Salt);
+            repositorioUsuarios.Editar(usuario);
+            unidadDeTrabajo.GuardarCambios();
+
+            return true;
         }
         #endregion
 

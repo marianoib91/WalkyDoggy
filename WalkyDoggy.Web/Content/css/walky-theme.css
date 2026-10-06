@@ -2095,3 +2095,512 @@ button.wd-pet-add {
 }
 
 .wd-time-chip[disabled], .wd-time-chip:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ===== Chat entre paseador y cliente ===== */
+.wd-badge {
+    display: inline-block;
+    min-width: 20px;
+    margin-left: 4px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background-color: #DC2626;
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: center;
+}
+
+.wd-chat-modal .modal-dialog { max-width: 520px; }
+.wd-chat-modal .modal-content { border-radius: 16px; overflow: hidden; }
+
+.wd-chat { display: flex; flex-direction: column; height: min(80vh, 600px); background-color: #FFFFFF; }
+
+.wd-chat-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #E7E9EC;
+}
+
+.wd-chat-title { margin: 0; font-size: 18px; font-weight: 600; }
+.wd-chat-subtitle { margin: 2px 0 0; font-size: 13px; color: #5B6470; }
+
+.wd-chat-close {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #5B6470;
+    font-size: 18px;
+}
+
+.wd-chat-close:hover { background-color: #F3F4F6; }
+
+.wd-chat-body {
+    flex: 1;
+    min-height: 0;
+    padding: 16px 20px;
+    overflow-y: auto;
+    background-color: #F8F9FA;
+}
+
+.wd-chat-empty { text-align: center; margin: 24px 0; }
+
+.wd-chat-day {
+    margin: 12px 0 8px;
+    text-align: center;
+    font-size: 12px;
+    color: #5B6470;
+}
+
+.wd-chat-msg { display: flex; flex-direction: column; margin-bottom: 10px; }
+.wd-chat-msg.is-mine { align-items: flex-end; }
+.wd-chat-msg.is-theirs { align-items: flex-start; }
+.wd-chat-msg.is-system { align-items: center; }
+
+.wd-chat-bubble {
+    max-width: 82%;
+    padding: 8px 12px;
+    border-radius: 14px;
+    font-size: 15px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.wd-chat-msg.is-mine .wd-chat-bubble { border-bottom-right-radius: 4px; background-color: #166A4F; color: #FFFFFF; }
+.wd-chat-msg.is-theirs .wd-chat-bubble { border-bottom-left-radius: 4px; border: 1px solid #E7E9EC; background-color: #FFFFFF; }
+.wd-chat-msg.is-system .wd-chat-bubble { max-width: 94%; background-color: #E8EEF3; color: #3C4752; font-size: 13px; text-align: center; }
+
+.wd-chat-meta { margin-top: 2px; padding: 0 4px; font-size: 11px; color: #8A929B; }
+.wd-chat-msg.is-system .wd-chat-meta { display: none; }
+
+.wd-chat-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid #E7E9EC;
+}
+
+.wd-chat-input { flex: 1; resize: none; }
+.wd-chat-closed { margin: 0; padding: 12px 20px; border-top: 1px solid #E7E9EC; text-align: center; }
+
+/* ===== Valoracion en el mismo paseo ===== */
+.wd-inline-rating {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border: 1px solid #E7E9EC;
+    border-radius: 12px;
+    background-color: #FFFBEB;
+}
+
+.wd-inline-rating-title { margin-bottom: 6px; font-weight: 600; }
+.wd-inline-rating .wd-rating-picker { margin-bottom: 0; }
+.wd-inline-rating-comment { margin-top: 12px; }
+.wd-inline-rating-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+
+/* ===== Paseadores favoritos ===== */
+.wd-fav {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    font-size: 20px;
+    line-height: 1;
+    color: #8A929B;
+}
+
+.wd-fav:hover { background-color: #FEE2E2; color: #DC2626; }
+.wd-fav.is-on { color: #DC2626; }
+
+.wd-fav-filter {
+    padding: 8px 14px;
+    border: 1px solid #E7E9EC;
+    border-radius: 999px;
+    background-color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 500;
+    color: #3C4752;
+}
+
+.wd-fav-filter.is-active { border-color: #DC2626; background-color: #FEE2E2; color: #B91C1C; }
+.wd-fav-filter .fa { color: #DC2626; }
+
+.wd-fav-btn.is-on { border-color: #DC2626; color: #B91C1C; }
+.wd-fav-btn .fa { color: #DC2626; }
+
+/* ===== Caracteristicas de la mascota y matching entre mascotas ===== */
+.wd-trait-pairs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    margin: 12px 0;
+}
+
+.wd-trait-pair {
+    display: inline-flex;
+    padding: 3px;
+    border: 1px solid #E7E9EC;
+    border-radius: 999px;
+    background-color: #F3F4F6;
+}
+
+.wd-trait {
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: #3C4752;
+}
+
+.wd-trait:hover { background-color: #E7F2EC; }
+.wd-trait.is-on { background-color: #166A4F; color: #FFFFFF; }
+
+.wd-chip-trait { background-color: #E7F2EC; color: #166A4F; }
+
+.wd-walker-card.is-suggested { border-color: #E3A008; box-shadow: 0 0 0 1px #E3A008; }
+
+.wd-match-badge {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 8px 0;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background-color: #FFFBEB;
+    font-size: 14px;
+    color: #7A5A00;
+}
+
+.wd-match-badge .fa { margin-top: 3px; color: #E3A008; }
+
+.wd-time-chip.is-suggested { border-color: #E3A008; background-color: #FFFBEB; }
+.wd-time-chip.is-suggested .fa { color: #E3A008; }
+.wd-time-chip.is-suggested:hover, .wd-time-chip.is-picked { background-color: #FDEFB5; }
+
+.wd-suggested { margin-bottom: 4px; }
+
+/* ===== Detalle de las coincidencias del matching ===== */
+.wd-match-list {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    color: #5C4300;
+}
+
+.wd-match-list li { margin-bottom: 4px; }
+.wd-match-badge .wd-link-sm { display: inline-block; margin-top: 2px; }
+
+.wd-suggested-list {
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.wd-suggested-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background-color: #FFFBEB;
+}
+
+.wd-suggested-list li.is-picked { background-color: #FDEFB5; }
+.wd-suggested-list .wd-time-chip { flex-shrink: 0; }
+.wd-suggested-text { padding-top: 5px; font-size: 14px; }
+
+/* ===== Busqueda en dos pasos ===== */
+.wd-select-traits {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    color: #5B6470;
+}
+
+.wd-search-summary {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 14px 18px;
+    border: 1px solid #E7E9EC;
+    border-radius: 14px;
+    background-color: #FFFFFF;
+}
+
+.wd-search-summary dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 16px;
+    margin: 0;
+}
+
+.wd-search-summary dt { font-weight: 500; color: #5B6470; }
+.wd-search-summary dd { margin: 0; }
+
+.wd-match-filter.is-active { border-color: #E3A008; background-color: #FFFBEB; color: #7A5A00; }
+.wd-match-filter .fa { color: #E3A008; }
+
+.wd-optional { font-size: 14px; font-weight: 400; color: #5B6470; }
+
+/* ===== Reseñas de las mascotas (las escriben los paseadores) ===== */
+.wd-pet-reviews {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid #E7E9EC;
+    border-radius: 10px;
+    background-color: #F8F9FA;
+}
+
+.wd-pet-review-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.wd-review-alert { font-weight: 600; color: #B91C1C; }
+
+.wd-review-list { margin: 10px 0 0; padding: 0; list-style: none; }
+
+.wd-review-list li {
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background-color: #FFFFFF;
+}
+
+.wd-review-list li.is-mine { border: 1px solid #E3A008; background-color: #FFFBEB; }
+.wd-review-top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.wd-review-text { margin: 4px 0 0; overflow-wrap: anywhere; }
+
+/* ===== Turnos del paseador: una tarjeta por dia y horario, una fila por mascota ===== */
+.wd-turn {
+    border: 1px solid #E7E9EC;
+    border-radius: 16px;
+    background-color: #ffffff;
+    overflow: hidden;
+}
+
+.wd-turn-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid #E7E9EC;
+    background-color: #F8F9FA;
+}
+
+.wd-turn-when { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0; }
+
+.wd-turn-pet + .wd-turn-pet { border-top: 1px solid #E7E9EC; }
+
+.wd-turn-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 24px;
+}
+
+.wd-turn-main { display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
+.wd-turn-name { font-size: 18px; font-weight: 600; }
+.wd-turn-address { color: #3A424E; overflow-wrap: anywhere; }
+.wd-turn-link { flex-shrink: 0; white-space: nowrap; }
+
+.wd-turn-toggle {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    font-size: 26px;
+    line-height: 1;
+    color: #5B6470;
+}
+
+.wd-turn-toggle:hover { background-color: #F1F3F5; }
+.wd-turn-toggle .fa { transition: transform .2s; }
+.wd-turn-pet.is-open .wd-turn-toggle .fa { transform: rotate(180deg); }
+
+.wd-turn-detail { padding: 4px 24px 20px 96px; }
+.wd-turn-actions { flex-wrap: wrap; margin-top: 12px; }
+
+@media (max-width: 767px) {
+    .wd-turn-head, .wd-turn-row { padding-left: 16px; padding-right: 16px; }
+    .wd-turn-row { flex-wrap: wrap; }
+    .wd-turn-detail { padding-left: 16px; padding-right: 16px; }
+}
+
+/* Solicitudes dentro del turno */
+.wd-turn-pet.is-pending { background-color: #FFFDF5; }
+.wd-turn-tag { margin-left: 6px; font-size: 13px; vertical-align: middle; }
+.wd-turn-decision { display: flex; flex-shrink: 0; gap: 8px; }
+
+/* Bloque por cliente dentro del turno */
+.wd-turn-pets { display: flex; flex-shrink: 0; }
+.wd-turn-pets .wd-avatar + .wd-avatar { margin-left: -14px; }
+.wd-turn-pets .wd-avatar { border: 2px solid #ffffff; }
+.wd-turn-owner { font-size: 14px; color: #5B6470; }
+.wd-turn-owner .wd-turn-link { font-size: 14px; }
+.wd-turn-row { flex-wrap: wrap; }
+.wd-turn-main { flex-basis: 220px; }
+
+/* Valoracion de cada mascota: su foto al lado, para identificarla */
+.wd-inline-rating-con-foto { display: grid; grid-template-columns: 64px minmax(0, 1fr); column-gap: 14px; align-items: start; }
+.wd-inline-rating-con-foto > * { grid-column: 2; }
+.wd-inline-rating-con-foto > .wd-inline-rating-foto { grid-column: 1; grid-row: 1 / span 3; width: 64px; height: 64px; }
+
+.wd-form-error { margin: 0 0 12px; color: #B42318; font-weight: 500; }
+
+/* Fotos de varias mascotas de una misma reserva, una encima de la otra */
+.wd-avatar-stack { display: flex; align-items: center; flex-shrink: 0; }
+.wd-avatar-stack .wd-avatar { border: 3px solid #ffffff; box-shadow: 0 0 0 1px #E7E9EC; }
+.wd-avatar-stack .wd-avatar + .wd-avatar { margin-left: -36px; }
+.wd-avatar-stack-sm .wd-avatar + .wd-avatar { margin-left: -22px; }
+.wd-avatar-more {
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background-color: #F1F3F5;
+    font-size: 14px;
+    font-weight: 600;
+    color: #3A424E;
+}
+
+/* ===== Administracion ===== */
+.wd-admin-tabs { margin-bottom: 24px; }
+.wd-admin-filters { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+.wd-admin-filters .form-group { margin: 0; min-width: 180px; }
+.wd-admin-filters .form-group:first-child { flex: 1 1 260px; }
+
+.wd-admin-table-wrap { overflow-x: auto; border: 1px solid #E7E9EC; border-radius: 12px; background-color: #ffffff; }
+.wd-admin-table { width: 100%; border-collapse: collapse; }
+.wd-admin-table th { padding: 12px 16px; border-bottom: 1px solid #E7E9EC; background-color: #F8F9FA; font-size: 14px; font-weight: 600; color: #5B6470; text-align: left; white-space: nowrap; }
+.wd-admin-table td { padding: 12px 16px; border-bottom: 1px solid #F1F3F5; vertical-align: top; }
+.wd-admin-table tr:last-child td { border-bottom: 0; }
+.wd-admin-table tr.is-blocked td { background-color: #FEF3F2; }
+.wd-admin-actions-col { text-align: right; white-space: nowrap; }
+.wd-admin-reason { max-width: 360px; overflow-wrap: anywhere; }
+
+.wd-admin-pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.wd-admin-subtitle { margin-top: 32px; }
+.wd-admin-form { max-width: 420px; }
+
+.wd-admin { padding-top: 40px; padding-bottom: 96px; }
+@media (min-width: 992px) {
+    .wd-admin { max-width: 1200px; margin-left: auto; margin-right: auto; }
+}
+
+.wd-admin-inline-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; margin: 16px 0 24px; }
+.wd-admin-inline-form .form-group { margin: 0; flex: 1 1 220px; max-width: 360px; }
+
+/* ===== Denuncias ===== */
+.wd-complaint { max-width: 560px; }
+
+.wd-complaint-thumbs { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.wd-complaint-thumb { position: relative; display: flex; align-items: center; justify-content: center; width: 96px; height: 96px; border: 1px solid #E7E9EC; border-radius: 12px; background-color: #F8F9FA; overflow: hidden; }
+.wd-complaint-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.wd-complaint-thumb-remove { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background-color: rgba(20, 24, 31, .75); font-size: 18px; line-height: 22px; color: #ffffff; }
+
+/* Detalle para el administrador */
+.wd-complaint-detail .wd-section-title { display: flex; align-items: center; gap: 12px; }
+.wd-complaint-heading { margin: 24px 0 8px; font-size: 16px; font-weight: 600; }
+.wd-complaint-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.wd-complaint-detail .wd-complaint-thumb { width: 140px; height: 140px; }
+.wd-complaint-chat-block { margin-top: 24px; }
+.wd-complaint-chat { margin: 0; padding: 0; list-style: none; max-width: 640px; }
+.wd-complaint-chat li { margin-bottom: 8px; padding: 10px 12px; border: 1px solid #E7E9EC; border-radius: 10px; background-color: #ffffff; }
+.wd-complaint-chat li.is-system { background-color: #F8F9FA; color: #5B6470; }
+.wd-complaint-resolution { margin-top: 24px; padding-top: 8px; border-top: 1px solid #E7E9EC; max-width: 640px; }
+.wd-complaint-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+.wd-admin-subtabs { margin-bottom: 16px; }
+
+/* ===== Tablero del administrador ===== */
+.wd-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 8px; }
+.wd-kpi { display: flex; flex-direction: column; gap: 2px; padding: 16px 18px; border: 1px solid #E7E9EC; border-radius: 14px; background-color: #ffffff; }
+.wd-kpi.is-alert { border-color: #E3A008; background-color: #FFFBEB; }
+.wd-kpi-value { font-size: 28px; font-weight: 600; line-height: 1.2; color: #14181F; }
+.wd-kpi-value .fa { font-size: 20px; color: #E3A008; }
+.wd-kpi-label { font-weight: 500; color: #3A424E; }
+.wd-kpi-detail { font-size: 13px; color: #5B6470; }
+
+.wd-chart { display: flex; align-items: flex-end; gap: 3px; height: 160px; padding: 12px; border: 1px solid #E7E9EC; border-radius: 12px; background-color: #ffffff; }
+.wd-chart-col { display: flex; flex: 1 1 0; align-items: flex-end; height: 100%; min-width: 0; }
+.wd-chart-bar { position: relative; display: flex; flex-direction: column-reverse; width: 100%; min-height: 4px; border-radius: 3px 3px 0 0; background-color: #3F7D58; overflow: hidden; }
+.wd-chart-cancelled { width: 100%; background-color: #D92D20; }
+.wd-chart-axis { display: flex; justify-content: space-between; margin-top: 4px; font-size: 12px; color: #5B6470; }
+.wd-chart-key { display: inline-block; width: 10px; height: 10px; margin-right: 2px; border-radius: 2px; background-color: #3F7D58; }
+.wd-chart-key.is-cancelled { background-color: #D92D20; }
+
+.wd-dashboard-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.wd-hbars { margin: 0; padding: 0; list-style: none; }
+.wd-hbars li { display: grid; grid-template-columns: minmax(120px, 190px) 1fr 40px; align-items: center; gap: 10px; margin-bottom: 8px; }
+.wd-hbar-track { height: 12px; border-radius: 6px; background-color: #F1F3F5; overflow: hidden; }
+.wd-hbar-fill { display: block; height: 100%; border-radius: 6px; background-color: #3F7D58; }
+.wd-hbar-fill.is-cancelled { background-color: #D92D20; }
+.wd-hbar-count { font-weight: 600; text-align: right; }
+
+/* ===== Publicidad (avisos de comercios) ===== */
+.wd-ads { margin-top: 40px; }
+.wd-ads-badge { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background-color: #F1F3F5; font-size: 12px; font-weight: 500; color: #5B6470; vertical-align: middle; }
+.wd-ads-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+.wd-ad { display: flex; flex-direction: column; border: 1px solid #E7E9EC; border-radius: 14px; background-color: #ffffff; overflow: hidden; }
+.wd-ad-image { width: 100%; height: 150px; object-fit: cover; background-color: #F8F9FA; }
+.wd-ad-body { display: flex; flex: 1 1 auto; flex-direction: column; gap: 6px; padding: 14px 16px 16px; }
+.wd-ad-business { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.wd-ad-category { font-size: 13px; color: #5B6470; }
+.wd-ad-title { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: 0; }
+.wd-ad-text { margin: 0; color: #3A424E; overflow-wrap: anywhere; }
+.wd-ad-where { margin: 0; font-size: 14px; color: #5B6470; }
+.wd-ad-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 8px; }
+
+/* Formulario de avisos y comercios en el panel */
+.wd-ad-editor { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 32px; align-items: start; margin-bottom: 8px; }
+.wd-ad-form { max-width: 640px; }
+.wd-ad-dates { display: flex; flex-wrap: wrap; gap: 16px; }
+.wd-ad-dates .form-group { flex: 1 1 200px; }
+.wd-ad-preview .wd-ad { max-width: 320px; }
+
+@media (max-width: 991px) {
+    .wd-ad-editor { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ===== Comercios amigos (directorio) ===== */
+.wd-friends { padding-top: 40px; padding-bottom: 96px; }
+@media (min-width: 992px) {
+    .wd-friends { max-width: 1040px; margin-left: auto; margin-right: auto; }
+}
+
+.wd-friends-filters { max-width: 420px; margin-bottom: 8px; }
+.wd-filter-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.wd-filter-chip { padding: 6px 14px; border: 1px solid #D5D9DE; border-radius: 999px; background-color: #ffffff; font-size: 14px; color: #3A424E; }
+.wd-filter-chip:hover { background-color: #F8F9FA; }
+.wd-filter-chip.is-active { border-color: #166A4F; background-color: #E9F5EF; color: #166A4F; font-weight: 600; }
+.wd-filter-count { margin-left: 4px; font-size: 12px; color: #5B6470; }
+
+.wd-friends-group { margin-bottom: 32px; }
+.wd-friends-group .wd-section-title .fa { margin-right: 6px; color: #166A4F; }
+.wd-friends-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+
+.wd-friend { display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border: 1px solid #E7E9EC; border-radius: 14px; background-color: #ffffff; }
+.wd-friend-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.wd-friend-name { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: 0; }
+.wd-friend-distance { font-size: 13px; font-weight: 500; color: #166A4F; white-space: nowrap; }
+.wd-friend-description { margin: 0; color: #3A424E; overflow-wrap: anywhere; }
+.wd-friend-address { margin: 0; font-size: 14px; color: #5B6470; }
+.wd-friend-promos { padding: 10px 12px; border-radius: 10px; background-color: #FFFBEB; }
+.wd-friend-promos-title { margin-bottom: 4px; font-size: 13px; font-weight: 600; color: #7A5A00; }
+.wd-friend-promos-title .fa { color: #E3A008; }
+.wd-friend-promo { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.wd-friend-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 4px; }

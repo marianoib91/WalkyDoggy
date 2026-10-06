@@ -32,6 +32,10 @@
                     <span class="wd-price-unit">/ hora</span>
                 </div>
                 <a class="btn btn-primary" ng-if="esCliente" ng-href="#/walks/step-1?walkerId={{paseador.id}}">Solicitar paseo</a>
+                <button type="button" class="btn btn-default wd-fav-btn" ng-if="esCliente" ng-class="{'is-on': esFavorito()}" aria-pressed="{{esFavorito()}}" ng-click="alternarFavorito()">
+                    <i class="fa" ng-class="esFavorito() ? 'fa-heart' : 'fa-heart-o'" aria-hidden="true"></i>
+                    {{esFavorito() ? 'En mis favoritos' : 'Agregar a favoritos'}}
+                </button>
                 <a class="btn btn-default" ng-if="esPerfilPropio" href="#/work-conditions">Editar mis condiciones laborales</a>
             </div>
         </section>

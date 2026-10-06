@@ -1,0 +1,80 @@
+<div ng-controller="adminResenasCtrl">
+    <p class="wd-field-hint">
+        Ocultá las reseñas ofensivas. Una reseña oculta no se muestra ni cuenta en los promedios, pero no se borra y se puede volver a mostrar.
+    </p>
+
+    <ul class="nav nav-pills wd-admin-subtabs" role="tablist">
+        <li role="presentation" ng-class="{active: tipo == 'valoraciones'}"><a href="" role="tab" ng-click="cambiarTipo('valoraciones')">Valoraciones de paseadores</a></li>
+        <li role="presentation" ng-class="{active: tipo == 'mascotas'}"><a href="" role="tab" ng-click="cambiarTipo('mascotas')">Reseñas de mascotas</a></li>
+    </ul>
+
+    <div class="wd-admin-filters">
+        <div class="form-group">
+            <label for="resenas-texto">Buscar</label>
+            <input id="resenas-texto" type="search" class="form-control" placeholder="Texto del comentario o nombre" ng-model="filtros.texto" ng-change="alEscribir()" />
+        </div>
+        <div class="form-group">
+            <label for="resenas-estrellas">Estrellas</label>
+            <select id="resenas-estrellas" class="form-control" ng-model="filtros.maximoEstrellas" ng-change="buscar()">
+                <option value="">Todas</option>
+                <option value="2">Hasta 2 estrellas</option>
+                <option value="3">Hasta 3 estrellas</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="resenas-estado">Estado</label>
+            <select id="resenas-estado" class="form-control" ng-model="filtros.estado" ng-change="buscar()">
+                <option value="">Todas</option>
+                <option value="Visible">Visibles</option>
+                <option value="Hidden">Ocultas</option>
+            </select>
+        </div>
+    </div>
+
+    <p class="wd-field-hint" ng-if="!cargando && items.length == 0">No hay reseñas que coincidan.</p>
+
+    <div class="wd-admin-table-wrap" ng-if="items.length > 0">
+        <table class="wd-admin-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th ng-if="tipo == 'valoraciones'">Cliente → Paseador</th>
+                    <th ng-if="tipo == 'mascotas'">Paseador → Mascota</th>
+                    <th>Estrellas</th>
+                    <th>Comentario</th>
+                    <th>Estado</th>
+                    <th class="wd-admin-actions-col"><span class="sr-only">Acciones</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="item in items track by item.id" ng-class="{'is-blocked': item.hidden}">
+                    <td>{{item.date | date:'dd/MM/yyyy'}}</td>
+                    <td ng-if="tipo == 'valoraciones'">{{item.customerName}} <span class="wd-field-hint">→</span> {{item.walkerName}}</td>
+                    <td ng-if="tipo == 'mascotas'">{{item.walkerName}} <span class="wd-field-hint">→</span> {{item.petName}}</td>
+                    <td><wd-stars value="item.stars"></wd-stars></td>
+                    <td class="wd-admin-reason">
+                        <span ng-if="item.comment">{{item.comment}}</span>
+                        <span class="wd-field-hint" ng-if="!item.comment">Sin comentario</span>
+                    </td>
+                    <td>
+                        <span class="wd-status wd-status-confirmed" ng-if="!item.hidden">Visible</span>
+                        <span class="wd-status wd-status-cancelled" ng-if="item.hidden">Oculta</span>
+                        <div class="wd-field-hint wd-admin-reason" ng-if="item.hidden">{{item.hiddenReason}}</div>
+                    </td>
+                    <td class="wd-admin-actions-col">
+                        <button type="button" class="btn btn-danger btn-sm" ng-if="!item.hidden" ng-click="ocultar(item)">Ocultar</button>
+                        <button type="button" class="btn btn-default btn-sm" ng-if="item.hidden" ng-click="mostrar(item)">Mostrar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="wd-admin-pager" ng-if="total > 0">
+        <span class="wd-field-hint">{{total}} {{total == 1 ? 'reseña' : 'reseñas'}}</span>
+        <div>
+            <button type="button" class="btn btn-default btn-sm" ng-disabled="!hayAnterior()" ng-click="irA(pagina - 1)">Anterior</button>
+            <button type="button" class="btn btn-default btn-sm" ng-disabled="!haySiguiente()" ng-click="irA(pagina + 1)">Siguiente</button>
+        </div>
+    </div>
+</div>

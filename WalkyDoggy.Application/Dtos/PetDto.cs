@@ -28,5 +28,8 @@ namespace WalkyDoggy.Application.Dtos
         public Int64 Age { get; set; }
 
         public String ProfileImage { get; set; }
+
+        //Caracteristicas del perro, codigos separados por coma (por ejemplo "Playful,Runner"); vacio si no marco ninguna
+        public String Traits { get; set; }
     }
 }

@@ -1,0 +1,40 @@
+<form class="wd-dialog wd-complaint" name="formularioDenuncia" novalidate ng-submit="enviar()">
+    <h2 class="wd-dialog-title">{{datos.titulo || 'Hacer una denuncia'}}</h2>
+    <p class="wd-dialog-text" ng-if="datos.subtitulo">{{datos.subtitulo}}</p>
+    <p class="wd-field-hint">
+        La denuncia la ve solo un equipo de administradores. La otra persona no se entera de que la hiciste.
+    </p>
+
+    <div class="form-group">
+        <label for="denuncia-motivo">Motivo</label>
+        <select id="denuncia-motivo" class="form-control" ng-model="formulario.motivo" ng-options="motivo.codigo as motivo.texto for motivo in motivos">
+            <option value="">Elegí un motivo</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="denuncia-descripcion">¿Qué pasó?</label>
+        <textarea id="denuncia-descripcion" class="form-control" rows="5" maxlength="1000" ng-model="formulario.descripcion"
+                  placeholder="Contá los hechos con el mayor detalle posible: qué pasó, cuándo y dónde."></textarea>
+        <span class="wd-field-hint">{{(formulario.descripcion || '').length}} / 1000</span>
+    </div>
+
+    <div class="form-group">
+        <label for="denuncia-imagenes">Imágenes (opcional)</label>
+        <div class="wd-complaint-thumbs" ng-if="imagenes.length > 0">
+            <div class="wd-complaint-thumb" ng-repeat="imagen in imagenes">
+                <img ng-src="{{imagen.vista}}" alt="{{imagen.archivo.name}}" />
+                <button type="button" class="wd-complaint-thumb-remove" ng-click="quitarImagen($index)" aria-label="Quitar {{imagen.archivo.name}}">&times;</button>
+            </div>
+        </div>
+        <input id="denuncia-imagenes" type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple ng-file-select="alElegirImagenes($files)" ng-if="imagenes.length < maximoImagenes" />
+        <span class="wd-field-hint">Capturas de pantalla o fotos que ayuden a entender lo que pasó. Hasta {{maximoImagenes}} imágenes de 5 MB cada una.</span>
+    </div>
+
+    <p class="wd-form-error" ng-if="error" role="alert">{{error}}</p>
+
+    <div class="wd-dialog-actions">
+        <button type="button" class="btn btn-default" ng-click="cancelar()" ng-disabled="enviando">Cancelar</button>
+        <button type="submit" class="btn btn-danger" ng-disabled="enviando">{{enviando ? 'Enviando...' : 'Enviar denuncia'}}</button>
+    </div>
+</form>

@@ -3,9 +3,9 @@
 
     app.controller('paso1Ctrl', paso1Ctrl);
 
-    paso1Ctrl.$inject = ['$scope', 'servicioApi', 'servicioNotificaciones', '$rootScope', '$location', '$routeParams'];
+    paso1Ctrl.$inject = ['$scope', 'servicioApi', 'servicioNotificaciones', 'servicioCaracteristicas', '$rootScope', '$location', '$routeParams'];
 
-    function paso1Ctrl($scope, servicioApi, servicioNotificaciones, $rootScope, $location, $routeParams) {
+    function paso1Ctrl($scope, servicioApi, servicioNotificaciones, servicioCaracteristicas, $rootScope, $location, $routeParams) {
 
         //Indice de moment().day(): 0 = domingo
         var nombresDias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -141,6 +141,11 @@
                 angular.forEach($scope.mascotas, function (mascota) {
                     mascota.selectedPet = idsSeleccionados.indexOf(mascota.id) !== -1;
                 });
+            } else if (retiroElegido && retiroElegido.idsMascotas) {
+                //Las mascotas que se eligieron en la busqueda ya vienen marcadas
+                angular.forEach($scope.mascotas, function (mascota) {
+                    mascota.selectedPet = retiroElegido.idsMascotas.indexOf(mascota.id) !== -1;
+                });
             }
         }
 
@@ -180,6 +185,84 @@
                 }
             });
         });
+
+        /* ---------- Horarios sugeridos (matching entre mascotas) ---------- */
+
+        //Horarios del dia en los que el paseador ya lleva perros parecidos a los de las mascotas elegidas
+        //(si todavia no se eligio ninguna, a los de todas las mascotas del cliente)
+        $scope.sugeridos = [];
+        $scope.mascotasParaSugerir = [];
+        var numeroDeSugerencia = 0;
+
+        function mascotasParaSugerir() {
+            var elegidas = ($scope.mascotas.length ? $scope.mascotas : []).filter(function (mascota) { return mascota.selectedPet; });
+            return elegidas.length ? elegidas : ($scope.mascotas.length ? $scope.mascotas : []);
+        }
+
+        function tieneRasgosSuficientes(mascota) {
+            return servicioCaracteristicas.leer(mascota.traits).length >= servicioCaracteristicas.minimoEnComun;
+        }
+
+        //Se vuelven a pedir cuando cambia la fecha o las mascotas elegidas
+        $scope.$watch(function () {
+            return ($scope.paseo.date ? moment($scope.paseo.date).format('YYYY-MM-DD') : '') + '|' + mascotasParaSugerir().map(function (mascota) { return mascota.id; }).join(',');
+        }, function () {
+            var mascotas = mascotasParaSugerir().filter(tieneRasgosSuficientes);
+            var pedido = ++numeroDeSugerencia;
+
+            $scope.mascotasParaSugerir = mascotas;
+            if (!$scope.paseo.date || mascotas.length === 0) {
+                $scope.sugeridos = [];
+                return;
+            }
+
+            var config = {
+                params: {
+                    walkerId: idPaseador,
+                    date: moment($scope.paseo.date).format('YYYY-MM-DD'),
+                    petIds: mascotas.map(function (mascota) { return mascota.id; }).join(',')
+                }
+            };
+            servicioApi.get('/api/walkers/getAvailableSlots', config, function (resultado) {
+                if (pedido === numeroDeSugerencia) {
+                    //Primero los horarios con mas caracteristicas en comun; a igual cantidad, el mas temprano
+                    $scope.sugeridos = resultado.data.filter(function (cupo) { return cupo.matchingPets > 0; }).sort(function (a, b) {
+                        return (b.matchScore - a.matchScore) || (a.time < b.time ? -1 : 1);
+                    });
+                }
+            });
+        });
+
+        //El cliente tiene mascotas pero ninguna con las caracteristicas necesarias para sugerirle horarios
+        $scope.faltanRasgos = function () {
+            return $scope.mascotas.length > 0 && !$scope.mascotas.some(tieneRasgosSuficientes);
+        };
+
+        $scope.nombresParaSugerir = function () {
+            return $scope.mascotasParaSugerir.map(function (mascota) { return mascota.name; }).join(', ');
+        };
+
+        $scope.textoRasgos = function (codigos) {
+            return servicioCaracteristicas.textos(codigos);
+        };
+
+        //Con mas de una mascota se aclara con cual coincide cada perro
+        $scope.variasMascotas = function () {
+            return $scope.mascotasParaSugerir.length > 1;
+        };
+
+        //"Pitbull, grande"
+        $scope.textoPerro = function (coincidencia) {
+            return [coincidencia.breedName, coincidencia.sizeName ? coincidencia.sizeName.toLowerCase() : null].filter(Boolean).join(', ');
+        };
+
+        $scope.textoParecidos = function (cantidad) {
+            return cantidad + (cantidad === 1 ? ' perrito parecido' : ' perritos parecidos');
+        };
+
+        $scope.elegirHorario = function (horario) {
+            $scope.paseo.timeFrom = horario;
+        };
 
         function formatearDireccion(direccion) {
             var linea = [direccion.streetName, direccion.streetNumber].filter(Boolean).join(' ');

@@ -67,6 +67,13 @@
     <Compile Include="Configurations\EntityBaseConfiguration.cs" />
     <Compile Include="Configurations\PricesConfiguration.cs" />
     <Compile Include="Configurations\ProvincesConfiguration.cs" />
+    <Compile Include="Configurations\MessagesConfiguration.cs" />
+    <Compile Include="Configurations\AdminActionsConfiguration.cs" />
+    <Compile Include="Configurations\PublicidadConfiguration.cs" />
+    <Compile Include="Configurations\ComplaintsConfiguration.cs" />
+    <Compile Include="Configurations\PetTraitDefinitionsConfiguration.cs" />
+    <Compile Include="Configurations\FavoriteWalkersConfiguration.cs" />
+    <Compile Include="Configurations\PetReviewsConfiguration.cs" />
     <Compile Include="Configurations\RankingsConfiguration.cs" />
     <Compile Include="Configurations\UsersConfiguration.cs" />
     <Compile Include="Configurations\WalkersConfiguration.cs" />

@@ -3,9 +3,9 @@
 
     app.controller('listaMascotasCtrl', listaMascotasCtrl);
 
-    listaMascotasCtrl.$inject = ['$scope', 'servicioMembresia', 'servicioNotificaciones', 'servicioApi', '$rootScope', '$location', 'sweetAlert'];
+    listaMascotasCtrl.$inject = ['$scope', 'servicioMembresia', 'servicioNotificaciones', 'servicioApi', 'servicioCaracteristicas', '$rootScope', '$location', 'sweetAlert'];
 
-    function listaMascotasCtrl($scope, servicioMembresia, servicioNotificaciones, servicioApi, $rootScope, $location, sweetAlert) {
+    function listaMascotasCtrl($scope, servicioMembresia, servicioNotificaciones, servicioApi, servicioCaracteristicas, $rootScope, $location, sweetAlert) {
 
         //Se obtiene el id del cliente guardado en el indexCtrl
         $scope.idUsuario = $rootScope.repository.loggedUser.id;
@@ -21,11 +21,21 @@
                 }
             }
             servicioApi.get('/api/pets/getAllByCustomerId/', config, alCargarMascotas);
+
+            //El domicilio del cliente (para mostrarle los avisos de los comercios que tiene cerca)
+            servicioApi.get('/api/customers/getByUserId', { params: { userId: $scope.idUsuario } }, function (resultado) {
+                $scope.cliente = resultado.data;
+            });
         }
 
         function alCargarMascotas(resultado) {
             $scope.mascotas = resultado.data;
         }
+
+        //Las caracteristicas de la mascota en castellano (["Juguetón", "Corredor"])
+        $scope.rasgosDe = function (mascota) {
+            return servicioCaracteristicas.leer(mascota.traits).map(servicioCaracteristicas.textoDe);
+        };
 
         $scope.editar = function (id) {
             $location.path('/pets/edit/' + id);

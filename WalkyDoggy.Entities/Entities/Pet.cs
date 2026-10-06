@@ -26,6 +26,9 @@ namespace WalkyDoggy.Entities
 
         public String ProfileImage { get; set; }
 
+        //Caracteristicas del perro (codigos separados por coma, ver PetTraits); null si todavia no marco ninguna
+        public String Traits { get; set; }
+
         public Customer Customer { get; set; }
 
         public Size Size { get; set; }

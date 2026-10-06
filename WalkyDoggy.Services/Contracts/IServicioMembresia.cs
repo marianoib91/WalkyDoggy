@@ -19,5 +19,11 @@ namespace WalkyDoggy.Services
         User ObtenerUsuario(Int64 idUsuario);
 
         Boolean ExisteUsuario(String email);
+
+        //Las credenciales son correctas pero un administrador bloqueó la cuenta: devuelve el motivo para mostrárselo a la persona
+        Boolean EstaBloqueado(String email, String contrasena, out String motivo);
+
+        //Cambia la contraseña si la actual es correcta; si no, devuelve false y el motivo en error
+        Boolean CambiarContrasena(String email, String contrasenaActual, String contrasenaNueva, out String error);
     }
 }

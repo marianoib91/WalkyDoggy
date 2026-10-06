@@ -20,6 +20,32 @@ namespace WalkyDoggy.Application.Constants
         public const String Customer = "Customer";
 
         public const String System = "System";
+
+        //Un administrador bloqueo la cuenta del paseador o del cliente y se cancelaron sus paseos futuros
+        public const String Admin = "Admin";
+    }
+
+    //En que punto esta una reserva, tal como la ve el administrador (se deduce de sus fechas y su estado)
+    public static class AdminWalkStatuses
+    {
+        //Espera la respuesta del paseador
+        public const String Pending = "Pending";
+
+        //Confirmada, todavia no empezo
+        public const String Upcoming = "Upcoming";
+
+        //El cliente la inicio y el paseador todavia no la termino
+        public const String InProgress = "InProgress";
+
+        //Terminada, falta que el paseador confirme el cobro
+        public const String ToCollect = "ToCollect";
+
+        public const String Collected = "Collected";
+
+        public const String Cancelled = "Cancelled";
+
+        public static readonly System.Collections.Generic.List<String> Todos =
+            new System.Collections.Generic.List<String> { Pending, Upcoming, InProgress, ToCollect, Collected, Cancelled };
     }
 
     public static class PaymentMethods

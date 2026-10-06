@@ -23,16 +23,22 @@ namespace WalkyDoggy.Services.Services
         public const Int32 MascotasMinimas = 1;
         public const Int32 MascotasMaximas = 5;
 
+        //Al buscar solo por horario (sin dia), cuantos dias hacia adelante se mira, empezando por hoy
+        public const Int32 DiasDeBusquedaPorHorario = 14;
+
         #region Variables
         private readonly IRepositorioEntidadBase<Walker> repositorioPaseadores;
         private readonly IRepositorioEntidadBase<Customer> repositorioClientes;
         private readonly IRepositorioEntidadBase<WorkDay> repositorioJornadas;
         private readonly IRepositorioEntidadBase<Walk> repositorioPaseos;
+        private readonly IRepositorioEntidadBase<Pet> repositorioMascotas;
         private readonly IRepositorioEntidadBase<Ranking> repositorioValoraciones;
         private readonly IRepositorioEntidadBase<Price> repositorioPrecios;
         private readonly IRepositorioEntidadBase<UserRole> repositorioRolesUsuario;
         private readonly IServicioEncriptacion servicioEncriptacion;
         private readonly IServicioMembresia servicioMembresia;
+        private readonly IServicioCaracteristicas servicioCaracteristicas;
+        private List<String> codigosActivos;
         #endregion
 
         public ServicioPaseadores(IRepositorioEntidadBase<Error> repositorioErrores,
@@ -41,22 +47,39 @@ namespace WalkyDoggy.Services.Services
                                 IRepositorioEntidadBase<Customer> repositorioClientes,
                                 IRepositorioEntidadBase<WorkDay> repositorioJornadas,
                                 IRepositorioEntidadBase<Walk> repositorioPaseos,
+                                IRepositorioEntidadBase<Pet> repositorioMascotas,
                                 IRepositorioEntidadBase<Ranking> repositorioValoraciones,
                                 IRepositorioEntidadBase<Price> repositorioPrecios,
                                 IRepositorioEntidadBase<UserRole> repositorioRolesUsuario,
                                 IServicioEncriptacion servicioEncriptacion,
-                                IServicioMembresia servicioMembresia) :
+                                IServicioMembresia servicioMembresia,
+                                IServicioCaracteristicas servicioCaracteristicas) :
             base(repositorioErrores, unidadDeTrabajo, repositorioPaseadores)
         {
             this.repositorioPaseadores = repositorioPaseadores;
             this.repositorioClientes = repositorioClientes;
             this.repositorioJornadas = repositorioJornadas;
             this.repositorioPaseos = repositorioPaseos;
+            this.repositorioMascotas = repositorioMascotas;
             this.repositorioValoraciones = repositorioValoraciones;
             this.repositorioPrecios = repositorioPrecios;
             this.repositorioRolesUsuario = repositorioRolesUsuario;
             this.servicioEncriptacion = servicioEncriptacion;
             this.servicioMembresia = servicioMembresia;
+            this.servicioCaracteristicas = servicioCaracteristicas;
+        }
+
+        //Las caracteristicas que hoy estan activas en el catalogo (se consultan una sola vez por pedido)
+        private List<String> CodigosActivos()
+        {
+            return this.codigosActivos ?? (this.codigosActivos = this.servicioCaracteristicas.CodigosActivos());
+        }
+
+        //Las caracteristicas de una lista guardada que siguen activas: las dadas de baja no cuentan para el matching
+        private List<String> LeerRasgos(String guardadas)
+        {
+            var activas = CodigosActivos();
+            return PetTraits.Leer(guardadas).Where(x => activas.Contains(x)).ToList();
         }
 
         public WalkerDto Registrar(WalkerDto paseadorDto)
@@ -129,6 +152,7 @@ namespace WalkyDoggy.Services.Services
             }
 
             var estadisticas = this.repositorioValoraciones.ObtenerTodos().
+                                                Where(x => !x.Hidden).
                                                 GroupBy(x => x.WalkerId).
                                                 Select(g => new { WalkerId = g.Key, Count = g.Count(), Average = g.Average(x => x.Score) }).
                                                 ToList();
@@ -209,11 +233,20 @@ namespace WalkyDoggy.Services.Services
         }
 
         //Paseadores que trabajan en la direccion de retiro: los que la tienen dentro de su radio de trabajo, del mas cercano al mas lejano.
-        //Si se informa la fecha, solo los que tienen algun horario libre ese dia; si ademas se informa el horario, solo los libres a esa hora.
-        public List<WalkerDto> BuscarParaRetiro(Double latitud, Double longitud, DateTime? fecha, String horario)
+        //Siempre se respeta que el paseador lleve tantos perros a la vez como mascotas se eligieron (idsMascotas) y que tenga lugar para todas ellas.
+        //Segun lo que se informe del dia y el horario preferidos:
+        //  nada: todos los paseadores de la zona.
+        //  solo la fecha: los que tienen algun horario libre ese dia.
+        //  fecha y horario: los libres a esa hora ese dia.
+        //  solo el horario: los que tienen lugar a esa hora algun dia de los proximos DiasDeBusquedaPorHorario.
+        //Con las mascotas del cliente, cada horario trae cuantos perros parecidos lleva el paseador (matching entre mascotas).
+        public List<WalkerDto> BuscarParaRetiro(Double latitud, Double longitud, DateTime? fecha, String horario, List<Int64> idsMascotas)
         {
             var paseadoresDto = ObtenerTodos();
             var encontrados = new List<WalkerDto>();
+            var mascotasDelCliente = ObtenerMascotas(idsMascotas);
+            var cantidadMascotas = Math.Max(1, mascotasDelCliente.Count);
+            var buscaPorHorario = fecha.HasValue || !String.IsNullOrWhiteSpace(horario);
 
             foreach (var paseadorDto in paseadoresDto)
             {
@@ -229,19 +262,68 @@ namespace WalkyDoggy.Services.Services
                     continue;
                 }
 
-                if (fecha.HasValue)
+                //Tiene que llevar a la vez tantos perros como mascotas se eligieron
+                if (paseadorDto.MaxPetsAtOnce < cantidadMascotas)
                 {
-                    var cupos = ObtenerCupos(paseadorDto.Id, fecha.Value);
-                    if (!String.IsNullOrWhiteSpace(horario))
-                    {
-                        cupos = cupos.Where(x => x.Time == horario).ToList();
-                    }
+                    continue;
+                }
+
+                if (buscaPorHorario)
+                {
+                    var cupos = ObtenerCuposParaBusqueda(paseadorDto.Id, fecha, horario).
+                                Where(x => x.FreeSpots >= cantidadMascotas).
+                                ToList();
                     if (cupos.Count == 0)
                     {
                         continue;
                     }
 
                     paseadorDto.AvailableTimes = cupos;
+
+                    if (mascotasDelCliente.Count > 0)
+                    {
+                        //Los lugares ocupados cambian de un dia a otro: el matching se calcula dia por dia
+                        foreach (var delDia in cupos.GroupBy(x => x.Date))
+                        {
+                            AplicarCompatibilidad(paseadorDto.Id, DateTime.ParseExact(delDia.Key, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), delDia.ToList(), mascotasDelCliente);
+                        }
+
+                        //El paseador queda con los datos de su mejor horario: el que lleva al perro con mas caracteristicas en comun y, a igual cantidad, mas perros parecidos
+                        var mejor = cupos.OrderByDescending(x => x.MatchScore).ThenByDescending(x => x.MatchingPets).First();
+                        paseadorDto.MatchingPets = mejor.MatchingPets;
+                        paseadorDto.MatchScore = mejor.MatchScore;
+                        paseadorDto.SharedTraits = mejor.SharedTraits;
+                        paseadorDto.BestMatch = mejor.BestMatch;
+                    }
+                }
+
+                else if (mascotasDelCliente.Any(x => LeerRasgos(x.Traits).Count >= PetTraits.MinimoEnComun))
+                {
+                    //Sin dia ni horario elegidos tambien se puede ordenar por matching: se miran los proximos dias y el paseador trae
+                    //solo los horarios en los que lleva perros parecidos (el resto de sus horarios no se informa)
+                    var conCoincidencias = new List<AvailableTimeDto>();
+                    for (var i = 0; i < DiasDeBusquedaPorHorario; i++)
+                    {
+                        var dia = DateTime.Now.Date.AddDays(i);
+                        var delDia = ObtenerCupos(paseadorDto.Id, dia).Where(x => x.FreeSpots >= cantidadMascotas).ToList();
+                        if (delDia.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        AplicarCompatibilidad(paseadorDto.Id, dia, delDia, mascotasDelCliente);
+                        conCoincidencias.AddRange(delDia.Where(x => x.MatchingPets > 0));
+                    }
+
+                    paseadorDto.AvailableTimes = conCoincidencias;
+                    if (conCoincidencias.Count > 0)
+                    {
+                        var mejor = conCoincidencias.OrderByDescending(x => x.MatchScore).ThenByDescending(x => x.MatchingPets).First();
+                        paseadorDto.MatchingPets = mejor.MatchingPets;
+                        paseadorDto.MatchScore = mejor.MatchScore;
+                        paseadorDto.SharedTraits = mejor.SharedTraits;
+                        paseadorDto.BestMatch = mejor.BestMatch;
+                    }
                 }
 
                 paseadorDto.DistanceKm = Math.Round(distancia, 1);
@@ -249,6 +331,112 @@ namespace WalkyDoggy.Services.Services
             }
 
             return encontrados.OrderBy(x => x.DistanceKm).ToList();
+        }
+
+        //Horarios libres del paseador que sirven para la busqueda: los de la fecha (y el horario, si se informo) o, sin fecha, los de ese horario
+        //en cada uno de los proximos DiasDeBusquedaPorHorario dias.
+        private List<AvailableTimeDto> ObtenerCuposParaBusqueda(Int64 idPaseador, DateTime? fecha, String horario)
+        {
+            var conHorario = !String.IsNullOrWhiteSpace(horario);
+
+            if (fecha.HasValue)
+            {
+                var delDia = ObtenerCupos(idPaseador, fecha.Value);
+                return conHorario ? delDia.Where(x => x.Time == horario).ToList() : delDia;
+            }
+
+            var cupos = new List<AvailableTimeDto>();
+            for (var i = 0; i < DiasDeBusquedaPorHorario; i++)
+            {
+                cupos.AddRange(ObtenerCupos(idPaseador, DateTime.Now.Date.AddDays(i)).Where(x => x.Time == horario));
+            }
+            return cupos;
+        }
+
+        private List<Pet> ObtenerMascotas(List<Int64> idsMascotas)
+        {
+            if (idsMascotas == null || idsMascotas.Count == 0)
+            {
+                return new List<Pet>();
+            }
+
+            return this.repositorioMascotas.BuscarPor(x => idsMascotas.Contains(x.Id)).ToList();
+        }
+
+        //Matching entre mascotas: en cada horario busca, entre los perros de otros clientes que el paseador ya lleva (reservas pendientes o confirmadas),
+        //los que comparten al menos PetTraits.MinimoEnComun caracteristicas con alguna de las mascotas del cliente.
+        //Informa cuantos son y cual es el que mas se parece (con cual mascota del cliente y en que caracteristicas), sin decir de quien es.
+        private void AplicarCompatibilidad(Int64 idPaseador, DateTime fecha, List<AvailableTimeDto> cupos, List<Pet> mascotasDelCliente)
+        {
+            var propias = mascotasDelCliente.Select(x => new { Mascota = x, Rasgos = LeerRasgos(x.Traits) }).
+                                             Where(x => x.Rasgos.Count >= PetTraits.MinimoEnComun).
+                                             ToList();
+            if (propias.Count == 0 || cupos.Count == 0)
+            {
+                return;
+            }
+
+            var idsClientes = mascotasDelCliente.Select(x => x.CustomerId).Distinct().ToList();
+            var dia = fecha.Date;
+            var perrosDelDia = this.repositorioPaseos.TodosConIncluidos(x => x.Pet, x => x.Pet.Breed, x => x.Pet.Size).
+                                                    Where(x => x.WalkerId == idPaseador && x.Date == dia && x.Status != WalkStatus.Cancelled).
+                                                    ToList().
+                                                    Where(x => !idsClientes.Contains(x.Pet.CustomerId)).
+                                                    ToList();
+
+            foreach (var cupo in cupos)
+            {
+                var coincidencias = 0;
+                PetMatchDto mejor = null;
+
+                foreach (var perro in perrosDelDia.Where(x => x.TimeFrom == cupo.Time).Select(x => x.Pet).GroupBy(x => x.Id).Select(x => x.First()))
+                {
+                    var rasgos = LeerRasgos(perro.Traits);
+
+                    //Con cual de las mascotas del cliente se parece mas
+                    var masParecida = propias.Select(x => new { x.Mascota, EnComun = PetTraits.EnComun(x.Rasgos, rasgos) }).
+                                              OrderByDescending(x => x.EnComun.Count).
+                                              First();
+                    if (masParecida.EnComun.Count < PetTraits.MinimoEnComun)
+                    {
+                        continue;
+                    }
+
+                    coincidencias++;
+                    if (mejor == null || masParecida.EnComun.Count > mejor.SharedCount)
+                    {
+                        mejor = new PetMatchDto
+                        {
+                            YourPetId = masParecida.Mascota.Id,
+                            YourPetName = masParecida.Mascota.Name,
+                            PetName = perro.Name,
+                            BreedName = perro.Breed != null ? perro.Breed.Name : null,
+                            SizeName = perro.Size != null ? perro.Size.Name : null,
+                            SharedCount = masParecida.EnComun.Count,
+                            SharedTraits = CodigosActivos().Where(x => masParecida.EnComun.Contains(x)).ToList()
+                        };
+                    }
+                }
+
+                cupo.MatchingPets = coincidencias;
+                cupo.MatchScore = mejor != null ? mejor.SharedCount : 0;
+                cupo.SharedTraits = mejor != null ? mejor.SharedTraits : new List<String>();
+                cupo.BestMatch = mejor;
+            }
+        }
+
+
+        //Horarios libres del paseador en la fecha, con los perros parecidos que lleva en cada uno (para sugerir los horarios al reservar)
+        public List<AvailableTimeDto> ObtenerCuposConCompatibilidad(Int64 idPaseador, DateTime fecha, List<Int64> idsMascotas)
+        {
+            var cupos = ObtenerCupos(idPaseador, fecha);
+            var mascotas = ObtenerMascotas(idsMascotas);
+            if (mascotas.Count > 0)
+            {
+                AplicarCompatibilidad(idPaseador, fecha, cupos, mascotas);
+            }
+
+            return cupos;
         }
 
         //Verifica la zona de trabajo y los datos de cobro. Devuelve el mensaje de error, o null si esta todo bien.
@@ -363,7 +551,7 @@ namespace WalkyDoggy.Services.Services
                         continue;
                     }
 
-                    cupos.Add(new AvailableTimeDto { Time = horario, FreeSpots = lugaresLibres });
+                    cupos.Add(new AvailableTimeDto { Date = dia.ToString("yyyy-MM-dd"), Time = horario, FreeSpots = lugaresLibres });
                 }
             }
 

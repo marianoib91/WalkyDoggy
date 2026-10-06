@@ -28,7 +28,12 @@ namespace WalkyDoggy.Services.Services
         private readonly IProveedorTokensVendedor proveedorTokens;
         private readonly IRepositorioEntidadBase<Ranking> repositorioValoraciones;
         private readonly IServicioNotificaciones servicioNotificaciones;
+        private readonly IServicioMensajes servicioMensajes;
+        private readonly IServicioResenasMascotas servicioResenasMascotas;
         #endregion
+
+        //El cliente puede iniciar el paseo desde unas horas antes del horario agendado, porque el horario real de retiro se acuerda por el chat
+        public const Int32 HorasDeAnticipoParaIniciar = 2;
 
         public ServicioPaseos(IRepositorioEntidadBase<Error> repositorioErrores,
                                 IUnidadDeTrabajo unidadDeTrabajo,
@@ -40,7 +45,9 @@ namespace WalkyDoggy.Services.Services
                                 IServicioPaseadores servicioPaseadores,
                                 IProveedorTokensVendedor proveedorTokens,
                                 IRepositorioEntidadBase<Ranking> repositorioValoraciones,
-                                IServicioNotificaciones servicioNotificaciones) :
+                                IServicioNotificaciones servicioNotificaciones,
+                                IServicioMensajes servicioMensajes,
+                                IServicioResenasMascotas servicioResenasMascotas) :
             base(repositorioErrores, unidadDeTrabajo, repositorioPaseos)
         {
             this.repositorioPaseos = repositorioPaseos;
@@ -52,6 +59,8 @@ namespace WalkyDoggy.Services.Services
             this.proveedorTokens = proveedorTokens;
             this.repositorioValoraciones = repositorioValoraciones;
             this.servicioNotificaciones = servicioNotificaciones;
+            this.servicioMensajes = servicioMensajes;
+            this.servicioResenasMascotas = servicioResenasMascotas;
         }
 
         public List<WalkDto> Registrar(WalkRequestCriteria criterioSolicitudPaseo, out String error)
@@ -270,7 +279,7 @@ namespace WalkyDoggy.Services.Services
                                      (x.ReceivedAt == null || x.ReceivedAt >= limiteRecibidos)))).
                         ToList();
 
-            return ArmarReservas(paseos).
+            return ArmarReservas(paseos, "Walker").
                    OrderBy(x => x.Date).
                    ThenBy(x => x.TimeFrom).
                    ToList();
@@ -284,7 +293,7 @@ namespace WalkyDoggy.Services.Services
                         Where(x => x.Pet.CustomerId == idCliente).
                         ToList();
 
-            return ArmarReservas(paseos).
+            return ArmarReservas(paseos, "Customer").
                    OrderByDescending(x => x.Date).
                    ThenByDescending(x => x.TimeFrom).
                    ToList();
@@ -314,6 +323,11 @@ namespace WalkyDoggy.Services.Services
             this.unidadDeTrabajo.GuardarCambios();
 
             this.servicioNotificaciones.ReservaConfirmada(paseos);
+
+            //Con la confirmacion se habilita el chat: el primer mensaje invita a ponerse de acuerdo en el horario de retiro
+            this.servicioMensajes.AgregarDelSistema(criterioAccionReserva.BookingKey,
+                "El paseador confirmó la reserva para el " + paseos[0].Date.ToString("dd/MM/yyyy") + " a las " + paseos[0].TimeFrom +
+                ". Si lleva a más de un perro, el horario en que pasa a buscar a tu mascota puede ajustarse: pónganse de acuerdo por acá.");
             return true;
         }
 
@@ -346,7 +360,8 @@ namespace WalkyDoggy.Services.Services
                 return false;
             }
 
-            if (InicioDe(paseos[0]) <= DateTime.Now)
+            //El paseo empieza cuando el paseador lo inicia (no a la hora agendada): hasta entonces se puede cancelar
+            if (paseos.Any(x => x.StartedAt.HasValue))
             {
                 error = "El paseo ya comenzó y no se puede cancelar.";
                 return false;
@@ -356,6 +371,75 @@ namespace WalkyDoggy.Services.Services
             this.unidadDeTrabajo.GuardarCambios();
 
             this.servicioNotificaciones.ReservaCancelada(paseos, actor);
+            return true;
+        }
+
+        //El paseo empieza cuando lo inicia el CLIENTE, al momento en que el paseador llega a buscar a la mascota: asi el horario real de inicio
+        //no depende de que el paseador diga que ya llego. Se puede desde HorasDeAnticipoParaIniciar horas antes del horario agendado
+        //(el horario exacto de retiro se acuerda por el chat).
+        //El paseador NO puede iniciarlo, ni siquiera pasado un tiempo: asi no puede dar por empezado un paseo al que nunca fue a buscar a la mascota.
+        public Boolean Iniciar(BookingActionCriteria criterioAccionReserva, out String error)
+        {
+            error = null;
+            VencerPaseosPendientes();
+
+            var actor = criterioAccionReserva.Actor;
+            if (actor != WalkCancelledBy.Customer)
+            {
+                error = "El paseo lo inicia el cliente cuando llegás a buscar a la mascota.";
+                return false;
+            }
+
+            var paseos = BuscarReserva(criterioAccionReserva.BookingKey);
+            var esDelActor = paseos.Count > 0 &&
+                            (actor == WalkCancelledBy.Walker
+                                ? paseos[0].WalkerId == criterioAccionReserva.ActorId
+                                : actor == WalkCancelledBy.Customer && paseos[0].Pet.CustomerId == criterioAccionReserva.ActorId);
+            if (!esDelActor)
+            {
+                error = "La reserva no existe.";
+                return false;
+            }
+
+            if (paseos.Any(x => x.Status != WalkStatus.Confirmed))
+            {
+                error = paseos.All(x => x.Status == WalkStatus.Cancelled)
+                    ? "Esta reserva fue cancelada."
+                    : "El paseador todavía no confirmó la reserva.";
+                return false;
+            }
+
+            if (paseos.Any(x => x.FinishedAt.HasValue))
+            {
+                error = "Este paseo ya estaba finalizado.";
+                return false;
+            }
+
+            if (paseos.Any(x => x.StartedAt.HasValue))
+            {
+                error = "Este paseo ya estaba iniciado.";
+                return false;
+            }
+
+            var ahora = DateTime.Now;
+            var horaAgendada = InicioDe(paseos[0]);
+
+            var habilitadoDesde = horaAgendada.AddHours(-HorasDeAnticipoParaIniciar);
+            if (ahora < habilitadoDesde)
+            {
+                error = "Todavía es muy temprano para iniciar este paseo: podés hacerlo desde las " + habilitadoDesde.ToString("HH:mm") +
+                        (habilitadoDesde.Date != ahora.Date ? " del " + habilitadoDesde.ToString("dd/MM") : String.Empty) + ".";
+                return false;
+            }
+
+            paseos.ForEach(x =>
+            {
+                x.StartedAt = ahora;
+                x.StartedBy = actor;
+            });
+            this.unidadDeTrabajo.GuardarCambios();
+
+            this.servicioMensajes.AgregarDelSistema(criterioAccionReserva.BookingKey, "El cliente inició el paseo a las " + ahora.ToString("HH:mm") + ".");
             return true;
         }
 
@@ -386,14 +470,19 @@ namespace WalkyDoggy.Services.Services
                 return false;
             }
 
-            if (InicioDe(paseos[0]) > DateTime.Now)
+            if (paseos.Any(x => !x.StartedAt.HasValue))
             {
-                error = "El paseo todavía no empezó.";
+                error = "Primero tenés que iniciar el paseo cuando pasás a buscar a la mascota.";
                 return false;
             }
 
-            paseos.ForEach(x => x.FinishedAt = DateTime.Now);
+            var ahora = DateTime.Now;
+            paseos.ForEach(x => x.FinishedAt = ahora);
             this.unidadDeTrabajo.GuardarCambios();
+
+            var duracion = ahora - paseos[0].StartedAt.Value;
+            this.servicioMensajes.AgregarDelSistema(criterioAccionReserva.BookingKey,
+                "El paseador finalizó el paseo a las " + ahora.ToString("HH:mm") + " (duró " + (int)duracion.TotalMinutes + " min).");
             return true;
         }
 
@@ -488,7 +577,8 @@ namespace WalkyDoggy.Services.Services
                                                      x => x.Walker, x => x.Price);
         }
 
-        private List<BookingDto> ArmarReservas(List<Walk> paseos)
+        //rol: quien mira las reservas ("Walker" o "Customer"), para contar los mensajes del chat que le faltan leer
+        private List<BookingDto> ArmarReservas(List<Walk> paseos, String rol)
         {
             //Valoraciones ya hechas por el cliente para estas reservas
             var clavesReserva = paseos.Select(ClaveDeReserva).Distinct().ToList();
@@ -496,6 +586,16 @@ namespace WalkyDoggy.Services.Services
                                                      Where(x => clavesReserva.Contains(x.BookingKey)).
                                                      ToList().
                                                      ToDictionary(x => x.BookingKey, x => (Int32)Math.Round(x.Score));
+            var resumenesDeChat = this.servicioMensajes.ObtenerResumenes(clavesReserva, rol);
+
+            //El paseador ve las reseñas que tiene cada mascota (para decidir si lleva el paseo) y cuales ya reseño el
+            var esPaseador = rol == "Walker";
+            var resumenesDeMascotas = esPaseador
+                ? this.servicioResenasMascotas.ObtenerResumenes(paseos.Select(x => x.PetId))
+                : new Dictionary<Int64, PetReviewSummaryDto>();
+            var paseosResenados = esPaseador && paseos.Count > 0
+                ? this.servicioResenasMascotas.ObtenerPaseosResenados(paseos.Select(x => x.Id), paseos[0].WalkerId)
+                : new HashSet<Int64>();
 
             return paseos.GroupBy(ClaveDeReserva).Select(group =>
             {
@@ -531,6 +631,8 @@ namespace WalkyDoggy.Services.Services
                     CancelledBy = primero.CancelledBy,
                     PaymentMethod = primero.PaymentMethod,
                     PaymentStatus = primero.PaymentStatus,
+                    StartedAt = primero.StartedAt,
+                    StartedBy = primero.StartedBy,
                     FinishedAt = primero.FinishedAt,
                     PaidAt = primero.PaidAt,
                     ReceivedAt = primero.ReceivedAt,
@@ -541,7 +643,18 @@ namespace WalkyDoggy.Services.Services
                     Longitude = usaDireccionDeRetiro ? primero.PickupLongitude : cliente.Longitude,
                     PricePerPet = precioPorMascota,
                     Total = precioPorMascota * group.Count(),
-                    Pets = group.Select(x => new BookingPetDto { Id = x.Pet.Id, Name = x.Pet.Name, ProfileImage = x.Pet.ProfileImage }).ToList()
+                    Pets = group.Select(x => new BookingPetDto
+                    {
+                        Id = x.Pet.Id,
+                        Name = x.Pet.Name,
+                        ProfileImage = x.Pet.ProfileImage,
+                        ReviewCount = resumenesDeMascotas.ContainsKey(x.PetId) ? resumenesDeMascotas[x.PetId].Count : 0,
+                        ReviewAverage = resumenesDeMascotas.ContainsKey(x.PetId) ? resumenesDeMascotas[x.PetId].Average : null,
+                        NegativeReviews = resumenesDeMascotas.ContainsKey(x.PetId) ? resumenesDeMascotas[x.PetId].NegativeCount : 0,
+                        ReviewedByWalker = paseosResenados.Contains(x.Id)
+                    }).ToList(),
+                    UnreadMessages = resumenesDeChat.ContainsKey(group.Key) ? resumenesDeChat[group.Key].NoLeidos : 0,
+                    MessageCount = resumenesDeChat.ContainsKey(group.Key) ? resumenesDeChat[group.Key].Total : 0
                 };
             }).ToList();
         }

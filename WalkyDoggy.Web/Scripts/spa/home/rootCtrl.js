@@ -48,7 +48,15 @@
             });
         }
 
-        $scope.abrirModalRegistro = function () {
+        $scope.abrirModalCambioContrasena = function () {
+            $modal.open({
+                templateUrl: 'scripts/spa/account/changePasswordModal.html',
+                controller: 'cambiarContrasenaModalCtrl',
+                size: 'sm'
+            }).result.then(function () { }, function () { });
+        }
+
+        $scope.abrirModalRegistro =function () {
             $modal.open({
                 templateUrl: 'scripts/spa/register/register-modal.html',
                 controller: 'registroModalCtrl',
@@ -59,6 +67,10 @@
         }
 
         $scope.userData.mostrarDatosUsuario();
+
+        //La barra superior (botones de sesion y menu) se actualiza al llegar a cualquier pantalla,
+        //asi no depende de que la pantalla de destino del login se acuerde de hacerlo
+        $scope.$on('$routeChangeSuccess', mostrarDatosUsuario);
     }
 
 })(angular.module('walkyDoggy'));

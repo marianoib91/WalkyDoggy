@@ -1,0 +1,31 @@
+<div class="wd-chat">
+    <div class="wd-chat-header">
+        <div class="wd-chat-title-block">
+            <h2 class="wd-chat-title">{{datos.titulo}}</h2>
+            <p class="wd-chat-subtitle">{{datos.subtitulo}}</p>
+        </div>
+        <button type="button" class="wd-chat-close" ng-click="cerrar()" aria-label="Cerrar el chat"><i class="fa fa-times" aria-hidden="true"></i></button>
+    </div>
+
+    <div class="wd-chat-body" id="wd-chat-body" aria-live="polite">
+        <p class="wd-field-hint wd-chat-empty" ng-if="cargado && mensajes.length == 0 && !errorDeCarga">Todavía no hay mensajes. Escribí el primero.</p>
+        <p class="wd-field-hint wd-chat-empty" ng-if="errorDeCarga">{{errorDeCarga}}</p>
+
+        <div ng-repeat="mensaje in mensajes">
+            <div class="wd-chat-day" ng-if="cambiaElDia($index)">{{mensaje.sentAt | date:'dd/MM/yyyy'}}</div>
+            <div class="wd-chat-msg" ng-class="claseDe(mensaje)">
+                <div class="wd-chat-bubble">{{mensaje.text}}</div>
+                <div class="wd-chat-meta">
+                    {{mensaje.sentAt | date:'HH:mm'}}<span ng-if="esMio(mensaje)"> · {{mensaje.read ? 'visto' : 'enviado'}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form class="wd-chat-form" ng-submit="enviar()" ng-if="puedeEscribir">
+        <textarea class="form-control wd-chat-input" rows="2" maxlength="500" ng-model="nuevo.texto" ng-keydown="alTeclear($event)"
+                  placeholder="Escribí un mensaje (por ejemplo, el horario en que podés pasar)" aria-label="Mensaje"></textarea>
+        <button type="submit" class="btn btn-primary" ng-disabled="enviando || !nuevo.texto.trim()">Enviar</button>
+    </form>
+    <p class="wd-field-hint wd-chat-closed" ng-if="cargado && !puedeEscribir && !errorDeCarga">Este chat está cerrado: solo podés leer los mensajes.</p>
+</div>

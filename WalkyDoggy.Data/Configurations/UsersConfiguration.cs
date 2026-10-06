@@ -9,6 +9,7 @@ namespace WalkyDoggy.Data.Configurations
             Property(u => u.Email).IsRequired().HasMaxLength(200);
             Property(u => u.HashedPassword).IsRequired().HasMaxLength(200);
             Property(u => u.Salt).IsRequired().HasMaxLength(200);
+            Property(u => u.BlockReason).HasMaxLength(500);
         }
     }
 }

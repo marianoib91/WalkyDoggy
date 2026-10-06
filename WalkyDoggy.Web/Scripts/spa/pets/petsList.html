@@ -17,6 +17,12 @@
                 <span class="wd-chip">Tamaño: {{mascota.sizeName}}</span>
                 <span class="wd-chip">{{mascota.age}} años</span>
             </div>
+            <div class="wd-chips" ng-if="rasgosDe(mascota).length > 0">
+                <span class="wd-chip wd-chip-trait" ng-repeat="rasgo in rasgosDe(mascota)">{{rasgo}}</span>
+            </div>
+            <p class="wd-field-hint" ng-if="rasgosDe(mascota).length == 0">
+                Todavía no marcaste cómo es {{mascota.name}}. <a href="" ng-click="editar(mascota.id)">Completalo</a> para que te sugiramos paseadores con perros parecidos.
+            </p>
             <p class="wd-pet-desc">{{mascota.description}}</p>
             <div class="wd-card-actions">
                 <button type="button" class="btn btn-default" ng-click="editar(mascota.id)">
@@ -34,4 +40,6 @@
             Agregar mascota
         </button>
     </div>
+
+    <wd-publicidad audience="Customers" latitude="cliente.latitude" longitude="cliente.longitude"></wd-publicidad>
 </div>
